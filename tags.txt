@@ -1,0 +1,427 @@
+Artillery
+Brawler
+Defense
+Fighting
+First-Person Shooter
+Platformer
+Rail Shooter
+Run 'n' Gun
+Shoot 'Em Up
+Shooter
+Shooting Gallery
+Time-Attack
+Vertically-Scrolling Shooter 
+Choose Your Own Adventure
+Dating Sim
+Escape the Room
+Interactive Fiction
+Metroidvania
+Point and Click
+Roguelike
+RPG
+Visual Novel
+Breakout
+Catching
+Clicker
+Cross the Road
+Dodge
+Endless Jumper
+Idle
+Launch
+Pellet Maze
+Pinball
+Pong
+Rhythm
+Rock-Paper-Scissors
+Runner
+Score-Attack
+Snake
+Stacking
+Tetris
+Timing
+Toss
+Whack-A-Mole
+Variety
+Character Creator
+Coloring
+Community Content
+Dress Up
+Level Editor
+Make Up
+Object Creator
+Sandbox
+Scene Creator
+Computer Science
+First Aid
+Geography
+Geometry
+History
+Language
+Math
+Quiz
+Science
+Tutorial
+7DRL Challenge
+BenBonk Game Jam
+Ludum Dare
+Mini Jam
+NG Game Jam
+Nokia 3310 Jam
+Stencyl Jam
+The Boob Jam
+xkcd Game Jam
+Connect the Dots
+Find
+Jigsaw
+Lemmings
+Logic
+Marble Popper
+Matching
+Match-3
+Maze
+Memory
+Minesweeper
+Peg Solitaire
+Pipe Connecter
+Sequential
+Sliding
+Sokoban
+Stealth
+Sudoku
+Vertical Drop
+Word
+Card
+Cooking
+Driving
+Fishing
+Gambling
+Mahjong
+Parking
+Pet
+Solitaire
+Surgery
+Tabletop
+Time Management
+Tycoon
+Virtual World
+Walking Simulator
+American Football
+Archery
+Athletics
+Basketball
+Billiards
+Bowling
+Cricket
+Curling
+Cycling
+Golf
+Hockey
+Motocross
+Racing 
+Checkers
+Chess
+Lane-Based Strategy
+Node-Based Strategy
+Real-Time Strategy
+Tower Defense
+Turn-Based
+Comic
+Demo
+Demonstration
+Ecard
+Experimental
+Incomplete
+Interactive
+Kissing
+Microsite
+Personality Quiz
+Print Studio
+Slacking
+Soundboard
+Toy
+3D
+Advergame
+Arctic
+COVID-19
+Daily
+Dinosaur
+Fantasy
+Game Show
+Historical
+Horror
+Intentionally Infuriating
+Joke
+LGBTQ
+Military
+Music
+Physics
+Politics
+Ragdoll
+Religious
+Science Fiction
+Side-Scrolling
+Space
+Stick
+Story-Driven
+Unusual Input
+Webcomic
+Western
+WWII
+Zombie
+3D Rendered
+Anime
+ASCII
+Cartoon
+Live Action
+Pixel
+Christmas
+Halloween
+Holiday
+Jumpscare
+Seizure Warning
+Volume Warning
+Action
+Advertisement
+Comedy
+Drama
+Experimental
+Informative
+Loading Screen
+Loop
+Music Video
+Other
+Screensaver
+Spam
+Aaahh
+Real Monsters
+Ace Attorney
+Adventure Time
+Aladdin
+All That
+American Dragon
+Angry Birds
+Animal Crossing
+Arthur
+Avatar the Last Airbender
+Babar
+Bad Kitty
+Barbie
+Barnyard
+Batman
+Beano
+Beauty and the Beast
+Beeserker
+Ben 10
+Between the Lions
+Beyblade
+Big Brother
+Big Nate
+Bin Weevils
+Bionicle
+Blue's Clues
+Bob the Builder
+Bratz
+Bunnicula
+Bunnytown
+Captain Underpants
+Cars
+Castlevania
+CatDog
+Charlie and Lola
+Cheetos
+Chowder
+Chuck E
+Cheese
+Chuggington
+Cinderella
+Clifford the Big Red Dog
+Cocoa Puffs
+Copa Jetix
+Crash Bandicoot
+Curious George
+Cyberchase
+Daniel Tiger's Neighborhood
+Danny Phantom
+Despicable Me
+Dexter's Laboratory
+Diary of a Wimpy Kid
+Digimon
+Dinosaur Train
+Doctor Who
+Donkey Kong
+Dora the Explorer
+Dragon Ball
+DragonflyTV
+Duck Hunt
+Ed, Edd n Eddy
+Elinor Wonders Why
+Family Guy
+Fanboy 
+Chum Chum
+Felix the Cat
+Fetch
+with Ruff Ruffman
+Final Fantasy
+Five Nights at Freddy's
+Fortnite
+Franny's Feet
+Frozen
+Garfield
+Garoto Emoticon
+G.I Joe
+Google Doodle
+Grand Theft Auto
+Gravity Falls
+Green Lantern
+Half-Life
+Handy Manny
+Hannah Montana
+Harry Potter
+Hello Kitty
+Hot Wheels
+Homestuck
+Imagination Movers
+Imaginext
+It's My Life
+Jake and the Never Land Pirates
+Jimmy Neutron
+Johnny Bravo
+Johnny Test
+Jungle Junction
+Justice League
+Kamen Rider
+King of the Hill
+Kirby
+Lady and the Tramp
+Laugh 
+Learn
+League of Legends
+LEGO
+Life Savers
+Little Charmers
+Little Einsteins
+Little People
+Littlest Pet Shop
+Lloyd in Space
+Looney Tunes
+M&M's
+Madagascar
+Mao Mao
+Mario Bros
+Martha Speaks
+Maya 
+Miguel
+Mega Man
+Metal Gear
+Metal Slug
+Metroid
+Mickey Mouse Clubhouse
+Minecraft
+Miraculous Ladybug
+Mister Rogers' Neighborhood
+Monopoly
+Monster High
+Mortal Kombat
+My Little Pony
+Naruto
+Nesquik
+Octonauts
+Ooh, Aah & You
+Pac-Man
+Passatempo
+Peanuts
+Peep and the Big Wide World
+Phineas and Ferb
+Pixel Chix
+Pocoyo
+Pokémon
+POM-BEAR
+Popeye
+Power Rangers
+Pou
+Regular Show
+Rocky and Bullwinkle
+Rudra
+Rugrats
+Sagwa the Chinese Siamese Cat
+Samurai Jack
+Scooby-Doo
+Shaun the Sheep
+Shopkins
+Shrek
+Sid the Science Kid
+Snow White
+Sonic the Hedgehog
+South Park
+Special Agent Oso
+Spider-Man
+Splatalot
+SpongeBob SquarePants
+Spyro the Dragon
+Stanley
+Sweet Bro and Hella Jeff
+Star Wars
+Street Fighter
+Sue
+Super Why
+Talking Tom
+Tangled
+Teen Titans
+Teenage Mutant Ninja Turtles
+The Amazing World of Gumball
+The Avengers
+The Backyardigans
+The Cat in the Hat
+The Chronicles of Narnia
+The Fairly OddParents
+The Flintstones
+The Legend of Zelda
+The Little Mermaid
+The Lord of the Rings
+The Loud House
+The Muppets
+The Mysteries of Life With Tim 
+Moby
+The Powerpuff Girls
+The Simpsons
+The Smurfs
+ThunderCats
+Tom and Jerry
+Totally Spies
+Touhou Project
+Toy Story
+Transformers
+Turma da Mônica
+Têtes à Claques
+Undertale
+Veggietales
+VOCALOID
+WALL-E
+Wild Kratts
+Winx Club
+Winnie the Pooh
+Wizards of Waverly Place
+Wonka
+Woody Woodpecker
+WordGirl
+Wreck-It Ralph
+X-Men
+Zootopia
+Bitsy
+Construct
+Emulated
+FlashPunk
+Flixel
+FutureSplash
+GameMaker: Studio
+GB Studio
+Idle Game Maker
+Phaser
+Pico8
+PixiJS
+PuzzleScript
+Scratch
+Stencyl
+Tic-80
+Twine
+Unity WebGL
