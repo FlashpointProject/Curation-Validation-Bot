@@ -66,7 +66,7 @@ async def on_message(message: discord.Message):
                         reply += "Make sure you didn't put your description in the notes section.\n"
                     if "https" in props["Launch Command"]:
                         reply += "https in launch command. All launch commands must use http instead of https.\n"
-                    mandatory_props: list[tuple[str, bool]] = [title, languages, source, launch_command, tag, status]
+                    mandatory_props: list[tuple[str, bool]] = [title, languages, source, launch_command, tag, status, application_path]
                     # optional_props: list[tuple[str, bool]] = [developer, release_date, tag, description]
                     tags: List[str] = props["Tags"].split(";")
                     tags: List[str] = [x.strip(' ') for x in tags]
