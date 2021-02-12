@@ -1,5 +1,6 @@
 import os
 import shutil
+import json
 from typing import List
 
 import py7zr
@@ -50,7 +51,7 @@ async def on_message(message: discord.Message):
                         props: dict = yaml.safe_load(stream)
                     except yaml.YAMLError:  # If this is being called, it's a meta .txt
                         break_index: int = 0
-                        while break_index is not -1:
+                        while break_index != -1:
                             props, break_index = parse_lines_until_multiline(stream.readlines(), props,
                                                                              break_index)
                             props, break_index = parse_multiline(stream.readlines(), props, break_index)
@@ -58,7 +59,36 @@ async def on_message(message: discord.Message):
                     title: tuple[str, bool] = ("Title", none_checker(props["Title"]))
                     # developer: tuple[str, bool] = ("Developer", none_checker(props["Developer"]))
                     # release_date_format: tuple[str, bool] = ("Release Date", none_checker(props["Release Date"]))
-                    languages: tuple[str, bool] = ("Languages", none_checker(props["Languages"]))
+                    language_properties: tuple[str, bool] = ("Languages", none_checker(props["Languages"]))
+                    if language_properties[1]:
+                        with open("language-codes.json") as f:
+                            list_of_language_codes: list[dict] = json.load(f)
+                            print(type(list_of_language_codes[0]))
+                            language_str: str = props["Languages"]
+                            languages = language_str.split(";")
+                            languages = [x.strip(' ') for x in languages]
+                            language_codes = []
+                            for x in list_of_language_codes:
+                                language_codes.append(x["alpha2"])
+                            for language in languages:
+                                if language not in language_codes:
+                                    if language is "sp":
+                                        reply += "The correct ISO 639-1 language code for Spanish is es, not sp.\n"
+                                    elif language is "ge":
+                                        reply += "The correct ISO 639-1 language code for German is de, not ge.\n"
+                                    elif language is "jp":
+                                        reply += "The correct ISO 639-1 language code for Japanese is ja, not jp.\n"
+                                    elif language is "kr":
+                                        reply += "The correct ISO 639-1 language code for Korean is ko, not kr.\n"
+                                    elif language is "ch":
+                                        reply += "The correct ISO 639-1 language code for Chinese is zh, not ch.\n"
+                                    elif language is "iw":
+                                        reply += "The correct ISO 639-1 language code for Hebrew is he, not iw.\n"
+                                    elif language is "cz":
+                                        reply += "The correct ISO 639-1 language code for Czech is cs, not cz.\n"
+                                    elif language is "pe":
+                                        reply += "The correct ISO 639-1 language code for Farsi is fa, not pe.\n"
+                                    reply += language + " is not a valid ISO 639-1 language code.\n"
                     tag: tuple[str, bool] = ("Tags", none_checker(props["Tags"]))
                     source: tuple[str, bool] = ("Source", none_checker(props["Source"]))
                     status: tuple[str, bool] = ("Status", none_checker(props["Status"]))
@@ -70,7 +100,8 @@ async def on_message(message: discord.Message):
                         reply += "Make sure you didn't put your description in the notes section.\n"
                     if "https" in props["Launch Command"]:
                         reply += "https in launch command. All launch commands must use http instead of https.\n"
-                    mandatory_props: list[tuple[str, bool]] = [title, languages, source, launch_command, tag, status,
+                    mandatory_props: list[tuple[str, bool]] = [title, language_properties, source, launch_command, tag,
+                                                               status,
                                                                application_path]
                     # optional_props: list[tuple[str, bool]] = [developer, release_date, tag, description]
                     tags: List[str] = props["Tags"].split(";")
