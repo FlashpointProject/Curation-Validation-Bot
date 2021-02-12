@@ -1,6 +1,7 @@
 import os
 import shutil
 import json
+import re
 from typing import List
 
 import py7zr
@@ -58,7 +59,13 @@ async def on_message(message: discord.Message):
                     print(props)
                     title: tuple[str, bool] = ("Title", none_checker(props["Title"]))
                     # developer: tuple[str, bool] = ("Developer", none_checker(props["Developer"]))
-                    # release_date_format: tuple[str, bool] = ("Release Date", none_checker(props["Release Date"]))
+                    release_date: tuple[str, bool] = ("Release Date", none_checker(props["Release Date"]))
+                    if release_date[1]:
+                        date_string = props["Release Date"]
+                        regex = re.compile("[A-Za-z]")
+                        if regex.match(date_string):
+                            reply += "Release date contains letters. Release dates should always be in YYYY-MM-DD " \
+                                     "format.\n"
                     language_properties: tuple[str, bool] = ("Languages", none_checker(props["Languages"]))
                     if language_properties[1]:
                         with open("language-codes.json") as f:
@@ -88,7 +95,8 @@ async def on_message(message: discord.Message):
                                         reply += "The correct ISO 639-1 language code for Czech is cs, not cz.\n"
                                     elif language is "pe":
                                         reply += "The correct ISO 639-1 language code for Farsi is fa, not pe.\n"
-                                    reply += language + " is not a valid ISO 639-1 language code.\n"
+                                    else:
+                                        reply += language + " is not a valid ISO 639-1 language code.\n"
                     tag: tuple[str, bool] = ("Tags", none_checker(props["Tags"]))
                     source: tuple[str, bool] = ("Source", none_checker(props["Source"]))
                     status: tuple[str, bool] = ("Status", none_checker(props["Status"]))
@@ -132,8 +140,8 @@ async def on_message(message: discord.Message):
             if reply:
                 author: discord.Member = message.author
                 reply = author.mention + " Your curation has the following problems:\n" + reply
-                # channel = client.get_channel(curator_lounge)
-                # channel.send(reply)
+                # reply_channel = client.get_channel(curator_lounge)
+                # reply_channel.send(reply)
     except IndexError:
         pass
 
