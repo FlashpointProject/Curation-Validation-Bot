@@ -4,7 +4,7 @@ from typing import List
 
 import py7zr
 import discord
-import ruamel.yaml as yaml
+import yaml
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -39,6 +39,7 @@ async def on_message(message: discord.Message):
             meta = [match for match in names if "meta" in match]
             logo = [match for match in names if "logo" in match]
             ss = [match for match in names if "ss" in match]
+            props: dict = {}
             if not logo:
                 reply += "No logo!\n"
             if not ss:
@@ -47,9 +48,12 @@ async def on_message(message: discord.Message):
                 with open(meta[0]) as stream:
                     try:
                         props: dict = yaml.safe_load(stream)
-                    except yaml.YAMLError:
-                        # text file handling goes here
-                        pass
+                    except yaml.YAMLError:  # If this is being called, it's a meta .txt
+                        break_index: int = 0
+                        while break_index is not -1:
+                            props, break_index = parse_lines_until_multiline(stream.readlines(), props,
+                                                                             break_index)
+                            props, break_index = parse_multiline(stream.readlines(), props, break_index)
                     print(props)
                     title: tuple[str, bool] = ("Title", none_checker(props["Title"]))
                     # developer: tuple[str, bool] = ("Developer", none_checker(props["Developer"]))
@@ -66,7 +70,8 @@ async def on_message(message: discord.Message):
                         reply += "Make sure you didn't put your description in the notes section.\n"
                     if "https" in props["Launch Command"]:
                         reply += "https in launch command. All launch commands must use http instead of https.\n"
-                    mandatory_props: list[tuple[str, bool]] = [title, languages, source, launch_command, tag, status, application_path]
+                    mandatory_props: list[tuple[str, bool]] = [title, languages, source, launch_command, tag, status,
+                                                               application_path]
                     # optional_props: list[tuple[str, bool]] = [developer, release_date, tag, description]
                     tags: List[str] = props["Tags"].split(";")
                     tags: List[str] = [x.strip(' ') for x in tags]
@@ -100,6 +105,39 @@ async def on_message(message: discord.Message):
                 # channel.send(reply)
     except IndexError:
         pass
+
+
+def parse_lines_until_multiline(lines: List[str], d: dict, starting_number: int):
+    break_number: int = -1
+    for idx, line in enumerate(lines[starting_number:]):
+        if '|' not in line:
+            split: List[str] = line.split(":")
+            split: List[str] = [x.strip(' ') for x in split]
+            d.update({split[0]: split[1]})
+        else:
+            break_number = idx
+            break
+    return d, break_number
+
+
+def parse_multiline(lines: List[str], d: dict, starting_number: int):
+    break_number = -1
+    key: str = ""
+    val: str = ""
+    for idx, line in enumerate(lines[starting_number:]):
+        if idx is starting_number:
+            split = line.split(':')
+            split = [x.strip(' ') for x in split]
+            key = split[0]
+        else:
+            if line.startswith('\t'):
+                line = line.strip(" \t")
+                val += line
+            else:
+                break_number = idx
+                break
+    d.update({key: val})
+    return d, break_number
 
 
 def none_checker(prop: str):
