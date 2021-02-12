@@ -66,7 +66,6 @@ async def on_message(message: discord.Message):
                                 props, break_index = parse_lines_until_multiline(stream.readlines(), props,
                                                                                  break_index)
                                 props, break_index = parse_multiline(stream.readlines(), props, break_index)
-                        print(props)
                         title: tuple[str, bool] = ("Title", none_checker(props["Title"]))
                         # developer: tuple[str, bool] = ("Developer", none_checker(props["Developer"]))
                         release_date: tuple[str, bool] = ("Release Date", none_checker(props["Release Date"]))
@@ -80,7 +79,6 @@ async def on_message(message: discord.Message):
                         if language_properties[1]:
                             with open("language-codes.json") as f:
                                 list_of_language_codes: list[dict] = json.load(f)
-                                print(type(list_of_language_codes[0]))
                                 language_str: str = props["Languages"]
                                 languages = language_str.split(";")
                                 languages = [x.strip(' ') for x in languages]
