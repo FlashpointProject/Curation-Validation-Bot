@@ -7,6 +7,7 @@ import py7zr
 from logger import getLogger
 import os
 import tempfile
+import zipfile
 
 l = getLogger("main")
 
@@ -16,28 +17,58 @@ def validate_curation(filename: str) -> Tuple[List, List]:
     warnings: List = []
 
     # process archive
-    archive = py7zr.SevenZipFile(filename, mode='r')
-    l.debug(f"unpacking archive '{filename}'...")
+    filenames: List = []
 
-    uncompressed_size = archive.archiveinfo().uncompressed
-    if uncompressed_size > 1000 * 1000 * 1000:
-        warnings.append(f"The archive is too large to validate (`{uncompressed_size // 1000000}MB/1000MB`).")
-        archive.close()
-        return errors, warnings
+    max_uncompressed_size = 1000 * 1000 * 1000
 
-    filenames = archive.getnames()
-    base_path = tempfile.mkdtemp(prefix="curation_validator") + "/"
-    archive.extractall(path=base_path)
-    archive.close()
+    if filename.endswith(".7z"):
+        try:
+            l.debug(f"reading archive '{filename}'...")
+            archive = py7zr.SevenZipFile(filename, mode='r')
+
+            uncompressed_size = archive.archiveinfo().uncompressed
+            if uncompressed_size > max_uncompressed_size:
+                warnings.append(
+                    f"The archive is too large to validate (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
+                archive.close()
+                return errors, warnings
+
+            filenames = archive.getnames()
+            base_path = tempfile.mkdtemp(prefix="curation_validator") + "/"
+            archive.extractall(path=base_path)
+            archive.close()
+        except Exception as e:
+            l.error(f"there was an error while reading file '{filename}': {e}")
+    elif filename.endswith(".zip"):
+        try:
+            l.debug(f"reading archive '{filename}'...")
+            archive = zipfile.ZipFile(filename, mode='r')
+
+            uncompressed_size = sum([zinfo.file_size for zinfo in archive.filelist])
+            if uncompressed_size > max_uncompressed_size:
+                warnings.append(
+                    f"The archive is too large to validate (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
+                archive.close()
+                return errors, warnings
+
+            filenames = archive.namelist()
+            base_path = tempfile.mkdtemp(prefix="curation_validator") + "/"
+            archive.extractall(path=base_path)
+            archive.close()
+        except Exception as e:
+            l.error(f"there was an error while reading file '{filename}': {e}")
+    else:
+        l.warn(f"file type of file '{filename}' not supported")
+
+    l.debug(filenames)
 
     l.debug(f"validating archive data for '{filename}'...")
     # check files
-    uuid = "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"
-    uuid_folder_regex = re.compile(rf"^{uuid}$")
-    content_folder_regex = re.compile(rf"^{uuid}/content$")
-    meta_regex = re.compile(rf"^{uuid}/meta\.(yaml|yml|txt)$")
-    logo_regex = re.compile(rf"^{uuid}/logo\.(png)$")
-    ss_regex = re.compile(rf"^{uuid}/ss\.(png)$")
+    uuid_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/?$")
+    content_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/content/?$")
+    meta_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/meta\.(yaml|yml|txt)$")
+    logo_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.(png)$")
+    ss_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(png)$")
     uuid_folder = [match for match in filenames if uuid_folder_regex.match(match) is not None]
     content_folder = [match for match in filenames if content_folder_regex.match(match) is not None]
     meta = [match for match in filenames if meta_regex.match(match) is not None]

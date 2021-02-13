@@ -41,7 +41,7 @@ async def check_curations(message: discord.Message):
     is_audition = message.channel.id == AUDITIONS_CHANNEL
 
     # TODO disable
-    # `is_curator_lounge = message.channel.id == CURATOR_LOUNGE_CHANNEL
+    # is_curator_lounge = message.channel.id == CURATOR_LOUNGE_CHANNEL
 
     if not (is_flash_game or is_other_game or is_animation or is_audition):  # or is_curator_lounge):
         return
@@ -88,4 +88,5 @@ async def check_curations(message: discord.Message):
         await message.add_reaction('🤖')
 
 
+l.info(f"starting the bot...")
 client.run(TOKEN)
