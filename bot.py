@@ -2,7 +2,7 @@ import os
 import shutil
 import json
 import re
-from typing import List
+from typing import List, Tuple
 
 import py7zr
 import discord
@@ -38,25 +38,41 @@ async def on_message(message: discord.Message):
     is_other_game = message.channel.id == OTHER_GAMES_CHANNEL
     is_animation = message.channel.id == ANIMATIONS_CHANNEL
     is_audition = message.channel.id == AUDITIONS_CHANNEL
-    if is_flash_game or is_other_game or is_animation or is_audition:
+    is_curator_lounge = message.channel.id == CURATOR_LOUNGE_CHANNEL
+    if is_flash_game or is_other_game or is_animation or is_audition or is_curator_lounge:
         try:
             attachment = message.attachments[0]
             filename: str = attachment.filename
             if filename.endswith('7z'):
+                print(f"detected message with attachment '{filename}'")
                 await attachment.save(filename)
                 archive = py7zr.SevenZipFile(filename, mode='r')
                 names = archive.getnames()
                 archive.extractall()
                 archive.close()
-                meta = [match for match in names if "meta" in match]
-                logo = [match for match in names if "logo" in match]
-                ss = [match for match in names if "ss" in match]
+
+                uuid_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
+                meta_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/meta\.(yaml|txt)$")
+                logo_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/logo\.(png|jpg|jpeg)$")
+                ss_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/ss\.(png|jpg|jpeg)$")
+                uuid_folder = [match for match in names if uuid_folder_regex.match(match) is not None]
+                meta = [match for match in names if meta_regex.match(match) is not None]
+                logo = [match for match in names if logo_regex.match(match) is not None]
+                ss = [match for match in names if ss_regex.match(match) is not None]
+
+                error_reply: str  = ""
+                warning_reply: str = ""
+
                 props: dict = {}
+                if not uuid_folder:
+                    reply += "- Root folder format is invalid.\n"
                 if not logo:
-                    reply += "No logo!\n"
+                    reply += "- Logo is either missing or its filename is not correct.\n"
                 if not ss:
-                    reply += "No screenshot!\n"
-                try:
+                    reply += "- Screenshot is either missing or its filename is not correct.\n"
+                if not meta:
+                    reply += "- Missing meta file! Are you curating using Flashpoint Core?\n"
+                else:
                     with open(meta[0]) as stream:
                         try:
                             props: dict = yaml.safe_load(stream)
@@ -71,10 +87,9 @@ async def on_message(message: discord.Message):
                         release_date: tuple[str, bool] = ("Release Date", bool(props["Release Date"]))
                         if release_date[1]:
                             date_string = props["Release Date"]
-                            regex = re.compile("[A-Za-z]")
-                            if regex.match(date_string):
-                                reply += "Release date contains letters. Release dates should always be in YYYY-MM-DD " \
-                                         "format.\n"
+                            regex = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+                            if not regex.match(date_string):
+                                reply += "- Release date is incorrect. Release dates should always be in `YYYY-MM-DD` format.\n"
                         language_properties: tuple[str, bool] = ("Languages", bool(props["Languages"]))
                         if language_properties[1]:
                             with open("language-codes.json") as f:
@@ -88,36 +103,36 @@ async def on_message(message: discord.Message):
                                 for language in languages:
                                     if language not in language_codes:
                                         if language == "sp":
-                                            reply += "The correct ISO 639-1 language code for Spanish is es, not sp.\n"
+                                            reply += "- The correct ISO 639-1 language code for Spanish is `es`, not `sp`.\n"
                                         elif language == "ge":
-                                            reply += "The correct ISO 639-1 language code for German is de, not ge.\n"
+                                            reply += "- The correct ISO 639-1 language code for German is `de`, not `ge`.\n"
                                         elif language == "jp":
-                                            reply += "The correct ISO 639-1 language code for Japanese is ja, not jp.\n"
+                                            reply += "- The correct ISO 639-1 language code for Japanese is `ja`, not `jp`.\n"
                                         elif language == "kr":
-                                            reply += "The correct ISO 639-1 language code for Korean is ko, not kr.\n"
+                                            reply += "- The correct ISO 639-1 language code for Korean is `ko`, not `kr`.\n"
                                         elif language == "ch":
-                                            reply += "The correct ISO 639-1 language code for Chinese is zh, not ch.\n"
+                                            reply += "- The correct ISO 639-1 language code for Chinese is `zh`, not `ch`.\n"
                                         elif language == "iw":
-                                            reply += "The correct ISO 639-1 language code for Hebrew is he, not iw.\n"
+                                            reply += "- The correct ISO 639-1 language code for Hebrew is `he`, not `iw`.\n"
                                         elif language == "cz":
-                                            reply += "The correct ISO 639-1 language code for Czech is cs, not cz.\n"
+                                            reply += "- The correct ISO 639-1 language code for Czech is `cs`, not `cz`.\n"
                                         elif language == "pe":
-                                            reply += "The correct ISO 639-1 language code for Farsi is fa, not pe.\n"
+                                            reply += "- The correct ISO 639-1 language code for Farsi is `fa`, not `pe`.\n"
                                         else:
                                             reply += language + " is not a valid ISO 639-1 language code.\n"
-                        tag: tuple[str, bool] = ("Tags", bool(props["Tags"]))
-                        source: tuple[str, bool] = ("Source", bool(props["Source"]))
-                        status: tuple[str, bool] = ("Status", bool(props["Status"]))
-                        launch_command: tuple[str, bool] = ("Launch Command", bool(props["Launch Command"]))
-                        application_path: tuple[str, bool] = (
+                        tag: Tuple[str, bool] = ("Tags", bool(props["Tags"]))
+                        source: Tuple[str, bool] = ("Source", bool(props["Source"]))
+                        status: Tuple[str, bool] = ("Status", bool(props["Status"]))
+                        launch_command: Tuple[str, bool] = ("Launch Command", bool(props["Launch Command"]))
+                        application_path: Tuple[str, bool] = (
                             "Application Path", bool(props["Application Path"]))
-                        description: tuple[str, bool] = ("Description", bool(props["Original Description"]))
+                        description: Tuple[str, bool] = ("Description", bool(props["Original Description"]))
                         # if description[1] is False and (
                         #         bool(props["Curation Notes"]) or bool(props["Game Notes"])):
                         #     reply += "Make sure you didn't put your description in the notes section.\n"
                         if "https" in props["Launch Command"]:
-                            reply += "https in launch command. All launch commands must use http instead of https.\n"
-                        mandatory_props: list[tuple[str, bool]] = [title, language_properties, source, launch_command,
+                            reply += "- Found `https` in launch command. All launch commands must use `http` instead of `https`.\n"
+                        mandatory_props: List[Tuple[str, bool]] = [title, language_properties, source, launch_command,
                                                                    tag,
                                                                    status,
                                                                    application_path]
@@ -126,17 +141,15 @@ async def on_message(message: discord.Message):
                         tags: List[str] = [x.strip(' ') for x in tags]
                         with open('tags.txt') as file:
                             contents = file.read()
-                            for x in tags:
-                                if x not in contents:
-                                    reply += x + " is not a valid tag.\n"
+                            for tag in tags:
+                                if tag not in contents:
+                                    reply += f"- Tag `{tag}` is not a known tag.\n"
                         if not all(mandatory_props[1]):
-                            for x in mandatory_props:
-                                if x[1] is False:
-                                    reply += x[0] + " is missing.\n"
+                            for prop in mandatory_props:
+                                if prop[1] is False:
+                                    reply += prop[0] + f"- Property `{prop[0]}` is missing.\n"
                         # if not all(optional_props[1]): for x in optional_props: if x[1] is False: reply += x[0] +
                         # "is missing, but not necessary. Add it if you can find it, but it's okay if you can't.\n"
-                except IndexError:
-                    reply += "Missing meta file! Are you curating using Flashpoint Core?\n"
                 os.remove(filename)
                 for x in names:
                     shutil.rmtree(x, True)
@@ -146,7 +159,7 @@ async def on_message(message: discord.Message):
                     except OSError:
                         pass
                 if reply:
-                    await message.add_reaction('❌')
+                    await message.add_reaction('🚫') #❌
                     author: discord.Member = message.author
                     reply = author.mention + " Your curation has the following problems:\n" + reply
                     reply_channel: discord.TextChannel = client.get_channel(CURATOR_LOUNGE_CHANNEL)
@@ -154,6 +167,7 @@ async def on_message(message: discord.Message):
                         reply_channel = client.get_channel(CURATOR_LOUNGE_CHANNEL)
                     elif is_audition:
                         reply_channel = client.get_channel(AUDITION_CHAT_CHANNEL)
+                    print("sending reply '" + reply.replace('\n', ' ') + "'")
                     await reply_channel.send(reply)
                 else:
                     await message.add_reaction('🤖')
