@@ -6,6 +6,7 @@ import yaml
 import py7zr
 from logger import getLogger
 import os
+import tempfile
 
 l = getLogger("main")
 
@@ -14,11 +15,13 @@ def validate_curation(filename: str) -> Tuple[List, List]:
     errors: List = []
     warnings: List = []
 
+
     # process archive
     archive = py7zr.SevenZipFile(filename, mode='r')
     l.debug(f"unpacking archive '{filename}'...")
     filenames = archive.getnames()
-    archive.extractall()  # TODO change extraction destination
+    base_path = tempfile.mkdtemp(prefix="curation_validator") + "/"
+    archive.extractall(path=base_path)
     archive.close()
 
     l.debug(f"validating archive data for '{filename}'...")
@@ -48,7 +51,7 @@ def validate_curation(filename: str) -> Tuple[List, List]:
     if len(content_folder) == 0:
         errors.append("Content folder not found.")
     else:
-        filecount_in_content = sum([len(files) for r, d, files in os.walk(content_folder[0])])
+        filecount_in_content = sum([len(files) for r, d, files in os.walk(base_path + content_folder[0])])
         if filecount_in_content == 0:
             errors.append("No files found in content folder.")
 
@@ -58,7 +61,7 @@ def validate_curation(filename: str) -> Tuple[List, List]:
         errors.append("Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
     else:
         meta_filename = meta[0]
-        with open(meta_filename) as meta_file:
+        with open(base_path + meta_filename) as meta_file:
             if meta_filename.endswith(".yml") or meta_filename.endswith(".yaml"):
                 try:
                     props: dict = yaml.safe_load(meta_file)
@@ -149,7 +152,7 @@ def validate_curation(filename: str) -> Tuple[List, List]:
 
     l.debug(f"cleaning up after archive'{filename}'...")
     for filename in filenames:
-        shutil.rmtree(filename, True)
+        shutil.rmtree(base_path + filename, True)
 
     return errors, warnings
 
