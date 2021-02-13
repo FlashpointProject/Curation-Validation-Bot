@@ -55,6 +55,7 @@ async def check_curations(message: discord.Message):
     if not filename.endswith('7z'):
         return
 
+    l.debug(f"detected message '{message.id}' with 7z attachment '{filename}'")
     l.debug(f"downloading attachment '{attachment.id}' - '{filename}'...")
     await attachment.save(filename)
 
@@ -62,7 +63,6 @@ async def check_curations(message: discord.Message):
     warning_reply: str = ""
 
     # process archive
-    l.debug(f"detected message '{message.id}' with attachment '{filename}'")
     archive = py7zr.SevenZipFile(filename, mode='r')
     names = archive.getnames()
     archive.extractall()
