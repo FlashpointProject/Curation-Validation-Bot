@@ -48,11 +48,11 @@ async def check_curations(message: discord.Message):
 
     attachment = message.attachments[0]
     archive_filename: str = attachment.filename
-    if not archive_filename.endswith('7z'):
+    if not (archive_filename.endswith('.7z') or archive_filename.endswith('.zip')):
         return
 
     l.debug(
-        f"detected message '{message.id}' from user '{message.author}' in channel '{message.channel}'  with 7z attachment '{archive_filename}'")
+        f"detected message '{message.id}' from user '{message.author}' in channel '{message.channel}' with attachment '{archive_filename}'")
     l.debug(f"downloading attachment '{attachment.id}' - '{archive_filename}'...")
     await attachment.save(archive_filename)
 

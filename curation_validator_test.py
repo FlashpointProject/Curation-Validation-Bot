@@ -46,7 +46,8 @@ class TestCurationValidator(unittest.TestCase):
     def test_missing_meta(self):
         for extension in ["7z", "zip"]:
             errors, warnings = validate_curation(f"test_curations/test_curation_missing_meta.{extension}")
-            self.assertCountEqual(errors, ["Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?"])
+            self.assertCountEqual(errors,
+                                  ["Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?"])
             self.assertCountEqual(warnings, [])
 
     def test_missing_root_folder(self):
