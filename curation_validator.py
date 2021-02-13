@@ -17,11 +17,12 @@ def validate_curation(filename: str) -> Tuple[List, List]:
     archive.close()
 
     # check files
-    uuid_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
-    content_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/content$")
-    meta_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/meta\.(yaml|yml|txt)$")
-    logo_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.(png)$")
-    ss_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(png)$")
+    uuid = "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"
+    uuid_folder_regex = re.compile(rf"^{uuid}$")
+    content_folder_regex = re.compile(rf"^{uuid}/content$")
+    meta_regex = re.compile(rf"^{uuid}/meta\.(yaml|yml|txt)$")
+    logo_regex = re.compile(rf"^{uuid}/logo\.(png)$")
+    ss_regex = re.compile(rf"^{uuid}/ss\.(png)$")
     uuid_folder = [match for match in filenames if uuid_folder_regex.match(match) is not None]
     content_folder = [match for match in filenames if content_folder_regex.match(match) is not None]
     meta = [match for match in filenames if meta_regex.match(match) is not None]
@@ -29,13 +30,13 @@ def validate_curation(filename: str) -> Tuple[List, List]:
     ss = [match for match in filenames if ss_regex.match(match) is not None]
 
     props: dict = {}
-    if not uuid_folder:
+    if uuid_folder is None:
         errors.append("Root folder format is invalid. It should be a UUIDv4.")
-    if not content_folder:
+    if content_folder is None:
         errors.append("Content folder not found.")
-    if not logo:
+    if logo is None:
         errors.append("Logo file is either missing or its filename is incorrect.")
-    if not ss:
+    if ss is None:
         errors.append("Screenshot file is either missing or its filename is incorrect.")
 
     # process meta
