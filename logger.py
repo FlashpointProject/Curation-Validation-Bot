@@ -86,6 +86,7 @@ def getLogger(name: str):
     loggers[name] = logger
     return logger
 
+
 def set_global_logging_level(level: str):
     if level not in LEVELS.values():
         raise ValueError(f"Unknown logger level '{level}'.")
