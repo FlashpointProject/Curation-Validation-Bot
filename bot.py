@@ -111,9 +111,9 @@ async def on_message(message: discord.Message):
                         launch_command: tuple[str, bool] = ("Launch Command", none_checker(props["Launch Command"]))
                         application_path: tuple[str, bool] = ("Application Path", none_checker(props["Application Path"]))
                         description: tuple[str, bool] = ("Description", none_checker(props["Original Description"]))
-                        if description[1] is False and (
-                                none_checker(props["Curation Notes"]) or none_checker(props["Game Notes"])):
-                            reply += "Make sure you didn't put your description in the notes section.\n"
+                        # if description[1] is False and (
+                        #         none_checker(props["Curation Notes"]) or none_checker(props["Game Notes"])):
+                        #     reply += "Make sure you didn't put your description in the notes section.\n"
                         if "https" in props["Launch Command"]:
                             reply += "https in launch command. All launch commands must use http instead of https.\n"
                         mandatory_props: list[tuple[str, bool]] = [title, language_properties, source, launch_command, tag,
@@ -131,10 +131,8 @@ async def on_message(message: discord.Message):
                             for x in mandatory_props:
                                 if x[1] is False:
                                     reply += x[0] + " is missing.\n"
-                        # if not all(optional_props[1]):
-                        #     for x in optional_props:
-                        #         if x[1] is False:
-                        #             reply += x[0] + " is missing, but not necessary. Add it if you can find it, but it's okay if you can't.\n"
+                        # if not all(optional_props[1]): for x in optional_props: if x[1] is False: reply += x[0] +
+                        # "is missing, but not necessary. Add it if you can find it, but it's okay if you can't.\n"
                 except IndexError:
                     reply += "Missing meta file! Are you curating using Flashpoint Core?\n"
                 os.remove(filename)
