@@ -15,10 +15,16 @@ def validate_curation(filename: str) -> Tuple[List, List]:
     errors: List = []
     warnings: List = []
 
-
     # process archive
     archive = py7zr.SevenZipFile(filename, mode='r')
     l.debug(f"unpacking archive '{filename}'...")
+
+    uncompressed_size = archive.archiveinfo().uncompressed
+    if uncompressed_size > 1000 * 1000 * 1000:
+        warnings.append(f"The archive is too large to validate (`{uncompressed_size // 1000000}MB/1000MB`).")
+        archive.close()
+        return errors, warnings
+
     filenames = archive.getnames()
     base_path = tempfile.mkdtemp(prefix="curation_validator") + "/"
     archive.extractall(path=base_path)

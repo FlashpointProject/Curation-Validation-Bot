@@ -19,6 +19,12 @@ class TestCurationValidator(unittest.TestCase):
     def tearDown(self):
         self.patcher.stop()
 
+    def test_curation_too_large(self):
+        errors, warnings = validate_curation("test_curations/test_curation_2GB.7z")
+
+        self.assertCountEqual(errors, [])
+        self.assertCountEqual(warnings, ["The archive is too large to validate (`2000MB/1000MB`)."])
+
     def test_empty_content(self):
         errors, warnings = validate_curation("test_curations/test_curation_empty_content.7z")
 
