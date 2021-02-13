@@ -425,3 +425,87 @@ Stencyl
 Tic-80
 Twine
 Unity WebGL
+Adult
+Blood
+Gore
+Nudity
+Sexual Content
+Alcohol
+Drugs
+Tobacco
+Mild Violence
+Moderate Violence
+Strong Violence
+Sexual Violence
+Mild Language
+Moderate Language
+Strong Language
+Stereotyping
+Homophobia
+Racism
+Anal
+Anal Insertion
+Anilingus
+Cunnilingus
+Fellatio
+Fingering
+Fisting
+Footjob
+Frottage
+Handjob
+Masturbation
+Oral
+Paizuri
+Sex Toys
+Tentacles
+Touching
+Tribadism
+Vaginal
+Vaginal Insertion
+Hentai
+Cartoon Porn
+Porn
+Gay
+Lesbian
+Teenager
+Lolicon
+Shotacon
+Toddlercon
+Cub
+Anthro
+Feral
+Animal Hybrid
+Monster Hybrid
+Monster
+Canine
+Feline
+Reptilian
+Cephalopod
+Avian
+Equine
+Insectoid
+Solo
+Group
+Male
+Female
+Intersex
+Futanari
+Gynomorph
+Male Futanari
+Andromorph
+Necrophilia
+Bestiality
+Interspecies
+Flatulence
+Scat
+Vomit
+Incest
+Vore
+Inflation
+BDSM
+Pregnancy
+Infantilism
+Spanking
+Urination
+Hypnosis
+Transformation
