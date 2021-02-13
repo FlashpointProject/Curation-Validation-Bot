@@ -4,3 +4,4 @@ discord
 python-dotenv
 pyyaml
 colorlog
+pytest

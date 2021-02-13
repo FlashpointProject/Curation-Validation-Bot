@@ -19,6 +19,12 @@ class TestCurationValidator(unittest.TestCase):
     def tearDown(self):
         self.patcher.stop()
 
+    def test_valid(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings = validate_curation(f"test_curations/test_curation_valid.{extension}")
+            self.assertCountEqual(errors, [])
+            self.assertCountEqual(warnings, [])
+
     def test_curation_too_large(self):
         for extension in ["7z", "zip"]:
             errors, warnings = validate_curation(f"test_curations/test_curation_2GB.{extension}")
@@ -68,11 +74,11 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, ["Tag `Unknown Tag` is not a known tag.", "Tag `Another Unknown Tag` is not a known tag."])
 
-    def test_valid(self):
-        for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_valid.{extension}")
-            self.assertCountEqual(errors, [])
-            self.assertCountEqual(warnings, [])
+    def test_missing_tags(self):
+        self.assertTrue(False)  # TODO
+
+    def test_missing_source(self):
+        self.assertTrue(False)  # TODO
 
 
 if __name__ == '__main__':

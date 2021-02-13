@@ -82,7 +82,7 @@ async def check_curations(message: discord.Message):
             reply_channel = client.get_channel(CURATOR_LOUNGE_CHANNEL)
         elif is_audition:
             reply_channel = client.get_channel(AUDITION_CHAT_CHANNEL)
-        l.info("sending reply to message '{message.id}' : '" + final_reply.replace('\n', ' ') + "'")
+        l.info(f"sending reply to message '{message.id}' : '" + final_reply.replace('\n', ' ') + "'")
         await reply_channel.send(final_reply)
     else:
         await message.add_reaction('🤖')
