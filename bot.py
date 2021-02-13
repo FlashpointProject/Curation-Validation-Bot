@@ -43,7 +43,7 @@ async def check_curations(message: discord.Message):
     # TODO disable
     # `is_curator_lounge = message.channel.id == CURATOR_LOUNGE_CHANNEL
 
-    if not (is_flash_game or is_other_game or is_animation or is_audition): # or is_curator_lounge):
+    if not (is_flash_game or is_other_game or is_animation or is_audition):  # or is_curator_lounge):
         return
 
     attachment = message.attachments[0]
@@ -51,7 +51,8 @@ async def check_curations(message: discord.Message):
     if not archive_filename.endswith('7z'):
         return
 
-    l.debug(f"detected message '{message.id}' from user '{message.author}' in channel '{message.channel}'  with 7z attachment '{archive_filename}'")
+    l.debug(
+        f"detected message '{message.id}' from user '{message.author}' in channel '{message.channel}'  with 7z attachment '{archive_filename}'")
     l.debug(f"downloading attachment '{attachment.id}' - '{archive_filename}'...")
     await attachment.save(archive_filename)
 
