@@ -1,8 +1,10 @@
-import os
 import shutil
 import json
 import re
 from typing import List, Tuple
+import yaml
+import py7zr
+
 
 def validate_curation(filename: str) -> Tuple[List, List]:
     errors: List = []
@@ -17,9 +19,9 @@ def validate_curation(filename: str) -> Tuple[List, List]:
     # check files
     uuid_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
     content_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/content$")
-    meta_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/meta\.(yaml|yml|txt)$")
-    logo_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/logo\.(png)$")
-    ss_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/ss\.(png)$")
+    meta_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/meta\.(yaml|yml|txt)$")
+    logo_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.(png)$")
+    ss_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(png)$")
     uuid_folder = [match for match in filenames if uuid_folder_regex.match(match) is not None]
     content_folder = [match for match in filenames if content_folder_regex.match(match) is not None]
     meta = [match for match in filenames if meta_regex.match(match) is not None]
@@ -51,7 +53,7 @@ def validate_curation(filename: str) -> Tuple[List, List]:
                 break_index: int = 0
                 while break_index != -1:
                     props, break_index = parse_lines_until_multiline(meta_file.readlines(), props,
-                                                                    break_index)
+                                                                     break_index)
                     props, break_index = parse_multiline(meta_file.readlines(), props, break_index)
             else:
                 errors.append("Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
@@ -112,7 +114,8 @@ def validate_curation(filename: str) -> Tuple[List, List]:
 
         if "https" in props["Launch Command"]:
             errors.append("Found `https` in launch command. All launch commands must use `http` instead of `https`.")
-        mandatory_props: List[Tuple[str, bool]] = [title, language_properties, source, launch_command, tag, status, application_path]
+        mandatory_props: List[Tuple[str, bool]] = [title, language_properties, source, launch_command, tag, status,
+                                                   application_path]
 
         # TODO check optional props?
         # optional_props: list[tuple[str, bool]] = [developer, release_date, tag, description]

@@ -1,12 +1,7 @@
 import os
-import shutil
-import json
-import re
-from typing import List, Tuple
 
-import py7zr
 import discord
-import yaml
+
 from dotenv import load_dotenv
 from logger import getLogger, set_global_logging_level
 from curation_validator import validate_curation
@@ -90,5 +85,6 @@ async def check_curations(message: discord.Message):
         await reply_channel.send(final_reply)
     else:
         await message.add_reaction('🤖')
+
 
 client.run(TOKEN)
