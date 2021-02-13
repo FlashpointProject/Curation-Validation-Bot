@@ -19,11 +19,14 @@ class TestCurationValidator(unittest.TestCase):
     def tearDown(self):
         self.patcher.stop()
 
-    def test_valid(self):
+    def test_valid_yaml_meta(self):
         for extension in ["7z", "zip"]:
             errors, warnings = validate_curation(f"test_curations/test_curation_valid.{extension}")
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
+
+    def test_valid_txt_meta(self):
+        self.assertTrue(False)  # TODO
 
     def test_curation_too_large(self):
         for extension in ["7z", "zip"]:
@@ -68,7 +71,7 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, ["Screenshot file is either missing or its filename is incorrect."])
             self.assertCountEqual(warnings, [])
 
-    def test_unknown_tag(self):
+    def test_unknown_tag_warning(self):
         for extension in ["7z", "zip"]:
             errors, warnings = validate_curation(f"test_curations/test_curation_unknown_tag.{extension}")
             self.assertCountEqual(errors, [])
@@ -78,6 +81,15 @@ class TestCurationValidator(unittest.TestCase):
         self.assertTrue(False)  # TODO
 
     def test_missing_source(self):
+        self.assertTrue(False)  # TODO
+
+    def test_missing_title(self):
+        self.assertTrue(False)  # TODO
+
+    def test_missing_application_path_warning(self):
+        self.assertTrue(False)  # TODO
+
+    def test_missing_launch_command(self):
         self.assertTrue(False)  # TODO
 
 
