@@ -4,6 +4,10 @@ import re
 from typing import List, Tuple
 import yaml
 import py7zr
+from logger import getLogger
+import os
+
+l = getLogger("main")
 
 
 def validate_curation(filename: str) -> Tuple[List, List]:
@@ -12,10 +16,12 @@ def validate_curation(filename: str) -> Tuple[List, List]:
 
     # process archive
     archive = py7zr.SevenZipFile(filename, mode='r')
+    l.debug(f"unpacking archive '{filename}'...")
     filenames = archive.getnames()
-    archive.extractall()
+    archive.extractall()  # TODO change extraction destination
     archive.close()
 
+    l.debug(f"validating archive data for '{filename}'...")
     # check files
     uuid = "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"
     uuid_folder_regex = re.compile(rf"^{uuid}$")
@@ -29,17 +35,25 @@ def validate_curation(filename: str) -> Tuple[List, List]:
     logo = [match for match in filenames if logo_regex.match(match) is not None]
     ss = [match for match in filenames if ss_regex.match(match) is not None]
 
-    props: dict = {}
-    if uuid_folder is None:
-        errors.append("Root folder format is invalid. It should be a UUIDv4.")
-    if content_folder is None:
-        errors.append("Content folder not found.")
-    if logo is None:
+    if len(uuid_folder) == 0:
+        errors.append("Root directory is either missing or its name is incorrect. It should be in UUIDv4 format.")
+        return errors, warnings
+
+    if len(logo) == 0:
         errors.append("Logo file is either missing or its filename is incorrect.")
-    if ss is None:
+    if len(ss) == 0:
         errors.append("Screenshot file is either missing or its filename is incorrect.")
 
+    # check content
+    if len(content_folder) == 0:
+        errors.append("Content folder not found.")
+    else:
+        filecount_in_content = sum([len(files) for r, d, files in os.walk(content_folder[0])])
+        if filecount_in_content == 0:
+            errors.append("No files found in content folder.")
+
     # process meta
+    props: dict = {}
     if not meta:
         errors.append("Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
     else:
@@ -125,20 +139,30 @@ def validate_curation(filename: str) -> Tuple[List, List]:
 
         tags: List[str] = props["Tags"].split(";")
         tags: List[str] = [x.strip(' ') for x in tags]
-        with open('tags.txt') as file:
-            contents = file.read()
-            for tag in tags:
-                if tag not in contents:
-                    warnings.append(f"Tag `{tag}` is not a known tag.")
+        for tag in tags:
+            if tag not in get_tag_list():
+                warnings.append(f"Tag `{tag}` is not a known tag.")
         if not all(mandatory_props[1]):
             for prop in mandatory_props:
                 if prop[1] is False:
                     errors.append(f"Property `{prop[0]}` is missing.")
 
+    l.debug(f"cleaning up after archive'{filename}'...")
     for filename in filenames:
         shutil.rmtree(filename, True)
 
     return errors, warnings
+
+
+def get_tag_list() -> List[str]:
+    result = []
+    with open('tags.txt') as f:
+        for line in f.readlines():
+            line = line.strip()
+            if len(line) == 0:
+                continue
+            result.append(line)
+    return result
 
 
 def parse_lines_until_multiline(lines: List[str], d: dict, starting_number: int):
