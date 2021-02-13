@@ -1,0 +1,5 @@
+wheel
+py7zr
+dsicord
+python-dotenv
+pyyaml
