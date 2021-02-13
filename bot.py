@@ -109,14 +109,16 @@ async def on_message(message: discord.Message):
                         source: tuple[str, bool] = ("Source", none_checker(props["Source"]))
                         status: tuple[str, bool] = ("Status", none_checker(props["Status"]))
                         launch_command: tuple[str, bool] = ("Launch Command", none_checker(props["Launch Command"]))
-                        application_path: tuple[str, bool] = ("Application Path", none_checker(props["Application Path"]))
+                        application_path: tuple[str, bool] = (
+                        "Application Path", none_checker(props["Application Path"]))
                         description: tuple[str, bool] = ("Description", none_checker(props["Original Description"]))
                         # if description[1] is False and (
                         #         none_checker(props["Curation Notes"]) or none_checker(props["Game Notes"])):
                         #     reply += "Make sure you didn't put your description in the notes section.\n"
                         if "https" in props["Launch Command"]:
                             reply += "https in launch command. All launch commands must use http instead of https.\n"
-                        mandatory_props: list[tuple[str, bool]] = [title, language_properties, source, launch_command, tag,
+                        mandatory_props: list[tuple[str, bool]] = [title, language_properties, source, launch_command,
+                                                                   tag,
                                                                    status,
                                                                    application_path]
                         # optional_props: list[tuple[str, bool]] = [developer, release_date, tag, description]
@@ -192,6 +194,7 @@ def parse_multiline(lines: List[str], d: dict, starting_number: int):
     return d, break_number
 
 
+# TODO: Recode how none_checker works using truthiness
 def none_checker(prop: str):
     """
 
