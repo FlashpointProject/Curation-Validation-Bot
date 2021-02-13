@@ -1,5 +1,6 @@
 wheel
 py7zr
-dsicord
+discord
 python-dotenv
 pyyaml
+colorlog
