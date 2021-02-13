@@ -66,16 +66,16 @@ async def on_message(message: discord.Message):
                                 props, break_index = parse_lines_until_multiline(stream.readlines(), props,
                                                                                  break_index)
                                 props, break_index = parse_multiline(stream.readlines(), props, break_index)
-                        title: tuple[str, bool] = ("Title", none_checker(props["Title"]))
-                        # developer: tuple[str, bool] = ("Developer", none_checker(props["Developer"]))
-                        release_date: tuple[str, bool] = ("Release Date", none_checker(props["Release Date"]))
+                        title: tuple[str, bool] = ("Title", bool(props["Title"]))
+                        # developer: tuple[str, bool] = ("Developer", bool(props["Developer"]))
+                        release_date: tuple[str, bool] = ("Release Date", bool(props["Release Date"]))
                         if release_date[1]:
                             date_string = props["Release Date"]
                             regex = re.compile("[A-Za-z]")
                             if regex.match(date_string):
                                 reply += "Release date contains letters. Release dates should always be in YYYY-MM-DD " \
                                          "format.\n"
-                        language_properties: tuple[str, bool] = ("Languages", none_checker(props["Languages"]))
+                        language_properties: tuple[str, bool] = ("Languages", bool(props["Languages"]))
                         if language_properties[1]:
                             with open("language-codes.json") as f:
                                 list_of_language_codes: list[dict] = json.load(f)
@@ -105,15 +105,15 @@ async def on_message(message: discord.Message):
                                             reply += "The correct ISO 639-1 language code for Farsi is fa, not pe.\n"
                                         else:
                                             reply += language + " is not a valid ISO 639-1 language code.\n"
-                        tag: tuple[str, bool] = ("Tags", none_checker(props["Tags"]))
-                        source: tuple[str, bool] = ("Source", none_checker(props["Source"]))
-                        status: tuple[str, bool] = ("Status", none_checker(props["Status"]))
-                        launch_command: tuple[str, bool] = ("Launch Command", none_checker(props["Launch Command"]))
+                        tag: tuple[str, bool] = ("Tags", bool(props["Tags"]))
+                        source: tuple[str, bool] = ("Source", bool(props["Source"]))
+                        status: tuple[str, bool] = ("Status", bool(props["Status"]))
+                        launch_command: tuple[str, bool] = ("Launch Command", bool(props["Launch Command"]))
                         application_path: tuple[str, bool] = (
-                        "Application Path", none_checker(props["Application Path"]))
-                        description: tuple[str, bool] = ("Description", none_checker(props["Original Description"]))
+                            "Application Path", bool(props["Application Path"]))
+                        description: tuple[str, bool] = ("Description", bool(props["Original Description"]))
                         # if description[1] is False and (
-                        #         none_checker(props["Curation Notes"]) or none_checker(props["Game Notes"])):
+                        #         bool(props["Curation Notes"]) or bool(props["Game Notes"])):
                         #     reply += "Make sure you didn't put your description in the notes section.\n"
                         if "https" in props["Launch Command"]:
                             reply += "https in launch command. All launch commands must use http instead of https.\n"
@@ -192,19 +192,6 @@ def parse_multiline(lines: List[str], d: dict, starting_number: int):
                 break
     d.update({key: val})
     return d, break_number
-
-
-# TODO: Recode how none_checker works using truthiness
-def none_checker(prop: str):
-    """
-
-    :rtype: bool
-    """
-    if prop is None:
-        not_none = False
-    else:
-        not_none = True
-    return not_none
 
 
 client.run(TOKEN)
