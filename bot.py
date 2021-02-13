@@ -91,38 +91,4 @@ async def check_curations(message: discord.Message):
     else:
         await message.add_reaction('🤖')
 
-
-def parse_lines_until_multiline(lines: List[str], d: dict, starting_number: int):
-    break_number: int = -1
-    for idx, line in enumerate(lines[starting_number:]):
-        if '|' not in line:
-            split: List[str] = line.split(":")
-            split: List[str] = [x.strip(' ') for x in split]
-            d.update({split[0]: split[1]})
-        else:
-            break_number = idx
-            break
-    return d, break_number
-
-
-def parse_multiline(lines: List[str], d: dict, starting_number: int):
-    break_number = -1
-    key: str = ""
-    val: str = ""
-    for idx, line in enumerate(lines[starting_number:]):
-        if idx is starting_number:
-            split = line.split(':')
-            split = [x.strip(' ') for x in split]
-            key = split[0]
-        else:
-            if line.startswith('\t'):
-                line = line.strip(" \t")
-                val += line
-            else:
-                break_number = idx
-                break
-    d.update({key: val})
-    return d, break_number
-
-
 client.run(TOKEN)
