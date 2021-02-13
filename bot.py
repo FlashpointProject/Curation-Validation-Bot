@@ -41,9 +41,9 @@ async def check_curations(message: discord.Message):
     is_audition = message.channel.id == AUDITIONS_CHANNEL
 
     # TODO disable
-    is_curator_lounge = message.channel.id == CURATOR_LOUNGE_CHANNEL
+    # `is_curator_lounge = message.channel.id == CURATOR_LOUNGE_CHANNEL
 
-    if not (is_flash_game or is_other_game or is_animation or is_audition or is_curator_lounge):
+    if not (is_flash_game or is_other_game or is_animation or is_audition): # or is_curator_lounge):
         return
 
     attachment = message.attachments[0]
@@ -51,7 +51,7 @@ async def check_curations(message: discord.Message):
     if not archive_filename.endswith('7z'):
         return
 
-    l.debug(f"detected message '{message.id}' with 7z attachment '{archive_filename}'")
+    l.debug(f"detected message '{message.id}' from user '{message.author}' in channel '{message.channel}'  with 7z attachment '{archive_filename}'")
     l.debug(f"downloading attachment '{attachment.id}' - '{archive_filename}'...")
     await attachment.save(archive_filename)
 
@@ -64,7 +64,7 @@ async def check_curations(message: discord.Message):
     final_reply: str = ""
     if len(curation_errors) > 0 or len(curation_warnings) > 0:
         author: discord.Member = message.author
-        final_reply += author.mention + " Your curation has some problems:\n"
+        final_reply += author.mention + " Your curation has some problems:\n🤖 (This is bot is in testing phase, it might not work correctly)\n"
     if len(curation_errors) > 0:
         await message.add_reaction('🚫')
         for curation_error in curation_errors:
