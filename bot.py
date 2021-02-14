@@ -65,7 +65,9 @@ async def check_curations(message: discord.Message):
     final_reply: str = ""
     if len(curation_errors) > 0 or len(curation_warnings) > 0:
         author: discord.Member = message.author
-        final_reply += author.mention + " Your curation has some problems:\n🤖 (This bot is currently in the testing phase, so it may not work correctly.)\n"
+        final_reply += author.mention + f" Your curation has some problems:\n" \
+                                        f"🤖 (This bot is currently in the testing phase, so it may not work correctly.)\n" \
+                                        f"🔗 {message.jump_url}\n"
     if len(curation_errors) > 0:
         await message.add_reaction('🚫')
         for curation_error in curation_errors:
