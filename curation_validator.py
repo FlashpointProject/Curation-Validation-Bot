@@ -160,7 +160,7 @@ def validate_curation(filename: str) -> tuple[list, list]:
                         else:
                             errors.append(f"Code `{language}` is not a valid ISO 639-1 language code.")
 
-        tag: tuple[str, bool] = ("Tags", bool(props["Tags"]))
+        # tag: tuple[str, bool] = ("Tags", bool(props["Tags"]))
         source: tuple[str, bool] = ("Source", bool(props["Source"]))
         status: tuple[str, bool] = ("Status", bool(props["Status"]))
         launch_command: tuple[str, bool] = ("Launch Command", bool(props["Launch Command"]))
