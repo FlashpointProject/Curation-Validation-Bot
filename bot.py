@@ -81,12 +81,12 @@ async def check_curations(message: discord.Message):
 
     if len(final_reply) > 0:
         reply_channel: discord.TextChannel = client.get_channel(CURATOR_LOUNGE_CHANNEL)
-        if is_flash_game or is_other_game or is_animation:
+        if is_extreme:
+            reply_channel = client.get_channel(NSFW_LOUNGE_CHANNEL)
+        elif is_flash_game or is_other_game or is_animation:
             reply_channel = client.get_channel(CURATOR_LOUNGE_CHANNEL)
         elif is_audition:
             reply_channel = client.get_channel(AUDITION_CHAT_CHANNEL)
-        elif is_extreme:
-            reply_channel = client.get_channel(NSFW_LOUNGE_CHANNEL)
         l.info(f"sending reply to message '{message.id}' : '" + final_reply.replace('\n', ' ') + "'")
         await reply_channel.send(final_reply)
     else:
