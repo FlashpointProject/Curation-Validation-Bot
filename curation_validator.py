@@ -7,6 +7,7 @@ from logger import getLogger
 import os
 import tempfile
 import zipfile
+import requests
 
 l = getLogger("main")
 
@@ -194,11 +195,13 @@ def validate_curation(filename: str) -> tuple[list, list]:
         tags: list[str] = [x.strip() for x in tags]
         tags: list[str] = [x for x in tags if len(x) > 0]
 
+        master_tag_list = get_tag_list()
+
         if len(tags) == 0:
             errors.append("Missing tags. At least one tag must be specified.")
         else:
             for tag in tags:
-                if tag not in get_tag_list():
+                if tag not in master_tag_list:
                     warnings.append(f"Tag `{tag}` is not a known tag.")
 
     l.debug(f"cleaning up after archive'{filename}'...")
@@ -208,14 +211,9 @@ def validate_curation(filename: str) -> tuple[list, list]:
 
 
 def get_tag_list() -> list[str]:
-    result = []
-    with open('tags.txt') as f:
-        for line in f.readlines():
-            line = line.strip()
-            if len(line) == 0:
-                continue
-            result.append(line)
-    return result
+    l.debug(f"getting tags...")
+    resp = requests.get(url="https://bluebot.unstable.life/tags")
+    return resp.json()["tags"]
 
 
 def parse_lines_until_multiline(lines: list[str], d: dict, starting_number: int):
