@@ -66,8 +66,6 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
     else:
         l.warn(f"file type of file '{filename}' not supported")
 
-    l.debug(filenames)
-
     l.debug(f"validating archive data for '{filename}'...")
     # check files
     uuid_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/?$")
