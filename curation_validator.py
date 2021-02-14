@@ -38,6 +38,8 @@ def validate_curation(filename: str) -> tuple[list, list]:
             archive.close()
         except Exception as e:
             l.error(f"there was an error while reading file '{filename}': {e}")
+            errors.append("There was an error while reading your submission.")
+            return errors, warnings
     elif filename.endswith(".zip"):
         try:
             l.debug(f"reading archive '{filename}'...")
@@ -56,6 +58,8 @@ def validate_curation(filename: str) -> tuple[list, list]:
             archive.close()
         except Exception as e:
             l.error(f"there was an error while reading file '{filename}': {e}")
+            errors.append("There was an error while reading your submission.")
+            return errors, warnings
     else:
         l.warn(f"file type of file '{filename}' not supported")
 
