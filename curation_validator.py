@@ -23,6 +23,8 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
 
     max_uncompressed_size = 1000 * 1000 * 1000
 
+    base_path = None
+
     if filename.endswith(".7z"):
         try:
             l.debug(f"reading archive '{filename}'...")
@@ -109,7 +111,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         errors.append("Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
     else:
         meta_filename = meta[0]
-        with open(base_path + meta_filename) as meta_file:
+        with open(base_path + meta_filename, mode='r', encoding='utf8') as meta_file:
             if meta_filename.endswith(".yml") or meta_filename.endswith(".yaml"):
                 try:
                     props: dict = yaml.safe_load(meta_file)
