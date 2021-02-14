@@ -64,11 +64,13 @@ def validate_curation(filename: str) -> tuple[list, list]:
     l.debug(f"validating archive data for '{filename}'...")
     # check files
     uuid_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/?$")
+    # meta_outside_root_folder_regex = re.compile(r"^meta\.(yaml|yml|txt)$")
     content_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/content/?$")
     meta_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/meta\.(yaml|yml|txt)$")
     logo_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.(png)$")
     ss_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(png)$")
     uuid_folder = [match for match in filenames if uuid_folder_regex.match(match) is not None]
+    # meta_outside_root_folder = [match for match in filenames if meta_outside_root_folder_regex.match(match) is not None]
     content_folder = [match for match in filenames if content_folder_regex.match(match) is not None]
     meta = [match for match in filenames if meta_regex.match(match) is not None]
     logo = [match for match in filenames if logo_regex.match(match) is not None]
@@ -77,6 +79,10 @@ def validate_curation(filename: str) -> tuple[list, list]:
     if len(uuid_folder) == 0:
         errors.append("Root directory is either missing or its name is incorrect. It should be in UUIDv4 format.")
         return errors, warnings
+
+    # if len(meta_outside_root_folder) != 0:
+    #     errors.append("Found meta file outside root directory. Did you forgot to enclose the files into one directory?")
+    #     return errors, warnings
 
     if len(logo) == 0:
         errors.append("Logo file is either missing or its filename is incorrect.")
@@ -117,10 +123,11 @@ def validate_curation(filename: str) -> tuple[list, list]:
 
         release_date: tuple[str, bool] = ("Release Date", bool(props["Release Date"]))
         if release_date[1]:
-            date_string = props["Release Date"]
-            regex = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-            if not regex.match(date_string):
-                errors.append("Release date is incorrect. Release dates should always be in `YYYY-MM-DD` format.")
+            date_string = props["Release Date"].strip()
+            if len(date_string) > 0:
+                date_regex = re.compile(r"^\d{4}(-\d{2}){0,2}$")
+                if not date_regex.match(date_string):
+                    errors.append(f"Release date {date_string} is incorrect. Release dates should always be in `YYYY-MM-DD` format.")
 
         language_properties: tuple[str, bool] = ("Languages", bool(props["Languages"]))
         if language_properties[1]:
@@ -128,7 +135,7 @@ def validate_curation(filename: str) -> tuple[list, list]:
                 list_of_language_codes: list[dict] = json.load(f)
                 language_str: str = props["Languages"]
                 languages = language_str.split(";")
-                languages = [x.strip(' ') for x in languages]
+                languages = [x.strip() for x in languages]
                 language_codes = []
                 for x in list_of_language_codes:
                     language_codes.append(x["alpha2"])

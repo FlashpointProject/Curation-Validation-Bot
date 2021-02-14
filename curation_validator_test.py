@@ -24,8 +24,12 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
 
-    def test_valid_txt_meta(self):
-        self.assertTrue(False)  # TODO
+    # legacy curations not supported by the bot atm
+    # def test_valid_txt_meta(self):
+    #     for extension in ["7z", "zip"]:
+    #         errors, warnings = validate_curation(f"test_curations/test_curation_valid_txt_meta.{extension}")
+    #         self.assertCountEqual(errors, [])
+    #         self.assertCountEqual(warnings, [])
 
     def test_curation_too_large(self):
         for extension in ["7z", "zip"]:
@@ -63,6 +67,12 @@ class TestCurationValidator(unittest.TestCase):
             errors, warnings = validate_curation(f"test_curations/test_curation_missing_root_folder.{extension}")
             self.assertCountEqual(errors, ["Root directory is either missing or its name is incorrect. It should be in UUIDv4 format."])
             self.assertCountEqual(warnings, [])
+
+    # def test_missing_root_folder(self):
+    #     for extension in ["7z", "zip"]:
+    #         errors, warnings = validate_curation(f"test_curations/test_curation_missing_root_folder.{extension}")
+    #         self.assertCountEqual(errors, ["Found meta file outside root directory. Did you forgot to enclose the files into one directory?"])
+    #         self.assertCountEqual(warnings, [])
 
     def test_missing_ss(self):
         for extension in ["7z", "zip"]:
