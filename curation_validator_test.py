@@ -1,11 +1,10 @@
 import unittest
-from typing import List
 from unittest.mock import patch
 
 from curation_validator import validate_curation
 
 
-def mock_get_tag_list() -> List[str]:
+def mock_get_tag_list() -> list[str]:
     return ["A", "B"]
 
 
@@ -78,7 +77,10 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(warnings, ["Tag `Unknown Tag` is not a known tag.", "Tag `Another Unknown Tag` is not a known tag."])
 
     def test_missing_tags(self):
-        self.assertTrue(False)  # TODO
+        for extension in ["7z", "zip"]:
+            errors, warnings = validate_curation(f"test_curations/test_curation_missing_tags.{extension}")
+            self.assertCountEqual(errors, ["Missing tags. At least one tag must be specified."])
+            self.assertCountEqual(warnings, [])
 
     def test_missing_source(self):
         self.assertTrue(False)  # TODO

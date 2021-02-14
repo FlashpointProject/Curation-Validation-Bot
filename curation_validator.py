@@ -1,7 +1,6 @@
 import shutil
 import json
 import re
-from typing import List, Tuple
 import yaml
 import py7zr
 from logger import getLogger
@@ -12,12 +11,12 @@ import zipfile
 l = getLogger("main")
 
 
-def validate_curation(filename: str) -> Tuple[List, List]:
-    errors: List = []
-    warnings: List = []
+def validate_curation(filename: str) -> tuple[list, list]:
+    errors: list = []
+    warnings: list = []
 
     # process archive
-    filenames: List = []
+    filenames: list = []
 
     max_uncompressed_size = 1000 * 1000 * 1000
 
@@ -155,46 +154,50 @@ def validate_curation(filename: str) -> Tuple[List, List]:
                         else:
                             errors.append(f"Code `{language}` is not a valid ISO 639-1 language code.")
 
-        tag: Tuple[str, bool] = ("Tags", bool(props["Tags"]))
-        source: Tuple[str, bool] = ("Source", bool(props["Source"]))
-        status: Tuple[str, bool] = ("Status", bool(props["Status"]))
-        launch_command: Tuple[str, bool] = ("Launch Command", bool(props["Launch Command"]))
-        application_path: Tuple[str, bool] = ("Application Path", bool(props["Application Path"]))
+        tag: tuple[str, bool] = ("Tags", bool(props["Tags"]))
+        source: tuple[str, bool] = ("Source", bool(props["Source"]))
+        status: tuple[str, bool] = ("Status", bool(props["Status"]))
+        launch_command: tuple[str, bool] = ("Launch Command", bool(props["Launch Command"]))
+        application_path: tuple[str, bool] = ("Application Path", bool(props["Application Path"]))
 
         # TODO check description?
-        # description: Tuple[str, bool] = ("Description", bool(props["Original Description"]))
+        # description: tuple[str, bool] = ("Description", bool(props["Original Description"]))
         # if description[1] is False and (
         #         bool(props["Curation Notes"]) or bool(props["Game Notes"])):
         #     reply += "Make sure you didn't put your description in the notes section.\n"
 
         if "https" in props["Launch Command"]:
             errors.append("Found `https` in launch command. All launch commands must use `http` instead of `https`.")
-        mandatory_props: List[Tuple[str, bool]] = [title, language_properties, source, launch_command, tag, status,
-                                                   application_path]
+
+        mandatory_props: list[tuple[str, bool]] = [title, language_properties, source, launch_command, tag, status, application_path]
+        if not all(mandatory_props[1]):
+            for prop in mandatory_props:
+                if prop[1] is False:
+                    errors.append(f"Property `{prop[0]}` is missing.")
 
         # TODO check optional props?
         # optional_props: list[tuple[str, bool]] = [developer, release_date, tag, description]
         # if not all(optional_props[1]): for x in optional_props: if x[1] is False: reply += x[0] +
         # "is missing, but not necessary. Add it if you can find it, but it's okay if you can't.\n"
 
-        tags: List[str] = props["Tags"].split(";")
-        tags: List[str] = [x.strip(' ') for x in tags]
-        for tag in tags:
-            if tag not in get_tag_list():
-                warnings.append(f"Tag `{tag}` is not a known tag.")
-        if not all(mandatory_props[1]):
-            for prop in mandatory_props:
-                if prop[1] is False:
-                    errors.append(f"Property `{prop[0]}` is missing.")
+        tags: list[str] = props["Tags"].split(";")
+        tags: list[str] = [x.strip() for x in tags]
+        tags: list[str] = [x for x in tags if len(x) > 0]
+
+        if len(tags) == 0:
+            errors.append("Missing tags. At least one tag must be specified.")
+        else:
+            for tag in tags:
+                if tag not in get_tag_list():
+                    warnings.append(f"Tag `{tag}` is not a known tag.")
 
     l.debug(f"cleaning up after archive'{filename}'...")
-    for filename in filenames:
-        shutil.rmtree(base_path + filename, True)
+    shutil.rmtree(base_path, True)
 
     return errors, warnings
 
 
-def get_tag_list() -> List[str]:
+def get_tag_list() -> list[str]:
     result = []
     with open('tags.txt') as f:
         for line in f.readlines():
@@ -205,12 +208,12 @@ def get_tag_list() -> List[str]:
     return result
 
 
-def parse_lines_until_multiline(lines: List[str], d: dict, starting_number: int):
+def parse_lines_until_multiline(lines: list[str], d: dict, starting_number: int):
     break_number: int = -1
     for idx, line in enumerate(lines[starting_number:]):
         if '|' not in line:
-            split: List[str] = line.split(":")
-            split: List[str] = [x.strip(' ') for x in split]
+            split: list[str] = line.split(":")
+            split: list[str] = [x.strip(' ') for x in split]
             d.update({split[0]: split[1]})
         else:
             break_number = idx
@@ -218,7 +221,7 @@ def parse_lines_until_multiline(lines: List[str], d: dict, starting_number: int)
     return d, break_number
 
 
-def parse_multiline(lines: List[str], d: dict, starting_number: int):
+def parse_multiline(lines: list[str], d: dict, starting_number: int):
     break_number = -1
     key: str = ""
     val: str = ""
