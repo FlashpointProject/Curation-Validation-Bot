@@ -83,16 +83,40 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(warnings, [])
 
     def test_missing_source(self):
-        self.assertTrue(False)  # TODO
+        for extension in ["7z", "zip"]:
+            errors, warnings = validate_curation(f"test_curations/test_curation_missing_source.{extension}")
+            self.assertCountEqual(errors, ["The `Source` property in the meta file is mandatory."])
+            self.assertCountEqual(warnings, [])
 
     def test_missing_title(self):
-        self.assertTrue(False)  # TODO
+        for extension in ["7z", "zip"]:
+            errors, warnings = validate_curation(f"test_curations/test_curation_missing_title.{extension}")
+            self.assertCountEqual(errors, ["The `Title` property in the meta file is mandatory."])
+            self.assertCountEqual(warnings, [])
 
     def test_missing_application_path_warning(self):
-        self.assertTrue(False)  # TODO
+        for extension in ["7z", "zip"]:
+            errors, warnings = validate_curation(f"test_curations/test_curation_missing_application_path.{extension}")
+            self.assertCountEqual(errors, ["The `Application Path` property in the meta file is mandatory."])
+            self.assertCountEqual(warnings, [])
 
     def test_missing_launch_command(self):
-        self.assertTrue(False)  # TODO
+        for extension in ["7z", "zip"]:
+            errors, warnings = validate_curation(f"test_curations/test_curation_missing_launch_command.{extension}")
+            self.assertCountEqual(errors, ["The `Launch Command` property in the meta file is mandatory."])
+            self.assertCountEqual(warnings, [])
+
+    def test_missing_lanugages(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings = validate_curation(f"test_curations/test_curation_missing_lanugages.{extension}")
+            self.assertCountEqual(errors, ["The `Languages` property in the meta file is mandatory."])
+            self.assertCountEqual(warnings, [])
+
+    def test_missing_status(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings = validate_curation(f"test_curations/test_curation_missing_status.{extension}")
+            self.assertCountEqual(errors, ["The `Status` property in the meta file is mandatory."])
+            self.assertCountEqual(warnings, [])
 
 
 if __name__ == '__main__':

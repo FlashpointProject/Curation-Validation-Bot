@@ -112,7 +112,6 @@ def validate_curation(filename: str) -> tuple[list, list]:
             else:
                 errors.append("Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
 
-        # TODO replace these string boolifications with something more sensible
         title: tuple[str, bool] = ("Title", bool(props["Title"]))
         # developer: tuple[str, bool] = ("Developer", bool(props["Developer"]))
 
@@ -169,11 +168,11 @@ def validate_curation(filename: str) -> tuple[list, list]:
         if "https" in props["Launch Command"]:
             errors.append("Found `https` in launch command. All launch commands must use `http` instead of `https`.")
 
-        mandatory_props: list[tuple[str, bool]] = [title, language_properties, source, launch_command, tag, status, application_path]
-        if not all(mandatory_props[1]):
-            for prop in mandatory_props:
+        simple_mandatory_props: list[tuple[str, bool]] = [title, language_properties, source, launch_command, status, application_path]
+        if not all([x[1] for x in simple_mandatory_props]):
+            for prop in simple_mandatory_props:
                 if prop[1] is False:
-                    errors.append(f"Property `{prop[0]}` is missing.")
+                    errors.append(f"The `{prop[0]}` property in the meta file is mandatory.")
 
         # TODO check optional props?
         # optional_props: list[tuple[str, bool]] = [developer, release_date, tag, description]
