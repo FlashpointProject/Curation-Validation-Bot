@@ -24,12 +24,11 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
 
-    # legacy curations not supported by the bot atm
-    # def test_valid_txt_meta(self):
-    #     for extension in ["7z", "zip"]:
-    #         errors, warnings = validate_curation(f"test_curations/test_curation_valid_txt_meta.{extension}")
-    #         self.assertCountEqual(errors, [])
-    #         self.assertCountEqual(warnings, [])
+    def test_valid_txt_meta(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings = validate_curation(f"test_curations/test_curation_valid_txt_meta.{extension}")
+            self.assertCountEqual(errors, [])
+            self.assertCountEqual(warnings, [])
 
     def test_curation_too_large(self):
         for extension in ["7z", "zip"]:
