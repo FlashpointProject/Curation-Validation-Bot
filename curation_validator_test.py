@@ -20,110 +20,119 @@ class TestCurationValidator(unittest.TestCase):
 
     def test_valid_yaml_meta(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_valid.{extension}")
+            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_valid.{extension}")
+            self.assertFalse(is_extreme)
+            self.assertCountEqual(errors, [])
+            self.assertCountEqual(warnings, [])
+
+    def test_valid_yaml_meta_extreme(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_valid_extreme.{extension}")
+            self.assertTrue(is_extreme)
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
 
     def test_valid_txt_meta(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_valid_txt_meta.{extension}")
+            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_valid_txt_meta.{extension}")
+            self.assertFalse(is_extreme)
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
 
     def test_curation_too_large(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_2GB.{extension}")
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_2GB.{extension}")
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, ["The archive is too large to validate (`2000MB/1000MB`)."])
 
     def test_empty_content(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_empty_content.{extension}")
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_empty_content.{extension}")
             self.assertCountEqual(errors, ["No files found in content folder."])
             self.assertCountEqual(warnings, [])
 
     def test_missing_content(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_missing_content.{extension}")
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_content.{extension}")
             self.assertCountEqual(errors, ["Content folder not found."])
             self.assertCountEqual(warnings, [])
 
     def test_missing_logo(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_missing_logo.{extension}")
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_logo.{extension}")
             self.assertCountEqual(errors, ["Logo file is either missing or its filename is incorrect."])
             self.assertCountEqual(warnings, [])
 
     def test_missing_meta(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_missing_meta.{extension}")
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_meta.{extension}")
             self.assertCountEqual(errors,
                                   ["Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?"])
             self.assertCountEqual(warnings, [])
 
     def test_missing_root_folder(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_missing_root_folder.{extension}")
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_root_folder.{extension}")
             self.assertCountEqual(errors, ["Root directory is either missing or its name is incorrect. It should be in UUIDv4 format."])
             self.assertCountEqual(warnings, [])
 
     # def test_missing_root_folder(self):
     #     for extension in ["7z", "zip"]:
-    #         errors, warnings = validate_curation(f"test_curations/test_curation_missing_root_folder.{extension}")
+    #         errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_root_folder.{extension}")
     #         self.assertCountEqual(errors, ["Found meta file outside root directory. Did you forgot to enclose the files into one directory?"])
     #         self.assertCountEqual(warnings, [])
 
     def test_missing_ss(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_missing_ss.{extension}")
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_ss.{extension}")
             self.assertCountEqual(errors, ["Screenshot file is either missing or its filename is incorrect."])
             self.assertCountEqual(warnings, [])
 
     def test_unknown_tag_warning(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_unknown_tag.{extension}")
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_unknown_tag.{extension}")
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, ["Tag `Unknown Tag` is not a known tag.", "Tag `Another Unknown Tag` is not a known tag."])
 
     def test_missing_tags(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_missing_tags.{extension}")
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_tags.{extension}")
             self.assertCountEqual(errors, ["Missing tags. At least one tag must be specified."])
             self.assertCountEqual(warnings, [])
 
     def test_missing_source(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_missing_source.{extension}")
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_source.{extension}")
             self.assertCountEqual(errors, ["The `Source` property in the meta file is mandatory."])
             self.assertCountEqual(warnings, [])
 
     def test_missing_title(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_missing_title.{extension}")
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_title.{extension}")
             self.assertCountEqual(errors, ["The `Title` property in the meta file is mandatory."])
             self.assertCountEqual(warnings, [])
 
     def test_missing_application_path_warning(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_missing_application_path.{extension}")
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_application_path.{extension}")
             self.assertCountEqual(errors, ["The `Application Path` property in the meta file is mandatory."])
             self.assertCountEqual(warnings, [])
 
     def test_missing_launch_command(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_missing_launch_command.{extension}")
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_launch_command.{extension}")
             self.assertCountEqual(errors, ["The `Launch Command` property in the meta file is mandatory."])
             self.assertCountEqual(warnings, [])
 
     def test_missing_lanugages(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_missing_lanugages.{extension}")
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_lanugages.{extension}")
             self.assertCountEqual(errors, ["The `Languages` property in the meta file is mandatory."])
             self.assertCountEqual(warnings, [])
 
     def test_missing_status(self):
         for extension in ["7z", "zip"]:
-            errors, warnings = validate_curation(f"test_curations/test_curation_missing_status.{extension}")
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_status.{extension}")
             self.assertCountEqual(errors, ["The `Status` property in the meta file is mandatory."])
             self.assertCountEqual(warnings, [])
 

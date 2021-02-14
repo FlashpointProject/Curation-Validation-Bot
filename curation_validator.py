@@ -1,6 +1,8 @@
 import shutil
 import json
 import re
+from typing import Optional
+
 import yaml
 import py7zr
 from logger import getLogger
@@ -12,7 +14,7 @@ import requests
 l = getLogger("main")
 
 
-def validate_curation(filename: str) -> tuple[list, list]:
+def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
     errors: list = []
     warnings: list = []
 
@@ -31,7 +33,7 @@ def validate_curation(filename: str) -> tuple[list, list]:
                 warnings.append(
                     f"The archive is too large to validate (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
                 archive.close()
-                return errors, warnings
+                return errors, warnings, None
 
             filenames = archive.getnames()
             base_path = tempfile.mkdtemp(prefix="curation_validator") + "/"
@@ -40,7 +42,7 @@ def validate_curation(filename: str) -> tuple[list, list]:
         except Exception as e:
             l.error(f"there was an error while reading file '{filename}': {e}")
             errors.append("There was an error while reading your submission.")
-            return errors, warnings
+            return errors, warnings, None
     elif filename.endswith(".zip"):
         try:
             l.debug(f"reading archive '{filename}'...")
@@ -51,7 +53,7 @@ def validate_curation(filename: str) -> tuple[list, list]:
                 warnings.append(
                     f"The archive is too large to validate (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
                 archive.close()
-                return errors, warnings
+                return errors, warnings, None
 
             filenames = archive.namelist()
             base_path = tempfile.mkdtemp(prefix="curation_validator") + "/"
@@ -60,7 +62,7 @@ def validate_curation(filename: str) -> tuple[list, list]:
         except Exception as e:
             l.error(f"there was an error while reading file '{filename}': {e}")
             errors.append("There was an error while reading your submission.")
-            return errors, warnings
+            return errors, warnings, None
     else:
         l.warn(f"file type of file '{filename}' not supported")
 
@@ -83,7 +85,7 @@ def validate_curation(filename: str) -> tuple[list, list]:
 
     if len(uuid_folder) == 0:
         errors.append("Root directory is either missing or its name is incorrect. It should be in UUIDv4 format.")
-        return errors, warnings
+        return errors, warnings, None
 
     # if len(meta_outside_root_folder) != 0:
     #     errors.append("Found meta file outside root directory. Did you forgot to enclose the files into one directory?")
@@ -103,6 +105,7 @@ def validate_curation(filename: str) -> tuple[list, list]:
             errors.append("No files found in content folder.")
 
     # process meta
+    is_extreme = False
     props: dict = {}
     if not meta:
         errors.append("Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
@@ -204,10 +207,15 @@ def validate_curation(filename: str) -> tuple[list, list]:
                 if tag not in master_tag_list:
                     warnings.append(f"Tag `{tag}` is not a known tag.")
 
+        extreme: tuple[str, bool] = ("Extreme", bool(props["Extreme"]))
+        is_extreme = False
+        if extreme[1] and props["Extreme"]:
+            is_extreme = True
+
     l.debug(f"cleaning up after archive'{filename}'...")
     shutil.rmtree(base_path, True)
 
-    return errors, warnings
+    return errors, warnings, is_extreme
 
 
 def get_tag_list() -> list[str]:

@@ -17,6 +17,7 @@ ANIMATIONS_CHANNEL = int(os.getenv('ANIMATIONS_CHANNEL'))
 AUDITIONS_CHANNEL = int(os.getenv('AUDITIONS_CHANNEL'))
 CURATOR_LOUNGE_CHANNEL = int(os.getenv('CURATOR_LOUNGE_CHANNEL'))
 AUDITION_CHAT_CHANNEL = int(os.getenv('AUDITION_CHAT_CHANNEL'))
+NSFW_LOUNGE_CHANNEL = int(os.getenv('NSFW_LOUNGE_CHANNEL'))
 
 client = discord.Client()
 
@@ -56,7 +57,7 @@ async def check_curations(message: discord.Message):
     l.debug(f"downloading attachment '{attachment.id}' - '{archive_filename}'...")
     await attachment.save(archive_filename)
 
-    curation_errors, curation_warnings = validate_curation(archive_filename)
+    curation_errors, curation_warnings, is_extreme = validate_curation(archive_filename)
 
     # archive cleanup
     os.remove(archive_filename)
@@ -84,6 +85,8 @@ async def check_curations(message: discord.Message):
             reply_channel = client.get_channel(CURATOR_LOUNGE_CHANNEL)
         elif is_audition:
             reply_channel = client.get_channel(AUDITION_CHAT_CHANNEL)
+        elif is_extreme:
+            reply_channel = client.get_channel(NSFW_LOUNGE_CHANNEL)
         l.info(f"sending reply to message '{message.id}' : '" + final_reply.replace('\n', ' ') + "'")
         await reply_channel.send(final_reply)
     else:
