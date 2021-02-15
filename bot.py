@@ -64,13 +64,15 @@ async def check_curations(message: discord.Message):
         curation_errors, curation_warnings, is_extreme = validate_curation(archive_filename)
     except Exception as e:
         l.exception(e)
-        archive_cleanup(archive_filename)
+        l.debug(f"removing archive {archive_filename}...")
+        os.remove(archive_filename)
         await message.add_reaction('💥')
         reply_channel: discord.TextChannel = client.get_channel(EXCEPTION_CHANNEL)
         await reply_channel.send(f"<@221956378627932160> the curation validator has thrown an exception:\n```{traceback.format_exc()}```")
         return
 
     # archive cleanup
+    l.debug(f"removing archive {archive_filename}...")
     os.remove(archive_filename)
 
     # format reply
