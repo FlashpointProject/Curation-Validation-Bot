@@ -131,22 +131,22 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
             else:
                 errors.append("Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
 
-        title: tuple[str, bool] = ("Title", bool(props["Title"]))
+        title: tuple[str, bool] = ("Title", bool(props.get("Title")))
         # developer: tuple[str, bool] = ("Developer", bool(props["Developer"]))
 
-        release_date: tuple[str, bool] = ("Release Date", bool(props["Release Date"]))
+        release_date: tuple[str, bool] = ("Release Date", bool(props.get("Release Date")))
         if release_date[1]:
-            date_string = props["Release Date"].strip()
+            date_string = str(props.get("Release Date")).strip()
             if len(date_string) > 0:
                 date_regex = re.compile(r"^\d{4}(-\d{2}){0,2}$")
                 if not date_regex.match(date_string):
                     errors.append(f"Release date {date_string} is incorrect. Release dates should always be in `YYYY-MM-DD` format.")
 
-        language_properties: tuple[str, bool] = ("Languages", bool(props["Languages"]))
+        language_properties: tuple[str, bool] = ("Languages", bool(props.get("Languages")))
         if language_properties[1]:
             with open("language-codes.json") as f:
                 list_of_language_codes: list[dict] = json.load(f)
-                language_str: str = props["Languages"]
+                language_str: str = props.get("Languages", "")
                 languages = language_str.split(";")
                 languages = [x.strip() for x in languages]
                 language_codes = []
@@ -174,10 +174,10 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                             errors.append(f"Code `{language}` is not a valid ISO 639-1 language code.")
 
         # tag: tuple[str, bool] = ("Tags", bool(props["Tags"]))
-        source: tuple[str, bool] = ("Source", bool(props["Source"]))
-        status: tuple[str, bool] = ("Status", bool(props["Status"]))
-        launch_command: tuple[str, bool] = ("Launch Command", bool(props["Launch Command"]))
-        application_path: tuple[str, bool] = ("Application Path", bool(props["Application Path"]))
+        source: tuple[str, bool] = ("Source", bool(props.get("Source")))
+        status: tuple[str, bool] = ("Status", bool(props.get("Status")))
+        launch_command: tuple[str, bool] = ("Launch Command", bool(props.get("Launch Command")))
+        application_path: tuple[str, bool] = ("Application Path", bool(props.get("Application Path")))
 
         # TODO check description?
         # description: tuple[str, bool] = ("Description", bool(props["Original Description"]))
@@ -185,21 +185,21 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         #         bool(props["Curation Notes"]) or bool(props["Game Notes"])):
         #     reply += "Make sure you didn't put your description in the notes section.\n"
 
-        if "https" in props["Launch Command"]:
-            errors.append("Found `https` in launch command. All launch commands must use `http` instead of `https`.")
-
         simple_mandatory_props: list[tuple[str, bool]] = [title, language_properties, source, launch_command, status, application_path]
         if not all([x[1] for x in simple_mandatory_props]):
             for prop in simple_mandatory_props:
                 if prop[1] is False:
                     errors.append(f"The `{prop[0]}` property in the meta file is mandatory.")
 
+        if launch_command[1] and "https" in props["Launch Command"]:
+            errors.append("Found `https` in launch command. All launch commands must use `http` instead of `https`.")
+
         # TODO check optional props?
         # optional_props: list[tuple[str, bool]] = [developer, release_date, tag, description]
         # if not all(optional_props[1]): for x in optional_props: if x[1] is False: reply += x[0] +
         # "is missing, but not necessary. Add it if you can find it, but it's okay if you can't.\n"
 
-        tags: list[str] = props["Tags"].split(";")
+        tags: list[str] = props.get("Tags", "").split(";")
         tags: list[str] = [x.strip() for x in tags]
         tags: list[str] = [x for x in tags if len(x) > 0]
 
@@ -212,7 +212,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                 if tag not in master_tag_list:
                     warnings.append(f"Tag `{tag}` is not a known tag.")
 
-        extreme: tuple[str, bool] = ("Extreme", bool(props["Extreme"]))
+        extreme: tuple[str, bool] = ("Extreme", bool(props.get("Extreme")))
         is_extreme = False
         if extreme[1] and (props["Extreme"] == "Yes" or props["Extreme"] is True):
             is_extreme = True
