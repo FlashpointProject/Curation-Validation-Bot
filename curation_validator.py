@@ -94,7 +94,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
 
     if len(logo) == 0 and len(ss) == 0 and len(content_folder) == 0 and len(meta) == 0:
         errors.append("Logo, screenshot, content folder and meta not found. Is your curation structured properly?")
-        cleanup(filename, base_path)
+        archive_cleanup(filename, base_path)
         return errors, warnings, None
 
     if len(logo) == 0:
@@ -123,7 +123,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                     props: dict = yaml.safe_load(meta_file)
                 except yaml.YAMLError:  # If this is being called, it's a meta .txt
                     errors.append("Unable to load meta YAML file")
-                    cleanup(filename, base_path)
+                    archive_cleanup(filename, base_path)
                     return errors, warnings, None
             elif meta_filename.endswith(".txt"):
                 break_index: int = 0
@@ -133,7 +133,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                     props, break_index = parse_multiline(meta_file.readlines(), props, break_index)
             else:
                 errors.append("Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
-                cleanup(filename, base_path)
+                archive_cleanup(filename, base_path)
                 return errors, warnings, None
 
         title: tuple[str, bool] = ("Title", bool(props.get("Title")))
@@ -204,7 +204,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         # if not all(optional_props[1]): for x in optional_props: if x[1] is False: reply += x[0] +
         # "is missing, but not necessary. Add it if you can find it, but it's okay if you can't.\n"
 
-        tags: list[str] = props.get("Tags", "").split(";")
+        tags: list[str] = props.get("Tags", "").split(";") if props.get("Tags", "") is not None else ""
         tags: list[str] = [x.strip() for x in tags]
         tags: list[str] = [x for x in tags if len(x) > 0]
 
@@ -222,11 +222,11 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         if extreme[1] and (props["Extreme"] == "Yes" or props["Extreme"] is True):
             is_extreme = True
 
-    cleanup(filename, base_path)
+    archive_cleanup(filename, base_path)
     return errors, warnings, is_extreme
 
 
-def cleanup(filename, base_path):
+def archive_cleanup(filename, base_path):
     l.debug(f"cleaning up after archive'{filename}'...")
     shutil.rmtree(base_path, True)
 

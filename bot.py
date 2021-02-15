@@ -1,10 +1,11 @@
 import os
+import traceback
 
 import discord
 
 from dotenv import load_dotenv
 from logger import getLogger, set_global_logging_level
-from curation_validator import validate_curation
+from curation_validator import archive_cleanup, validate_curation
 
 set_global_logging_level('DEBUG')
 l = getLogger("main")
@@ -18,6 +19,7 @@ AUDITIONS_CHANNEL = int(os.getenv('AUDITIONS_CHANNEL'))
 CURATOR_LOUNGE_CHANNEL = int(os.getenv('CURATOR_LOUNGE_CHANNEL'))
 AUDITION_CHAT_CHANNEL = int(os.getenv('AUDITION_CHAT_CHANNEL'))
 NSFW_LOUNGE_CHANNEL = int(os.getenv('NSFW_LOUNGE_CHANNEL'))
+EXCEPTION_CHANNEL = int(os.getenv('EXCEPTION_CHANNEL'))
 
 client = discord.Client()
 
@@ -61,7 +63,10 @@ async def check_curations(message: discord.Message):
         curation_errors, curation_warnings, is_extreme = validate_curation(archive_filename)
     except Exception as e:
         l.exception(e)
+        archive_cleanup(archive_filename)
         await message.add_reaction('💥')
+        reply_channel: discord.TextChannel = client.get_channel(EXCEPTION_CHANNEL)
+        await reply_channel.send(f"<@221956378627932160> the curation validator has thrown an exception:\n```{traceback.format_exc()}```")
         return
 
     # archive cleanup
