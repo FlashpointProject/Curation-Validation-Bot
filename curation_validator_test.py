@@ -106,12 +106,6 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, ["Missing tags. At least one tag must be specified."])
             self.assertCountEqual(warnings, [])
 
-    def test_missing_source(self):
-        for extension in ["7z", "zip"]:
-            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_source.{extension}")
-            self.assertCountEqual(errors, ["The `Source` property in the meta file is mandatory."])
-            self.assertCountEqual(warnings, [])
-
     def test_missing_title(self):
         for extension in ["7z", "zip"]:
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_title.{extension}")
