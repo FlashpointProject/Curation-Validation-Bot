@@ -21,23 +21,23 @@ class TestCurationValidator(unittest.TestCase):
     def test_valid_yaml_meta(self):
         for extension in ["7z", "zip"]:
             errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_valid.{extension}")
-            self.assertFalse(is_extreme)
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
+            self.assertFalse(is_extreme)
 
     def test_valid_yaml_meta_extreme(self):
         for extension in ["7z", "zip"]:
             errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_valid_extreme.{extension}")
+            self.assertCountEqual(errors, [])
+            self.assertCountEqual(warnings, [])
             self.assertTrue(is_extreme)
-            self.assertCountEqual(errors, [])
-            self.assertCountEqual(warnings, [])
 
-    def test_valid_txt_meta(self):
+    def test_valid_legacy(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_valid_txt_meta.{extension}")
-            self.assertFalse(is_extreme)
+            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_valid_legacy.{extension}")
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
+            self.assertFalse(is_extreme)
 
     def test_curation_too_large(self):
         for extension in ["7z", "zip"]:
@@ -73,7 +73,7 @@ class TestCurationValidator(unittest.TestCase):
     def test_missing_root_folder(self):
         for extension in ["7z", "zip"]:
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_root_folder.{extension}")
-            self.assertCountEqual(errors, ["Root directory is either missing or its name is incorrect. It should be in UUIDv4 format."])
+            self.assertCountEqual(errors, ["Logo, screenshot, content folder and meta not found. Is your curation structured properly?"])
             self.assertCountEqual(warnings, [])
 
     # def test_missing_root_folder(self):

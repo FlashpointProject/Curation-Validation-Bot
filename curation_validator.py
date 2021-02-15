@@ -68,28 +68,33 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
     else:
         l.warn(f"file type of file '{filename}' not supported")
 
-    l.debug(f"validating archive data for '{filename}'...")
     # check files
+    l.debug(f"validating archive data for '{filename}'...")
     uuid_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/?$")
-    # meta_outside_root_folder_regex = re.compile(r"^meta\.(yaml|yml|txt)$")
-    content_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/content/?$")
-    meta_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/meta\.(yaml|yml|txt)$")
-    logo_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.(png)$")
-    ss_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(png)$")
     uuid_folder = [match for match in filenames if uuid_folder_regex.match(match) is not None]
-    # meta_outside_root_folder = [match for match in filenames if meta_outside_root_folder_regex.match(match) is not None]
-    content_folder = [match for match in filenames if content_folder_regex.match(match) is not None]
-    meta = [match for match in filenames if meta_regex.match(match) is not None]
-    logo = [match for match in filenames if logo_regex.match(match) is not None]
-    ss = [match for match in filenames if ss_regex.match(match) is not None]
 
-    if len(uuid_folder) == 0:
-        errors.append("Root directory is either missing or its name is incorrect. It should be in UUIDv4 format.")
+    if len(uuid_folder) == 0:  # legacy or broken curation
+        content_folder_regex = re.compile(r"^[^/]+/content/?$")
+        meta_regex = re.compile(r"^[^/]+/meta\.(yaml|yml|txt)$")
+        logo_regex = re.compile(r"^[^/]+/logo\.(png)$")
+        ss_regex = re.compile(r"^[^/]+/ss\.(png)$")
+        content_folder = [match for match in filenames if content_folder_regex.match(match) is not None]
+        meta = [match for match in filenames if meta_regex.match(match) is not None]
+        logo = [match for match in filenames if logo_regex.match(match) is not None]
+        ss = [match for match in filenames if ss_regex.match(match) is not None]
+    else:  # core curation
+        content_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/content/?$")
+        meta_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/meta\.(yaml|yml|txt)$")
+        logo_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.(png)$")
+        ss_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(png)$")
+        content_folder = [match for match in filenames if content_folder_regex.match(match) is not None]
+        meta = [match for match in filenames if meta_regex.match(match) is not None]
+        logo = [match for match in filenames if logo_regex.match(match) is not None]
+        ss = [match for match in filenames if ss_regex.match(match) is not None]
+
+    if len(logo) == 0 and len(ss) == 0 and len(content_folder) == 0 and len(meta) == 0:
+        errors.append("Logo, screenshot, content folder and meta not found. Is your curation structured properly?")
         return errors, warnings, None
-
-    # if len(meta_outside_root_folder) != 0:
-    #     errors.append("Found meta file outside root directory. Did you forgot to enclose the files into one directory?")
-    #     return errors, warnings
 
     if len(logo) == 0:
         errors.append("Logo file is either missing or its filename is incorrect.")
@@ -107,7 +112,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
     # process meta
     is_extreme = False
     props: dict = {}
-    if not meta:
+    if len(meta) == 0:
         errors.append("Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
     else:
         meta_filename = meta[0]
@@ -209,7 +214,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
 
         extreme: tuple[str, bool] = ("Extreme", bool(props["Extreme"]))
         is_extreme = False
-        if extreme[1] and props["Extreme"]:
+        if extreme[1] and (props["Extreme"] == "Yes" or props["Extreme"] is True):
             is_extreme = True
 
     l.debug(f"cleaning up after archive'{filename}'...")
