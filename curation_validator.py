@@ -227,7 +227,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
 
 
 def archive_cleanup(filename, base_path):
-    l.debug(f"cleaning up after archive'{filename}'...")
+    l.debug(f"cleaning up extracted files in {base_path} after the archive '{filename}'...")
     shutil.rmtree(base_path, True)
 
 
