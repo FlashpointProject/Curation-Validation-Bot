@@ -88,9 +88,9 @@ async def check_curations(message: discord.Message):
             final_reply += f"🚫 {curation_error}\n"
 
     if len(curation_warnings) > 0:
-        await message.add_reaction('⚠️')
+        await message.add_reaction('ℹ️')
         for curation_warning in curation_warnings:
-            final_reply += f"⚠️ {curation_warning}\n"
+            final_reply += f"ℹ️ {curation_warning}\n"
 
     if len(final_reply) > 0:
         reply_channel: discord.TextChannel = client.get_channel(BOT_ALERTS_CHANNEL)
