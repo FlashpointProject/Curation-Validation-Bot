@@ -39,6 +39,12 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(warnings, [])
             self.assertFalse(is_extreme)
 
+    def test_curation_invalid_archive(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_invalid_archive.{extension}")
+            self.assertCountEqual(errors, [f"There seems to a problem with your {extension} file."])
+            self.assertCountEqual(warnings, [])
+
     def test_curation_too_large(self):
         for extension in ["7z", "zip"]:
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_2GB.{extension}")

@@ -57,7 +57,11 @@ async def check_curations(message: discord.Message):
     l.debug(f"downloading attachment '{attachment.id}' - '{archive_filename}'...")
     await attachment.save(archive_filename)
 
-    curation_errors, curation_warnings, is_extreme = validate_curation(archive_filename)
+    try:
+        curation_errors, curation_warnings, is_extreme = validate_curation(archive_filename)
+    except Exception as e:
+        l.exception(e)
+        await message.add_reaction('💥')
 
     # archive cleanup
     os.remove(archive_filename)
