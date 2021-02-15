@@ -20,6 +20,7 @@ CURATOR_LOUNGE_CHANNEL = int(os.getenv('CURATOR_LOUNGE_CHANNEL'))
 AUDITION_CHAT_CHANNEL = int(os.getenv('AUDITION_CHAT_CHANNEL'))
 NSFW_LOUNGE_CHANNEL = int(os.getenv('NSFW_LOUNGE_CHANNEL'))
 EXCEPTION_CHANNEL = int(os.getenv('EXCEPTION_CHANNEL'))
+BOT_ALERTS_CHANNEL = int(os.getenv('BOT_ALERTS_CHANNEL'))
 
 client = discord.Client()
 
@@ -90,11 +91,11 @@ async def check_curations(message: discord.Message):
             final_reply += f"⚠️ {curation_warning}\n"
 
     if len(final_reply) > 0:
-        reply_channel: discord.TextChannel = client.get_channel(CURATOR_LOUNGE_CHANNEL)
+        reply_channel: discord.TextChannel = client.get_channel(BOT_ALERTS_CHANNEL)
         if is_extreme:
             reply_channel = client.get_channel(NSFW_LOUNGE_CHANNEL)
         elif is_flash_game or is_other_game or is_animation:
-            reply_channel = client.get_channel(CURATOR_LOUNGE_CHANNEL)
+            reply_channel = client.get_channel(BOT_ALERTS_CHANNEL)
         elif is_audition:
             reply_channel = client.get_channel(AUDITION_CHAT_CHANNEL)
         l.info(f"sending reply to message '{message.id}' : '" + final_reply.replace('\n', ' ') + "'")
