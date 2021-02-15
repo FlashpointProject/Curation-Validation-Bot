@@ -215,7 +215,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         else:
             for tag in tags:
                 if tag not in master_tag_list:
-                    warnings.append(f"Tag `{tag}` is not a known tag.")
+                    warnings.append(f"Tag `{tag}` is not a known tag (did you write it correctly?). Ignore if you're adding a new tag.")
 
         extreme: tuple[str, bool] = ("Extreme", bool(props.get("Extreme")))
         is_extreme = False
