@@ -62,6 +62,7 @@ async def check_curations(message: discord.Message):
     except Exception as e:
         l.exception(e)
         await message.add_reaction('💥')
+        return
 
     # archive cleanup
     os.remove(archive_filename)
