@@ -38,7 +38,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                 return errors, warnings, None
 
             filenames = archive.getnames()
-            base_path = tempfile.mkdtemp(prefix="curation_validator") + "/"
+            base_path = tempfile.mkdtemp(prefix="curation_validator_") + "/"
             archive.extractall(path=base_path)
             archive.close()
         except Exception as e:
@@ -58,7 +58,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                 return errors, warnings, None
 
             filenames = archive.namelist()
-            base_path = tempfile.mkdtemp(prefix="curation_validator") + "/"
+            base_path = tempfile.mkdtemp(prefix="curation_validator_") + "/"
             archive.extractall(path=base_path)
             archive.close()
         except Exception as e:
