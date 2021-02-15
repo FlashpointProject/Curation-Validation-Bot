@@ -94,6 +94,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
 
     if len(logo) == 0 and len(ss) == 0 and len(content_folder) == 0 and len(meta) == 0:
         errors.append("Logo, screenshot, content folder and meta not found. Is your curation structured properly?")
+        cleanup(filename, base_path)
         return errors, warnings, None
 
     if len(logo) == 0:
@@ -122,6 +123,8 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                     props: dict = yaml.safe_load(meta_file)
                 except yaml.YAMLError:  # If this is being called, it's a meta .txt
                     errors.append("Unable to load meta YAML file")
+                    cleanup(filename, base_path)
+                    return errors, warnings, None
             elif meta_filename.endswith(".txt"):
                 break_index: int = 0
                 while break_index != -1:
@@ -130,6 +133,8 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                     props, break_index = parse_multiline(meta_file.readlines(), props, break_index)
             else:
                 errors.append("Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
+                cleanup(filename, base_path)
+                return errors, warnings, None
 
         title: tuple[str, bool] = ("Title", bool(props.get("Title")))
         # developer: tuple[str, bool] = ("Developer", bool(props["Developer"]))
@@ -217,10 +222,13 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         if extreme[1] and (props["Extreme"] == "Yes" or props["Extreme"] is True):
             is_extreme = True
 
+    cleanup(filename, base_path)
+    return errors, warnings, is_extreme
+
+
+def cleanup(filename, base_path):
     l.debug(f"cleaning up after archive'{filename}'...")
     shutil.rmtree(base_path, True)
-
-    return errors, warnings, is_extreme
 
 
 def get_tag_list() -> list[str]:
