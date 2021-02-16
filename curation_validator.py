@@ -5,11 +5,14 @@ from typing import Optional
 
 import yaml
 import py7zr
+from cachetools import TTLCache, cached
+
 from logger import getLogger
 import os
 import tempfile
 import zipfile
 import requests
+from bs4 import BeautifulSoup
 
 l = getLogger("main")
 
@@ -231,10 +234,31 @@ def archive_cleanup(filename, base_path):
     shutil.rmtree(base_path, True)
 
 
-def get_tag_list() -> list[str]:
+def get_tag_list_api() -> list[str]:
     l.debug(f"getting tags...")
     resp = requests.get(url="https://bluebot.unstable.life/tags")
     return resp.json()["tags"]
+
+
+@cached(cache=TTLCache(maxsize=1, ttl=600))
+def get_tag_list() -> list[str]:
+    l.debug(f"getting tags...")
+    tags = []
+    resp = requests.get(url="https://bluemaxima.org/flashpoint/datahub/Tags")
+    soup = BeautifulSoup(resp.text, "html.parser")
+    tables = soup.find_all("table")
+    for table in tables:
+        rows = table.find_all("tr")
+        for row in rows:
+            cols = row.find_all('td')
+            if len(cols) > 0:
+                col = cols[0]
+                links = row.find_all('a')
+                if len(links) > 0:
+                    tags.append(links[0].contents[0].strip())
+                else:
+                    tags.append(col.contents[0].strip())
+    return tags
 
 
 def parse_lines_until_multiline(lines: list[str], d: dict, starting_number: int):

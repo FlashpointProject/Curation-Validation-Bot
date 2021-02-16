@@ -6,3 +6,5 @@ pyyaml
 colorlog
 pytest
 requests
+beautifulsoup4
+cachetools
