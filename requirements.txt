@@ -1,0 +1,10 @@
+wheel
+py7zr
+discord
+python-dotenv
+pyyaml
+colorlog
+pytest
+requests
+beautifulsoup4
+cachetools
