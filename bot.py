@@ -181,7 +181,7 @@ async def hell(ctx: discord.ext.commands.Context, channel_alias: str):
 
     messages = await hell_counter(channel_id)
     if len(messages) > 0:
-        await ctx.channel.send(f"Blue's curation journey in {channel_alias} channel is {len(messages)} messages long.\n"
+        await ctx.channel.send(f"Blue's curation journey in `{channel_alias}` channel is `{len(messages)}` messages long.\n"
                                f"🔗 {messages[-1].jump_url}")
     else:
         await ctx.channel.send(f"Blue has earned his freedom... for now.")
