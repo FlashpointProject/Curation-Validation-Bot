@@ -234,15 +234,24 @@ def archive_cleanup(filename, base_path):
     shutil.rmtree(base_path, True)
 
 
-def get_tag_list_api() -> list[str]:
-    l.debug(f"getting tags...")
+@cached(cache=TTLCache(maxsize=1, ttl=600))
+def get_tag_list_bluebot() -> list[str]:
+    l.debug(f"getting tags from bluebot...")
     resp = requests.get(url="https://bluebot.unstable.life/tags")
     return resp.json()["tags"]
 
 
+@cached(cache=TTLCache(maxsize=1, ttl=3600))
+def get_tag_list_file() -> list[str]:
+    l.debug(f"getting tags from file...")
+    with open("category_tags.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+        return data["tags"]
+
+
 @cached(cache=TTLCache(maxsize=1, ttl=600))
-def get_tag_list() -> list[str]:
-    l.debug(f"getting tags...")
+def get_tag_list_wiki() -> list[str]:
+    l.debug(f"getting tags from wiki...")
     tags = []
     resp = requests.get(url="https://bluemaxima.org/flashpoint/datahub/Tags")
     soup = BeautifulSoup(resp.text, "html.parser")
@@ -259,6 +268,13 @@ def get_tag_list() -> list[str]:
                 else:
                     tags.append(col.contents[0].strip())
     return tags
+
+
+def get_tag_list() -> list[str]:
+    # bluebot_tags = get_tag_list_bluebot()
+    file_tags = get_tag_list_file()
+    wiki_tags = get_tag_list_wiki()
+    return list(set(file_tags + wiki_tags))
 
 
 def parse_lines_until_multiline(lines: list[str], d: dict, starting_number: int):
