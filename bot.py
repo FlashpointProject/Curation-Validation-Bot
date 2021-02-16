@@ -2,6 +2,7 @@ import os
 import traceback
 
 import discord
+from discord.ext import commands
 
 from dotenv import load_dotenv
 from logger import getLogger, set_global_logging_level
@@ -21,17 +22,19 @@ AUDITION_CHAT_CHANNEL = int(os.getenv('AUDITION_CHAT_CHANNEL'))
 NSFW_LOUNGE_CHANNEL = int(os.getenv('NSFW_LOUNGE_CHANNEL'))
 EXCEPTION_CHANNEL = int(os.getenv('EXCEPTION_CHANNEL'))
 BOT_ALERTS_CHANNEL = int(os.getenv('BOT_ALERTS_CHANNEL'))
+GOD_USER = int(os.getenv('GOD_USER'))
 
-client = discord.Client()
+bot = commands.Bot(command_prefix="~")
 
 
-@client.event
+@bot.event
 async def on_ready():
-    l.info(f"{client.user} connected")
+    l.info(f"{bot.user} connected")
 
 
-@client.event
+@bot.event
 async def on_message(message: discord.Message):
+    await bot.process_commands(message)
     await check_curations(message)
 
 
@@ -67,8 +70,8 @@ async def check_curations(message: discord.Message):
         l.debug(f"removing archive {archive_filename}...")
         os.remove(archive_filename)
         await message.add_reaction('💥')
-        reply_channel: discord.TextChannel = client.get_channel(EXCEPTION_CHANNEL)
-        await reply_channel.send(f"<@221956378627932160> the curation validator has thrown an exception:\n```{traceback.format_exc()}```")
+        reply_channel: discord.TextChannel = bot.get_channel(EXCEPTION_CHANNEL)
+        await reply_channel.send(f"<@{GOD_USER}> the curation validator has thrown an exception:\n```{traceback.format_exc()}```")
         return
 
     # archive cleanup
@@ -93,18 +96,27 @@ async def check_curations(message: discord.Message):
             final_reply += f"ℹ️ {curation_warning}\n"
 
     if len(final_reply) > 0:
-        reply_channel: discord.TextChannel = client.get_channel(BOT_ALERTS_CHANNEL)
+        reply_channel: discord.TextChannel = bot.get_channel(BOT_ALERTS_CHANNEL)
         if is_extreme:
-            reply_channel = client.get_channel(NSFW_LOUNGE_CHANNEL)
+            reply_channel = bot.get_channel(NSFW_LOUNGE_CHANNEL)
         elif is_flash_game or is_other_game or is_animation:
-            reply_channel = client.get_channel(BOT_ALERTS_CHANNEL)
+            reply_channel = bot.get_channel(BOT_ALERTS_CHANNEL)
         elif is_audition:
-            reply_channel = client.get_channel(AUDITION_CHAT_CHANNEL)
+            reply_channel = bot.get_channel(AUDITION_CHAT_CHANNEL)
         l.info(f"sending reply to message '{message.id}' : '" + final_reply.replace('\n', ' ') + "'")
         await reply_channel.send(final_reply)
     else:
         await message.add_reaction('🤖')
 
 
+@bot.command()
+async def ping(ctx: discord.ext.commands.Context):
+    if ctx.author.id == GOD_USER:
+        l.debug(f"received ping from {ctx.author} in channel {ctx.channel} - {ctx.message.jump_url}")
+        await ctx.channel.send("pong")
+    else:
+        l.debug(f"received unauthorized ping from {ctx.author} in channel {ctx.channel} - {ctx.message.jump_url}")
+
+
 l.info(f"starting the bot...")
-client.run(TOKEN)
+bot.run(TOKEN)
