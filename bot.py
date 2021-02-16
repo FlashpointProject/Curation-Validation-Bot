@@ -109,13 +109,11 @@ async def check_curations(message: discord.Message):
         await message.add_reaction('🤖')
 
 
-@bot.command()
+@bot.command(hidden=True)
+@commands.has_role("Administrator")
 async def ping(ctx: discord.ext.commands.Context):
-    if ctx.author.id == GOD_USER:
-        l.debug(f"received ping from {ctx.author} in channel {ctx.channel} - {ctx.message.jump_url}")
-        await ctx.channel.send("pong")
-    else:
-        l.debug(f"received unauthorized ping from {ctx.author} in channel {ctx.channel} - {ctx.message.jump_url}")
+    l.debug(f"received ping from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+    await ctx.channel.send("pong")
 
 
 l.info(f"starting the bot...")
