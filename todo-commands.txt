@@ -1,0 +1,118 @@
+add/set <command> <output>
+delete/remove <command>
+addalias/setalias <alias> <command>
+deletealias/removealias <alias> <command>
+
+Commands that let you add/delete commands. Allow it for mods and up, so that we don't have to ask you to manually code them in
+
+---
+
+ct
+tutorial
+
+<https://bluemaxima.org/flashpoint/datahub/Curation_Tutorial>
+
+---
+
+av
+antivirus
+avg
+avast
+
+<https://bluemaxima.org/flashpoint/datahub/Troubleshooting_Antivirus_Interference>
+
+---
+
+wsod
+whitescreen
+ws
+
+<https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#Troubleshooting>
+
+---
+
+faq
+
+<https://bluemaxima.org/flashpoint/datahub/Extended_FAQ>
+
+---
+
+banned
+blacklist
+notallowed
+notaccepted
+
+<https://bluemaxima.org/flashpoint/datahub/Not_Accepted_Curations>
+
+---
+
+nitrome
+
+Nitrome asked us to remove their games. Why? We do not know the specific reason, but it's their right to do so. However, they will be emulating their collection on their site in HTML5 using the Poki emulator, so you will have to go there to play them. Please do not harass them.
+
+---
+
+format
+meta
+
+<https://bluemaxima.org/flashpoint/datahub/Curation_Format#List_of_Metadata_Fields>
+
+---
+
+tags
+
+<https://bluemaxima.org/flashpoint/datahub/Tags>
+
+---
+
+lang
+langs
+languages
+
+<https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes>
+
+---
+
+ml
+masterlist
+list
+games
+animations
+anims
+
+<https://nul.sh/misc/flashpoint/>
+
+---
+
+ml <title>
+masterlist <title>
+list <title>
+games <title>
+animations <title>
+anims <title>
+
+Runs a search on the DB. Something simple like:
+select * from game where title like %<title>% limit 1;
+
+Tomy would be happy:
+https://discordapp.com/channels/432708847304704010/432708847304704013/666497367117266964
+
+---
+
+downloads
+dl
+
+<https://bluemaxima.org/flashpoint/downloads/>
+
+---
+
+platforms
+plugins
+
+<https://bluemaxima.org/flashpoint/platforms/>
+
+---
+
+github
+
+<https://github.com/FlashpointProject/>
