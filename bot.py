@@ -21,7 +21,7 @@ AUDITIONS_CHANNEL = int(os.getenv('AUDITIONS_CHANNEL'))
 CURATOR_LOUNGE_CHANNEL = int(os.getenv('CURATOR_LOUNGE_CHANNEL'))
 AUDITION_CHAT_CHANNEL = int(os.getenv('AUDITION_CHAT_CHANNEL'))
 NSFW_LOUNGE_CHANNEL = int(os.getenv('NSFW_LOUNGE_CHANNEL'))
-EXCEPTION_CHANNEL = int(os.getenv('EXCEPTION_CHANNEL'))
+BOT_TESTING_CHANNEL = int(os.getenv('BOT_TESTING_CHANNEL'))
 BOT_ALERTS_CHANNEL = int(os.getenv('BOT_ALERTS_CHANNEL'))
 GOD_USER = int(os.getenv('GOD_USER'))
 
@@ -80,7 +80,7 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
         if not dry_run:
             l.debug(f"adding 💥 reaction to message '{message.id}'")
             await message.add_reaction('💥')
-        reply_channel: discord.TextChannel = bot.get_channel(EXCEPTION_CHANNEL)
+        reply_channel: discord.TextChannel = bot.get_channel(BOT_TESTING_CHANNEL)
         await reply_channel.send(f"<@{GOD_USER}> the curation validator has thrown an exception:\n```{traceback.format_exc()}```")
         return
 
