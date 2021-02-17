@@ -90,11 +90,13 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
 
     # format reply
     final_reply: str = ""
-    if len(curation_errors) > 0 or len(curation_warnings) > 0:
-        author: discord.Member = message.author
-        final_reply += author.mention + f" Your curation has some problems:\n" \
-                                        f"🤖 (This bot is currently in the testing phase, so it may not work correctly.)\n" \
-                                        f"🔗 {message.jump_url}\n"
+    if len(curation_errors) > 0:
+        final_reply += message.author.mention + f"Your curation is invalid:\n" \
+                                                f"🔗 {message.jump_url}\n"
+    if len(curation_errors) == 0 and len(curation_warnings) > 0:
+        final_reply += message.author.mention + f" Your curation might have some problems:\n" \
+                                                f"🔗 {message.jump_url}\n"
+
     if len(curation_errors) > 0:
         if not dry_run:
             l.debug(f"adding 🚫 reaction to message '{message.id}'")
@@ -110,6 +112,9 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
             final_reply += f"ℹ️ {curation_warning}\n"
 
     if len(final_reply) > 0:
+        if len(curation_errors) == 0 and len(curation_warnings) > 0:
+            final_reply += "⚠️ If the problems detected are valid and you're going to upload a fixed version, " \
+                           "please remove the original curation submission after you upload the new one."
         reply_channel: discord.TextChannel = bot.get_channel(BOT_ALERTS_CHANNEL)
         if is_extreme:
             reply_channel = bot.get_channel(NSFW_LOUNGE_CHANNEL)
