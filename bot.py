@@ -25,7 +25,7 @@ BOT_TESTING_CHANNEL = int(os.getenv('BOT_TESTING_CHANNEL'))
 BOT_ALERTS_CHANNEL = int(os.getenv('BOT_ALERTS_CHANNEL'))
 GOD_USER = int(os.getenv('GOD_USER'))
 
-bot = commands.Bot(command_prefix="~")
+bot = commands.Bot(command_prefix="-")
 
 
 @bot.event
@@ -280,16 +280,22 @@ async def batch_validate_command(ctx: discord.ext.commands.Context, channel_alia
         await ctx.channel.send("limit must be > 0 and <= 500")
         return
 
-    await ctx.channel.send(f"Validating a batch of up to {limit} of most recent unprocessed curations."
-                           f"Sit back and relax, this will take a while <:cool_crab:587188729362513930>.")
+    if dry_run:
+        await ctx.channel.send(f"[DRY RUN] Validating a batch of up to {limit} of most recent unprocessed curations."
+                               f"Sit back and relax, this will take a while <:cool_crab:587188729362513930>.")
+    else:
+        await ctx.channel.send(f"Validating a batch of up to {limit} of most recent unprocessed curations."
+                               f"Sit back and relax, this will take a while <:cool_crab:587188729362513930>.")
 
     messages = await get_messages_without_bot_reaction_until_blue(channel_id, limit)
     if len(messages) == 0:
         await ctx.channel.send(f"No unchecked curations found.")
         return
 
+    counter = 0
     for message in messages:
-        l.debug(f"batch-validate: Checking message {message.id} - {message.jump_url}")
+        l.debug(f"batch-validate: Checking message #{counter} - {message.id} - {message.jump_url}")
+        counter += 1
         await check_curation_in_message(message, dry_run=dry_run)
 
     l.debug(f"Batch validation done.")
