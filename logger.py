@@ -38,7 +38,7 @@ handler.setFormatter(colorlog.ColoredFormatter(
     style='%'
 ))
 
-file_handler = logging.FileHandler(f"log.log")
+file_handler = logging.FileHandler(f"log.log", encoding='utf-8')
 
 
 def format_message(msg, func, level):

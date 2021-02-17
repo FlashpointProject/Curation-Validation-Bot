@@ -36,7 +36,7 @@ async def on_ready():
 @bot.event
 async def on_message(message: discord.Message):
     await bot.process_commands(message)
-    await check_curations(message)
+    await check_curation_in_message(message, dry_run=False)
 
 
 @bot.event
@@ -46,8 +46,8 @@ async def on_command_error(ctx, error):
         return
 
 
-async def check_curations(message: discord.Message):
-    if len(message.attachments) != 1:
+async def check_curation_in_message(message: discord.Message, dry_run: bool = True):
+    if len(message.attachments) != 1:  # TODO can we have more than one attachment?
         return
 
     is_flash_game = message.channel.id == FLASH_GAMES_CHANNEL
@@ -77,7 +77,9 @@ async def check_curations(message: discord.Message):
         l.exception(e)
         l.debug(f"removing archive {archive_filename}...")
         os.remove(archive_filename)
-        await message.add_reaction('💥')
+        if not dry_run:
+            l.debug(f"adding 💥 reaction to message '{message.id}'")
+            await message.add_reaction('💥')
         reply_channel: discord.TextChannel = bot.get_channel(EXCEPTION_CHANNEL)
         await reply_channel.send(f"<@{GOD_USER}> the curation validator has thrown an exception:\n```{traceback.format_exc()}```")
         return
@@ -94,12 +96,16 @@ async def check_curations(message: discord.Message):
                                         f"🤖 (This bot is currently in the testing phase, so it may not work correctly.)\n" \
                                         f"🔗 {message.jump_url}\n"
     if len(curation_errors) > 0:
-        await message.add_reaction('🚫')
+        if not dry_run:
+            l.debug(f"adding 🚫 reaction to message '{message.id}'")
+            await message.add_reaction('🚫')
         for curation_error in curation_errors:
             final_reply += f"🚫 {curation_error}\n"
 
     if len(curation_warnings) > 0:
-        await message.add_reaction('ℹ️')
+        if not dry_run:
+            l.debug(f"adding ℹ️ reaction to message '{message.id}'")
+            await message.add_reaction('ℹ️')
         for curation_warning in curation_warnings:
             final_reply += f"ℹ️ {curation_warning}\n"
 
@@ -111,10 +117,16 @@ async def check_curations(message: discord.Message):
             reply_channel = bot.get_channel(BOT_ALERTS_CHANNEL)
         elif is_audition:
             reply_channel = bot.get_channel(AUDITION_CHAT_CHANNEL)
-        l.info(f"sending reply to message '{message.id}' : '" + final_reply.replace('\n', ' ') + "'")
-        await reply_channel.send(final_reply)
+        if not dry_run:
+            l.info(f"sending reply to message '{message.id}' : '" + final_reply.replace('\n', ' ') + "'")
+            await reply_channel.send(final_reply)
+        else:
+            l.info(f"NOT SENDING reply to message '{message.id}' : '" + final_reply.replace('\n', ' ') + "'")
     else:
-        await message.add_reaction('🤖')
+        l.info(f"curation in message '{message.id}' validated and is OK - {message.jump_url}")
+        if not dry_run:
+            l.debug(f"adding 🤖 reaction to message '{message.id}'")
+            await message.add_reaction('🤖')
 
 
 @bot.command(hidden=True)
@@ -124,25 +136,25 @@ async def ping(ctx: discord.ext.commands.Context):
     await ctx.channel.send("pong")
 
 
-async def hell_counter(channel_id) -> list[discord.Message]:
+async def hell_counter(channel_id: int) -> list[discord.Message]:
     BLUE_ID = 144019275210817536
     message_counter = 0
-    last_message: Optional[discord.Message] = None
+    oldest_message: Optional[discord.Message] = None
     batch_size = 1000
     messages: list[discord.Message] = []
 
     channel = bot.get_channel(channel_id)
     while True:
-        if last_message is None:
+        if oldest_message is None:
             l.debug(f"getting {batch_size} messages...")
             message_batch: list[discord.Message] = await channel.history(limit=batch_size).flatten()
         else:
-            l.debug(f"getting {batch_size} messages from {last_message.jump_url} ...")
-            message_batch: list[discord.Message] = await channel.history(limit=batch_size, before=last_message).flatten()
+            l.debug(f"getting {batch_size} messages from {oldest_message.jump_url} ...")
+            message_batch: list[discord.Message] = await channel.history(limit=batch_size, before=oldest_message).flatten()
         if len(message_batch) == 0:
             l.warn(f"no messages found, weird.")
             return messages
-        last_message = message_batch[-1]
+        oldest_message = message_batch[-1]
         messages.extend(message_batch)
 
         l.debug("processing messages...")
@@ -185,6 +197,98 @@ async def hell(ctx: discord.ext.commands.Context, channel_alias: str):
                                f"🔗 {messages[-1].jump_url}")
     else:
         await ctx.channel.send(f"Blue has earned his freedom... for now.")
+
+
+async def get_messages_without_bot_reaction_until_blue(channel_id: int, max_messages: int = 1) -> list[discord.Message]:
+    """
+    Returns list of messages from a channel which bot did not react to,
+    up until max_messages or until Blue's hammer reaction is found.
+    """
+    BLUE_ID = 144019275210817536
+    message_counter = 0
+    oldest_message: Optional[discord.Message] = None
+    batch_size = 1000
+    all_messages: list[discord.Message] = []
+    non_validated_messages: list[discord.Message] = []
+
+    channel = bot.get_channel(channel_id)
+    while True:
+        if oldest_message is None:
+            l.debug(f"getting {batch_size} messages...")
+            message_batch: list[discord.Message] = await channel.history(limit=batch_size).flatten()
+        else:
+            l.debug(f"getting {batch_size} messages from {oldest_message.jump_url} ...")
+            message_batch: list[discord.Message] = await channel.history(limit=batch_size, before=oldest_message).flatten()
+        if len(message_batch) == 0:
+            l.warn(f"no messages found, weird.")
+            return all_messages
+        oldest_message = message_batch[-1]
+        all_messages.extend(message_batch)
+
+        l.debug("processing messages...")
+        for msg in message_batch:
+            # TODO can we have more than one attachment?
+            potential_result = [msg for msg in non_validated_messages if len(msg.attachments) == 1]
+            if len(potential_result) >= max_messages:
+                return potential_result
+            message_counter += 1
+            reactions = msg.reactions
+            if len(reactions) > 0:
+                l.debug(f"analyzing reactions for msg {msg.id} - message {message_counter}...")
+            already_validated = False
+            found_blue = False
+            for reaction in reactions:
+                if (reaction.emoji == "🤖" or reaction.emoji == "ℹ️" or reaction.emoji == "🚫" or reaction.emoji == "⚠️") and reaction.me:
+                    already_validated = True
+                    continue
+                if reaction.emoji != "🛠️":
+                    continue
+                l.debug(f"found hammer, getting reactions users for msg {msg.id} and reaction {reaction}...")
+                users: list[discord.User] = await reaction.users().flatten()
+                for user in users:
+                    if user.id == BLUE_ID:
+                        found_blue = True
+                        break
+            if not already_validated:
+                non_validated_messages.append(msg)
+            if found_blue:
+                l.debug(f"message filter searched {len(all_messages)} messages "
+                        f"and found {len(non_validated_messages)} which were not validated yet.")
+                return [msg for msg in non_validated_messages if len(msg.attachments) == 1]  # TODO can we have more than one attachment?
+
+
+@bot.command(name="batch-validate", hidden=True)
+@commands.has_role("Administrator")
+@commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
+async def batch_validate_command(ctx: discord.ext.commands.Context, channel_alias: str, limit: int, dry_run: bool):
+    if channel_alias == "flash":
+        channel_id = FLASH_GAMES_CHANNEL
+    elif channel_alias == "other":
+        channel_id = OTHER_GAMES_CHANNEL
+    elif channel_alias == "animation":
+        channel_id = ANIMATIONS_CHANNEL
+    else:
+        await ctx.channel.send("invalid channel")
+        return
+
+    if limit <= 0 or limit > 500:
+        await ctx.channel.send("limit must be > 0 and <= 500")
+        return
+
+    await ctx.channel.send(f"Validating a batch of up to {limit} of most recent unprocessed curations."
+                           f"Sit back and relax, this will take a while <:cool_crab:587188729362513930>.")
+
+    messages = await get_messages_without_bot_reaction_until_blue(channel_id, limit)
+    if len(messages) == 0:
+        await ctx.channel.send(f"No unchecked curations found.")
+        return
+
+    for message in messages:
+        l.debug(f"batch-validate: Checking message {message.id} - {message.jump_url}")
+        await check_curation_in_message(message, dry_run=dry_run)
+
+    l.debug(f"Batch validation done.")
+    await ctx.channel.send(f"Batch validation done.")
 
 
 @bot.command(name="ct", aliases=["curation"], brief="Curation tutorial.")
@@ -262,7 +366,7 @@ async def master_list(ctx: discord.ext.commands.Context, search_query: Optional[
     else:
         l.debug(f"masterlist with query command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Direct search not implemented yet.\n"
-                         "🔗 https://nul.sh/misc/flashpoint/")
+                               "🔗 https://nul.sh/misc/flashpoint/")
 
 
 @bot.command(name="downloads", aliases=["dl"], brief="Where to download Flashpoint.")
