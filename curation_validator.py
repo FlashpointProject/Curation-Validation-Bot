@@ -88,12 +88,24 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
     else:  # core curation
         content_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/content/?$")
         meta_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/meta\.(yaml|yml|txt)$")
-        logo_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.(?i)(png)$")
-        ss_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(?i)(png)$")
+        logo_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.png$")
+        logo_regex_case = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.(?i)(png)$")
+        ss_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.png$")
+        ss_regex_case = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(?i)(png)$")
+
         content_folder = [match for match in filenames if content_folder_regex.match(match) is not None]
         meta = [match for match in filenames if meta_regex.match(match) is not None]
         logo = [match for match in filenames if logo_regex.match(match) is not None]
+        logo_case = [match for match in filenames if logo_regex_case.match(match) is not None]
         ss = [match for match in filenames if ss_regex.match(match) is not None]
+        ss_case = [match for match in filenames if ss_regex_case.match(match) is not None]
+
+        if set(logo) != set(logo_case):
+            errors.append("Logo file extension must be lowercase.")
+
+        if set(ss) != set(ss_case):
+            errors.append("Screenshot file extension must be lowercase.")
+
 
     if len(logo) == 0 and len(ss) == 0 and len(content_folder) == 0 and len(meta) == 0:
         errors.append("Logo, screenshot, content folder and meta not found. Is your curation structured properly?")
