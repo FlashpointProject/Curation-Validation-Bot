@@ -38,6 +38,8 @@ handler.setFormatter(colorlog.ColoredFormatter(
     style='%'
 ))
 
+file_handler = logging.FileHandler(f"log.log")
+
 
 def format_message(msg, func, level):
     return f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}][{LEVELS[level]}][{os.getpid()}][{func.co_filename}:{func.co_firstlineno}] -- {msg}"
@@ -82,6 +84,7 @@ def getLogger(name: str):
     logger.error = error
     logger.critical = critical
     logger.addHandler(handler)
+    logger.addHandler(file_handler)
     logger.setLevel(LOGGING_LEVEL)
     loggers[name] = logger
     return logger
