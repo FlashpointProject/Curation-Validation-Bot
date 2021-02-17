@@ -99,8 +99,8 @@ class TestCurationValidator(unittest.TestCase):
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_unknown_tag.{extension}")
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings,
-                                  ["Tag `Unknown Tag` is not a known tag (did you write it correctly?). Ignore if you're adding a new tag.",
-                                   "Tag `Another Unknown Tag` is not a known tag (did you write it correctly?). Ignore if you're adding a new tag."])
+                                  ["Tag `Unknown Tag` is not a known tag, please verify (did you write it correctly?).",
+                                   "Tag `Another Unknown Tag` is not a known tag, please verify (did you write it correctly?)."])
 
     def test_missing_tags(self):
         for extension in ["7z", "zip"]:
