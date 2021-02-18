@@ -106,7 +106,6 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         if set(ss) != set(ss_case):
             errors.append("Screenshot file extension must be lowercase.")
 
-
     if len(logo) == 0 and len(ss) == 0 and len(content_folder) == 0 and len(meta) == 0:
         errors.append("Logo, screenshot, content folder and meta not found. Is your curation structured properly?")
         archive_cleanup(filename, base_path)
@@ -214,6 +213,9 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         if launch_command[1] and "https" in props["Launch Command"]:
             errors.append("Found `https` in launch command. All launch commands must use `http` instead of `https`.")
 
+        if launch_command[1] and props["Launch Command"] in get_launch_commands_bluebot():
+            errors.append("Identical launch command already present in the master database. Is your curation a duplicate?")
+
         # TODO check optional props?
         # optional_props: list[tuple[str, bool]] = [developer, release_date, tag, description]
         # if not all(optional_props[1]): for x in optional_props: if x[1] is False: reply += x[0] +
@@ -247,6 +249,13 @@ def archive_cleanup(filename, base_path):
 
 
 @cached(cache=TTLCache(maxsize=1, ttl=600))
+def get_launch_commands_bluebot() -> list[str]:
+    l.debug(f"getting launch commands from bluebot...")
+    resp = requests.get(url="https://bluebot.unstable.life/launch-commands")
+    return resp.json()["launch_commands"]
+
+
+@cached(cache=TTLCache(maxsize=1, ttl=600))
 def get_tag_list_bluebot() -> list[str]:
     l.debug(f"getting tags from bluebot...")
     resp = requests.get(url="https://bluebot.unstable.life/tags")
@@ -261,7 +270,7 @@ def get_tag_list_file() -> list[str]:
         return data["tags"]
 
 
-@cached(cache=TTLCache(maxsize=1, ttl=600))
+@cached(cache=TTLCache(maxsize=1, ttl=60))
 def get_tag_list_wiki() -> list[str]:
     l.debug(f"getting tags from wiki...")
     tags = []

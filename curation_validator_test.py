@@ -8,15 +8,23 @@ def mock_get_tag_list() -> list[str]:
     return ["A", "B"]
 
 
+def mock_get_launch_commands_bluebot() -> list[str]:
+    return ["http://www.bluemaxima.org/a.html", "http://www.bluemaxima.org/b.html"]
+
+
 class TestCurationValidator(unittest.TestCase):
 
     def setUp(self):
-        self.patcher = patch('curation_validator.get_tag_list')
-        self.tag_list = self.patcher.start()
+        self.tag_patcher = patch('curation_validator.get_tag_list')
+        self.tag_list = self.tag_patcher.start()
         self.tag_list.side_effect = mock_get_tag_list
+        self.launch_command_patcher = patch('curation_validator.get_launch_commands_bluebot')
+        self.launch_command_list = self.launch_command_patcher.start()
+        self.launch_command_list.side_effect = mock_get_launch_commands_bluebot
 
     def tearDown(self):
-        self.patcher.stop()
+        self.tag_patcher.stop()
+        self.launch_command_patcher.stop()
 
     def test_valid_yaml_meta(self):
         for extension in ["7z", "zip"]:
@@ -43,6 +51,12 @@ class TestCurationValidator(unittest.TestCase):
         for extension in ["7z", "zip"]:
             errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_invalid_archive.{extension}")
             self.assertCountEqual(errors, [f"There seems to a problem with your {extension} file."])
+            self.assertCountEqual(warnings, [])
+
+    def test_curation_duplicate_launch_command(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_duplicate_launch_command.{extension}")
+            self.assertCountEqual(errors, [f"Identical launch command already present in the master database. Is your curation a duplicate?"])
             self.assertCountEqual(warnings, [])
 
     def test_curation_capital_extension_logo(self):
