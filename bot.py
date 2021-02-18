@@ -36,6 +36,7 @@ async def on_ready():
 @bot.event
 async def on_message(message: discord.Message):
     await bot.process_commands(message)
+    await forward_ping(message)
     await check_curation_in_message(message, dry_run=False)
 
 
@@ -44,6 +45,13 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.MaxConcurrencyReached):
         await ctx.channel.send('Bot is busy! Try again later.')
         return
+
+
+async def forward_ping(message: discord.Message):
+    mention = f'<@!{bot.user.id}>'
+    if mention in message.content:
+        reply_channel: discord.TextChannel = bot.get_channel(BOT_TESTING_CHANNEL)
+        await reply_channel.send(f"<@{GOD_USER}> the bot was mentioned in {message.jump_url}")
 
 
 async def check_curation_in_message(message: discord.Message, dry_run: bool = True):
