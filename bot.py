@@ -91,7 +91,7 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
     # format reply
     final_reply: str = ""
     if len(curation_errors) > 0:
-        final_reply += message.author.mention + f"Your curation is invalid:\n" \
+        final_reply += message.author.mention + f" Your curation is invalid:\n" \
                                                 f"🔗 {message.jump_url}\n"
     if len(curation_errors) == 0 and len(curation_warnings) > 0:
         final_reply += message.author.mention + f" Your curation might have some problems:\n" \
@@ -302,21 +302,21 @@ async def batch_validate_command(ctx: discord.ext.commands.Context, channel_alia
     await ctx.channel.send(f"Batch validation done.")
 
 
-@bot.command(name="ct", aliases=["curation"], brief="Curation tutorial.")
+@bot.command(name="curation", aliases=["ct", "curation-tutorial"], brief="Curation tutorial.")
 async def curation_tutorial(ctx: discord.ext.commands.Context):
     l.debug(f"curation tutorial command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Curation tutorial:\n"
                            "🔗 https://bluemaxima.org/flashpoint/datahub/Curation_Tutorial")
 
 
-@bot.command(name="av", aliases=["antivirus", "avg", "avast"], brief="Antivirus interference.")
+@bot.command(name="antivirus", aliases=["av", "avg", "avast"], brief="Antivirus interference.")
 async def antivirus(ctx: discord.ext.commands.Context):
     l.debug(f"antivirus command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Important Flashpoint components may be detected as a virus; this is a false positive.\n"
                            "🔗 https://bluemaxima.org/flashpoint/datahub/Troubleshooting_Antivirus_Interference")
 
 
-@bot.command(name="ws", aliases=["whitescreen", "wsod"], brief="White screen troubleshooting.")
+@bot.command(name="whitescreen", aliases=["ws", "wsod"], brief="White screen troubleshooting.")
 async def whitescreen(ctx: discord.ext.commands.Context):
     l.debug(f"whitescreen command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Launching games always shows a blank white screen:\n"
