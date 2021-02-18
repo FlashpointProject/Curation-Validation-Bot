@@ -36,7 +36,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
             uncompressed_size = archive.archiveinfo().uncompressed
             if uncompressed_size > max_uncompressed_size:
                 warnings.append(
-                    f"The archive is too large to validate (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
+                    f"The archive is too large to be validated (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
                 archive.close()
                 return errors, warnings, None
 
@@ -56,7 +56,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
             uncompressed_size = sum([zinfo.file_size for zinfo in archive.filelist])
             if uncompressed_size > max_uncompressed_size:
                 warnings.append(
-                    f"The archive is too large to validate (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
+                    f"The archive is too large to be validated (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
                 archive.close()
                 return errors, warnings, None
 
@@ -80,18 +80,22 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         content_folder_regex = re.compile(r"^[^/]+/content/?$")
         meta_regex = re.compile(r"^[^/]+/meta\.(yaml|yml|txt)$")
         logo_regex = re.compile(r"^[^/]+/logo\.(png)$")
+        logo_regex_case = re.compile(r"(?i)^[^/]+/logo\.(png)$")
         ss_regex = re.compile(r"^[^/]+/ss\.(png)$")
+        ss_regex_case = re.compile(r"(?i)^[^/]+/ss\.(png)$")
         content_folder = [match for match in filenames if content_folder_regex.match(match) is not None]
         meta = [match for match in filenames if meta_regex.match(match) is not None]
         logo = [match for match in filenames if logo_regex.match(match) is not None]
+        logo_case = [match for match in filenames if logo_regex_case.match(match) is not None]
         ss = [match for match in filenames if ss_regex.match(match) is not None]
+        ss_case = [match for match in filenames if ss_regex_case.match(match) is not None]
     else:  # core curation
         content_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/content/?$")
         meta_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/meta\.(yaml|yml|txt)$")
         logo_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.png$")
-        logo_regex_case = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.(?i)(png)$")
+        logo_regex_case = re.compile(r"(?i)^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.(png)$")
         ss_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.png$")
-        ss_regex_case = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(?i)(png)$")
+        ss_regex_case = re.compile(r"(?i)^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(png)$")
 
         content_folder = [match for match in filenames if content_folder_regex.match(match) is not None]
         meta = [match for match in filenames if meta_regex.match(match) is not None]
@@ -100,21 +104,22 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         ss = [match for match in filenames if ss_regex.match(match) is not None]
         ss_case = [match for match in filenames if ss_regex_case.match(match) is not None]
 
-        if set(logo) != set(logo_case):
-            errors.append("Logo file extension must be lowercase.")
-
-        if set(ss) != set(ss_case):
-            errors.append("Screenshot file extension must be lowercase.")
-
     if len(logo) == 0 and len(ss) == 0 and len(content_folder) == 0 and len(meta) == 0:
         errors.append("Logo, screenshot, content folder and meta not found. Is your curation structured properly?")
         archive_cleanup(filename, base_path)
         return errors, warnings, None
 
-    if len(logo) == 0:
-        errors.append("Logo file is either missing or its filename is incorrect.")
-    if len(ss) == 0:
-        errors.append("Screenshot file is either missing or its filename is incorrect.")
+    if set(logo) != set(logo_case):
+        errors.append("Logo file extension must be lowercase.")
+    else:
+        if len(logo) == 0:
+            errors.append("Logo file is either missing or its filename is incorrect.")
+
+    if set(ss) != set(ss_case):
+        errors.append("Screenshot file extension must be lowercase.")
+    else:
+        if len(ss) == 0:
+            errors.append("Screenshot file is either missing or its filename is incorrect.")
 
     # check content
     if len(content_folder) == 0:

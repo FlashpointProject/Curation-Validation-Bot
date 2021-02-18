@@ -62,22 +62,20 @@ class TestCurationValidator(unittest.TestCase):
     def test_curation_capital_extension_logo(self):
         for extension in ["7z", "zip"]:
             errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_capital_extension_logo.{extension}")
-            self.assertCountEqual(errors, [f"Logo file extension must be lowercase.",
-                                           "Logo file is either missing or its filename is incorrect."])
+            self.assertCountEqual(errors, [f"Logo file extension must be lowercase."])
             self.assertCountEqual(warnings, [])
 
     def test_curation_capital_extension_screenshot(self):
         for extension in ["7z", "zip"]:
             errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_capital_extension_screenshot.{extension}")
-            self.assertCountEqual(errors, [f"Screenshot file extension must be lowercase.",
-                                           "Screenshot file is either missing or its filename is incorrect."])
+            self.assertCountEqual(errors, [f"Screenshot file extension must be lowercase."])
             self.assertCountEqual(warnings, [])
 
     def test_curation_too_large(self):
         for extension in ["7z", "zip"]:
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_2GB.{extension}")
             self.assertCountEqual(errors, [])
-            self.assertCountEqual(warnings, ["The archive is too large to validate (`2000MB/1000MB`)."])
+            self.assertCountEqual(warnings, ["The archive is too large to be validated (`2000MB/1000MB`)."])
 
     def test_empty_content(self):
         for extension in ["7z", "zip"]:
