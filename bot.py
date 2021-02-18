@@ -26,6 +26,7 @@ BOT_ALERTS_CHANNEL = int(os.getenv('BOT_ALERTS_CHANNEL'))
 GOD_USER = int(os.getenv('GOD_USER'))
 
 bot = commands.Bot(command_prefix="-")
+COOL_CRAB = "<:cool_crab:587188729362513930>"
 
 
 @bot.event
@@ -202,7 +203,7 @@ async def hell(ctx: discord.ext.commands.Context, channel_alias: str):
         return
 
     await ctx.channel.send(f"Measuring the length of Blue's curation journey through hell. "
-                           f"Sit back and relax, this will take a while <:cool_crab:587188729362513930>.")
+                           f"Sit back and relax, this will take a while {COOL_CRAB}.")
 
     messages = await hell_counter(channel_id)
     if len(messages) > 0:
@@ -290,10 +291,10 @@ async def batch_validate_command(ctx: discord.ext.commands.Context, channel_alia
 
     if dry_run:
         await ctx.channel.send(f"[DRY RUN] Validating a batch of up to {limit} of most recent unprocessed curations."
-                               f"Sit back and relax, this will take a while <:cool_crab:587188729362513930>.")
+                               f"Sit back and relax, this will take a while {COOL_CRAB}.")
     else:
         await ctx.channel.send(f"Validating a batch of up to {limit} of most recent unprocessed curations."
-                               f"Sit back and relax, this will take a while <:cool_crab:587188729362513930>.")
+                               f"Sit back and relax, this will take a while {COOL_CRAB}.")
 
     messages = await get_messages_without_bot_reaction_until_blue(channel_id, limit)
     if len(messages) == 0:
