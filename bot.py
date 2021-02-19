@@ -1,4 +1,5 @@
 import os
+import re
 import traceback
 from typing import Optional
 
@@ -311,6 +312,32 @@ async def batch_validate_command(ctx: discord.ext.commands.Context, channel_alia
     await ctx.channel.send(f"Batch validation done.")
 
 
+@bot.command(name="approve", brief="Override the bot's decision and approve the curation (Moderator).")
+@commands.has_role("Moderator")
+async def linux(ctx: discord.ext.commands.Context, jump_url: str):
+    l.debug(f"approve command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+
+    jump_url_regex = re.compile(r"https://discord\.com/channels/(\d+)/(\d+)/(\d+)")
+    url_match = jump_url_regex.match(jump_url)
+    if url_match is None or ctx.guild != bot.get_guild(int(url_match.group(1))):
+        ctx.channel.send("Invalid jump URL provided\n")
+        return
+
+    # guild_id = int(url_match.group(1))
+    channel_id = int(url_match.group(2))
+    message_id = int(url_match.group(3))
+
+    l.debug(f"fetching message {message_id}")
+    channel = bot.get_channel(channel_id)
+    message = await channel.fetch_message(message_id)
+    reactions: list[discord.Reaction] = message.reactions
+    for reaction in reactions:
+        if reaction.me:
+            l.debug(f"removing bot's reaction {reaction} from message {message.id}")
+            await message.remove_reaction(reaction.emoji, bot.user)
+    await message.add_reaction("🤖")
+
+
 @bot.command(name="curation", aliases=["ct", "curation-tutorial"], brief="Curation tutorial.")
 async def curation_tutorial(ctx: discord.ext.commands.Context):
     l.debug(f"curation tutorial command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
@@ -413,8 +440,16 @@ async def github(ctx: discord.ext.commands.Context):
 @bot.command(name="chromebook", aliases=["cb"], brief="Chromebook compatibility.")
 async def github(ctx: discord.ext.commands.Context):
     l.debug(f"chromebook command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("Flashpoint is compatible with Chromebooks that support Linux:\n"
+    await ctx.channel.send("Flashpoint is compatible with Intel Chromebooks that support Linux:\n"
                            "🔗 https://bluemaxima.org/flashpoint/datahub/Linux_Support")
+
+
+@bot.command(name="linux", brief="Linux compatibility.")
+async def linux(ctx: discord.ext.commands.Context):
+    l.debug(f"linux command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+    await ctx.channel.send("Flashpoint on Linux:\n"
+                           "🔗 https://bluemaxima.org/flashpoint/datahub/Linux_Support")
+
 
 l.info(f"starting the bot...")
 bot.run(TOKEN)
