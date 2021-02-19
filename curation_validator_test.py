@@ -47,6 +47,13 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(warnings, [])
             self.assertFalse(is_extreme)
 
+    def test_valid_legacy_genre(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_valid_legacy_genre.{extension}")
+            self.assertCountEqual(errors, [])
+            self.assertCountEqual(warnings, [])
+            self.assertFalse(is_extreme)
+
     def test_curation_invalid_archive(self):
         for extension in ["7z", "zip"]:
             errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_invalid_archive.{extension}")
@@ -107,12 +114,6 @@ class TestCurationValidator(unittest.TestCase):
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_root_folder.{extension}")
             self.assertCountEqual(errors, ["Logo, screenshot, content folder and meta not found. Is your curation structured properly?"])
             self.assertCountEqual(warnings, [])
-
-    # def test_missing_root_folder(self):
-    #     for extension in ["7z", "zip"]:
-    #         errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_root_folder.{extension}")
-    #         self.assertCountEqual(errors, ["Found meta file outside root directory. Did you forgot to enclose the files into one directory?"])
-    #         self.assertCountEqual(warnings, [])
 
     def test_missing_ss(self):
         for extension in ["7z", "zip"]:
