@@ -410,5 +410,11 @@ async def github(ctx: discord.ext.commands.Context):
                            "🔗 https://github.com/FlashpointProject/")
 
 
+@bot.command(name="chromebook", aliases=["cb"], brief="Chromebook compatibility.")
+async def github(ctx: discord.ext.commands.Context):
+    l.debug(f"chromebook command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+    await ctx.channel.send("Flashpoint is compatible with Chromebooks that support Linux:\n"
+                           "🔗 https://bluemaxima.org/flashpoint/datahub/Linux_Support")
+
 l.info(f"starting the bot...")
 bot.run(TOKEN)
