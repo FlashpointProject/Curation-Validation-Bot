@@ -138,10 +138,10 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
         else:
             l.info(f"NOT SENDING reply to message '{message.id}' : '" + final_reply.replace('\n', ' ') + "'")
     else:
-        l.info(f"curation in message '{message.id}' validated and is OK - {message.jump_url}")
         if not dry_run:
             l.debug(f"adding 🤖 reaction to message '{message.id}'")
             await message.add_reaction('🤖')
+        l.info(f"curation in message '{message.id}' validated and is OK - {message.jump_url}")
 
 
 @bot.command(hidden=True)
