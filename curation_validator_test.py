@@ -60,22 +60,28 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, [f"There seems to a problem with your {extension} file."])
             self.assertCountEqual(warnings, [])
 
+    def test_curation_empty_meta(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_empty_meta.{extension}")
+            self.assertCountEqual(errors, ["The meta file seems to be empty."])
+            self.assertCountEqual(warnings, [])
+
     def test_curation_duplicate_launch_command(self):
         for extension in ["7z", "zip"]:
             errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_duplicate_launch_command.{extension}")
-            self.assertCountEqual(errors, [f"Identical launch command already present in the master database. Is your curation a duplicate?"])
+            self.assertCountEqual(errors, ["Identical launch command already present in the master database. Is your curation a duplicate?"])
             self.assertCountEqual(warnings, [])
 
     def test_curation_capital_extension_logo(self):
         for extension in ["7z", "zip"]:
             errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_capital_extension_logo.{extension}")
-            self.assertCountEqual(errors, [f"Logo file extension must be lowercase."])
+            self.assertCountEqual(errors, ["Logo file extension must be lowercase."])
             self.assertCountEqual(warnings, [])
 
     def test_curation_capital_extension_screenshot(self):
         for extension in ["7z", "zip"]:
             errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_capital_extension_screenshot.{extension}")
-            self.assertCountEqual(errors, [f"Screenshot file extension must be lowercase."])
+            self.assertCountEqual(errors, ["Screenshot file extension must be lowercase."])
             self.assertCountEqual(warnings, [])
 
     def test_curation_too_large(self):

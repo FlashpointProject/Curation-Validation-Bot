@@ -140,6 +140,10 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
             if meta_filename.endswith(".yml") or meta_filename.endswith(".yaml"):
                 try:
                     props: dict = yaml.safe_load(meta_file)
+                    if props is None:
+                        errors.append("The meta file seems to be empty.")
+                        archive_cleanup(filename, base_path)
+                        return errors, warnings, None
                 except yaml.YAMLError:  # If this is being called, it's a meta .txt
                     errors.append("Unable to load meta YAML file")
                     archive_cleanup(filename, base_path)
