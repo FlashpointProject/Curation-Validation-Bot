@@ -91,7 +91,9 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
             l.debug(f"adding 💥 reaction to message '{message.id}'")
             await message.add_reaction('💥')
         reply_channel: discord.TextChannel = bot.get_channel(BOT_TESTING_CHANNEL)
-        await reply_channel.send(f"<@{GOD_USER}> the curation validator has thrown an exception:\n```{traceback.format_exc()}```")
+        await reply_channel.send(f"<@{GOD_USER}> the curation validator has thrown an exception:\n"
+                                 f"🔗 {message.jump_url}\n"
+                                 f"```{traceback.format_exc()}```")
         return
 
     # archive cleanup
@@ -441,13 +443,6 @@ async def github(ctx: discord.ext.commands.Context):
 async def github(ctx: discord.ext.commands.Context):
     l.debug(f"chromebook command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Flashpoint is compatible with Intel Chromebooks that support Linux:\n"
-                           "🔗 https://bluemaxima.org/flashpoint/datahub/Linux_Support")
-
-
-@bot.command(name="linux", brief="Linux compatibility.")
-async def linux(ctx: discord.ext.commands.Context):
-    l.debug(f"linux command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("Flashpoint on Linux:\n"
                            "🔗 https://bluemaxima.org/flashpoint/datahub/Linux_Support")
 
 
