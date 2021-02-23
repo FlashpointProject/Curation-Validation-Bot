@@ -451,5 +451,12 @@ async def linux(ctx: discord.ext.commands.Context):
                            "🔗 https://bluemaxima.org/flashpoint/datahub/Linux_Support")
 
 
+@bot.command(name="linux", brief="Linux compatibility.")
+async def linux(ctx: discord.ext.commands.Context):
+    l.debug(f"linux command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+    await ctx.channel.send("Flashpoint on Linux:\n"
+                           "🔗 https://bluemaxima.org/flashpoint/datahub/Linux_Support")
+
+
 l.info(f"starting the bot...")
 bot.run(TOKEN)
