@@ -8,15 +8,23 @@ def mock_get_tag_list() -> list[str]:
     return ["A", "B"]
 
 
+def mock_get_launch_commands_bluebot() -> list[str]:
+    return ["http://www.bluemaxima.org/a.html", "http://www.bluemaxima.org/b.html"]
+
+
 class TestCurationValidator(unittest.TestCase):
 
     def setUp(self):
-        self.patcher = patch('curation_validator.get_tag_list')
-        self.tag_list = self.patcher.start()
+        self.tag_patcher = patch('curation_validator.get_tag_list')
+        self.tag_list = self.tag_patcher.start()
         self.tag_list.side_effect = mock_get_tag_list
+        self.launch_command_patcher = patch('curation_validator.get_launch_commands_bluebot')
+        self.launch_command_list = self.launch_command_patcher.start()
+        self.launch_command_list.side_effect = mock_get_launch_commands_bluebot
 
     def tearDown(self):
-        self.patcher.stop()
+        self.tag_patcher.stop()
+        self.launch_command_patcher.stop()
 
     def test_valid_yaml_meta(self):
         for extension in ["7z", "zip"]:
@@ -39,17 +47,48 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(warnings, [])
             self.assertFalse(is_extreme)
 
+    def test_valid_legacy_genre(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_valid_legacy_genre.{extension}")
+            self.assertCountEqual(errors, [])
+            self.assertCountEqual(warnings, [])
+            self.assertFalse(is_extreme)
+
     def test_curation_invalid_archive(self):
         for extension in ["7z", "zip"]:
             errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_invalid_archive.{extension}")
             self.assertCountEqual(errors, [f"There seems to a problem with your {extension} file."])
             self.assertCountEqual(warnings, [])
 
+    def test_curation_empty_meta(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_empty_meta.{extension}")
+            self.assertCountEqual(errors, ["The meta file seems to be empty."])
+            self.assertCountEqual(warnings, [])
+
+    def test_curation_duplicate_launch_command(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_duplicate_launch_command.{extension}")
+            self.assertCountEqual(errors, ["Identical launch command already present in the master database. Is your curation a duplicate?"])
+            self.assertCountEqual(warnings, [])
+
+    def test_curation_capital_extension_logo(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_capital_extension_logo.{extension}")
+            self.assertCountEqual(errors, ["Logo file extension must be lowercase."])
+            self.assertCountEqual(warnings, [])
+
+    def test_curation_capital_extension_screenshot(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_capital_extension_screenshot.{extension}")
+            self.assertCountEqual(errors, ["Screenshot file extension must be lowercase."])
+            self.assertCountEqual(warnings, [])
+
     def test_curation_too_large(self):
         for extension in ["7z", "zip"]:
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_2GB.{extension}")
             self.assertCountEqual(errors, [])
-            self.assertCountEqual(warnings, ["The archive is too large to validate (`2000MB/1000MB`)."])
+            self.assertCountEqual(warnings, ["The archive is too large to be validated (`2000MB/1000MB`)."])
 
     def test_empty_content(self):
         for extension in ["7z", "zip"]:
@@ -82,12 +121,6 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, ["Logo, screenshot, content folder and meta not found. Is your curation structured properly?"])
             self.assertCountEqual(warnings, [])
 
-    # def test_missing_root_folder(self):
-    #     for extension in ["7z", "zip"]:
-    #         errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_root_folder.{extension}")
-    #         self.assertCountEqual(errors, ["Found meta file outside root directory. Did you forgot to enclose the files into one directory?"])
-    #         self.assertCountEqual(warnings, [])
-
     def test_missing_ss(self):
         for extension in ["7z", "zip"]:
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_ss.{extension}")
@@ -99,8 +132,8 @@ class TestCurationValidator(unittest.TestCase):
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_unknown_tag.{extension}")
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings,
-                                  ["Tag `Unknown Tag` is not a known tag (did you write it correctly?). Ignore if you're adding a new tag.",
-                                   "Tag `Another Unknown Tag` is not a known tag (did you write it correctly?). Ignore if you're adding a new tag."])
+                                  ["Tag `Unknown Tag` is not a known tag, please verify (did you write it correctly?).",
+                                   "Tag `Another Unknown Tag` is not a known tag, please verify (did you write it correctly?)."])
 
     def test_missing_tags(self):
         for extension in ["7z", "zip"]:

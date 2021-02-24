@@ -1,0 +1,21 @@
+add/set <command> <output>
+delete/remove <command>
+addalias/setalias <alias> <command>
+deletealias/removealias <alias> <command>
+
+Commands that let you add/delete commands. Allow it for mods and up, so that we don't have to ask you to manually code them in
+
+---
+
+ml <title>
+masterlist <title>
+list <title>
+games <title>
+animations <title>
+anims <title>
+
+Runs a search on the DB. Something simple like:
+select * from game where title like %<title>% limit 1;
+
+Tomy would be happy:
+https://discordapp.com/channels/432708847304704010/432708847304704013/666497367117266964

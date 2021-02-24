@@ -36,7 +36,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
             uncompressed_size = archive.archiveinfo().uncompressed
             if uncompressed_size > max_uncompressed_size:
                 warnings.append(
-                    f"The archive is too large to validate (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
+                    f"The archive is too large to be validated (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
                 archive.close()
                 return errors, warnings, None
 
@@ -56,7 +56,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
             uncompressed_size = sum([zinfo.file_size for zinfo in archive.filelist])
             if uncompressed_size > max_uncompressed_size:
                 warnings.append(
-                    f"The archive is too large to validate (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
+                    f"The archive is too large to be validated (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
                 archive.close()
                 return errors, warnings, None
 
@@ -80,30 +80,46 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         content_folder_regex = re.compile(r"^[^/]+/content/?$")
         meta_regex = re.compile(r"^[^/]+/meta\.(yaml|yml|txt)$")
         logo_regex = re.compile(r"^[^/]+/logo\.(png)$")
+        logo_regex_case = re.compile(r"(?i)^[^/]+/logo\.(png)$")
         ss_regex = re.compile(r"^[^/]+/ss\.(png)$")
+        ss_regex_case = re.compile(r"(?i)^[^/]+/ss\.(png)$")
         content_folder = [match for match in filenames if content_folder_regex.match(match) is not None]
         meta = [match for match in filenames if meta_regex.match(match) is not None]
         logo = [match for match in filenames if logo_regex.match(match) is not None]
+        logo_case = [match for match in filenames if logo_regex_case.match(match) is not None]
         ss = [match for match in filenames if ss_regex.match(match) is not None]
+        ss_case = [match for match in filenames if ss_regex_case.match(match) is not None]
     else:  # core curation
         content_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/content/?$")
         meta_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/meta\.(yaml|yml|txt)$")
-        logo_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.(?i)(png)$")
-        ss_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(?i)(png)$")
+        logo_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.png$")
+        logo_regex_case = re.compile(r"(?i)^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.(png)$")
+        ss_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.png$")
+        ss_regex_case = re.compile(r"(?i)^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(png)$")
+
         content_folder = [match for match in filenames if content_folder_regex.match(match) is not None]
         meta = [match for match in filenames if meta_regex.match(match) is not None]
         logo = [match for match in filenames if logo_regex.match(match) is not None]
+        logo_case = [match for match in filenames if logo_regex_case.match(match) is not None]
         ss = [match for match in filenames if ss_regex.match(match) is not None]
+        ss_case = [match for match in filenames if ss_regex_case.match(match) is not None]
 
     if len(logo) == 0 and len(ss) == 0 and len(content_folder) == 0 and len(meta) == 0:
         errors.append("Logo, screenshot, content folder and meta not found. Is your curation structured properly?")
         archive_cleanup(filename, base_path)
         return errors, warnings, None
 
-    if len(logo) == 0:
-        errors.append("Logo file is either missing or its filename is incorrect.")
-    if len(ss) == 0:
-        errors.append("Screenshot file is either missing or its filename is incorrect.")
+    if set(logo) != set(logo_case):
+        errors.append("Logo file extension must be lowercase.")
+    else:
+        if len(logo) == 0:
+            errors.append("Logo file is either missing or its filename is incorrect.")
+
+    if set(ss) != set(ss_case):
+        errors.append("Screenshot file extension must be lowercase.")
+    else:
+        if len(ss) == 0:
+            errors.append("Screenshot file is either missing or its filename is incorrect.")
 
     # check content
     if len(content_folder) == 0:
@@ -124,6 +140,10 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
             if meta_filename.endswith(".yml") or meta_filename.endswith(".yaml"):
                 try:
                     props: dict = yaml.safe_load(meta_file)
+                    if props is None:
+                        errors.append("The meta file seems to be empty.")
+                        archive_cleanup(filename, base_path)
+                        return errors, warnings, None
                 except yaml.YAMLError:  # If this is being called, it's a meta .txt
                     errors.append("Unable to load meta YAML file")
                     archive_cleanup(filename, base_path)
@@ -134,6 +154,9 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                     props, break_index = parse_lines_until_multiline(meta_file.readlines(), props,
                                                                      break_index)
                     props, break_index = parse_multiline(meta_file.readlines(), props, break_index)
+                    if props.get("Genre") is not None:
+                        props["Tags"] = props["Genre"]
+
             else:
                 errors.append("Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
                 archive_cleanup(filename, base_path)
@@ -202,6 +225,9 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         if launch_command[1] and "https" in props["Launch Command"]:
             errors.append("Found `https` in launch command. All launch commands must use `http` instead of `https`.")
 
+        if launch_command[1] and props["Launch Command"] in get_launch_commands_bluebot():
+            errors.append("Identical launch command already present in the master database. Is your curation a duplicate?")
+
         # TODO check optional props?
         # optional_props: list[tuple[str, bool]] = [developer, release_date, tag, description]
         # if not all(optional_props[1]): for x in optional_props: if x[1] is False: reply += x[0] +
@@ -218,7 +244,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         else:
             for tag in tags:
                 if tag not in master_tag_list:
-                    warnings.append(f"Tag `{tag}` is not a known tag (did you write it correctly?). Ignore if you're adding a new tag.")
+                    warnings.append(f"Tag `{tag}` is not a known tag, please verify (did you write it correctly?).")
 
         extreme: tuple[str, bool] = ("Extreme", bool(props.get("Extreme")))
         is_extreme = False
@@ -232,6 +258,13 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
 def archive_cleanup(filename, base_path):
     l.debug(f"cleaning up extracted files in {base_path} after the archive '{filename}'...")
     shutil.rmtree(base_path, True)
+
+
+@cached(cache=TTLCache(maxsize=1, ttl=600))
+def get_launch_commands_bluebot() -> list[str]:
+    l.debug(f"getting launch commands from bluebot...")
+    resp = requests.get(url="https://bluebot.unstable.life/launch-commands")
+    return resp.json()["launch_commands"]
 
 
 @cached(cache=TTLCache(maxsize=1, ttl=600))
@@ -249,7 +282,7 @@ def get_tag_list_file() -> list[str]:
         return data["tags"]
 
 
-@cached(cache=TTLCache(maxsize=1, ttl=600))
+@cached(cache=TTLCache(maxsize=1, ttl=60))
 def get_tag_list_wiki() -> list[str]:
     l.debug(f"getting tags from wiki...")
     tags = []
