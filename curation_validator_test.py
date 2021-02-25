@@ -168,7 +168,7 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, ["The `Launch Command` property in the meta file is mandatory."])
             self.assertCountEqual(warnings, [])
 
-    def test_missing_lanugages(self):
+    def test_missing_languages(self):
         for extension in ["7z", "zip"]:
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_lanugages.{extension}")
             self.assertCountEqual(errors, ["The `Languages` property in the meta file is mandatory."])
