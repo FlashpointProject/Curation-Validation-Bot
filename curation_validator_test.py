@@ -49,14 +49,16 @@ class TestCurationValidator(unittest.TestCase):
 
     def test_valid_legacy_genre(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_valid_legacy_genre.{extension}")
+            errors, warnings, is_extreme = validate_curation(
+                f"test_curations/test_curation_valid_legacy_genre.{extension}")
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
             self.assertFalse(is_extreme)
 
     def test_curation_invalid_archive(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_invalid_archive.{extension}")
+            errors, warnings, is_extreme = validate_curation(
+                f"test_curations/test_curation_invalid_archive.{extension}")
             self.assertCountEqual(errors, [f"There seems to a problem with your {extension} file."])
             self.assertCountEqual(warnings, [])
 
@@ -68,19 +70,23 @@ class TestCurationValidator(unittest.TestCase):
 
     def test_curation_duplicate_launch_command(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_duplicate_launch_command.{extension}")
-            self.assertCountEqual(errors, ["Identical launch command already present in the master database. Is your curation a duplicate?"])
+            errors, warnings, is_extreme = validate_curation(
+                f"test_curations/test_curation_duplicate_launch_command.{extension}")
+            self.assertCountEqual(errors, [
+                "Identical launch command already present in the master database. Is your curation a duplicate?"])
             self.assertCountEqual(warnings, [])
 
     def test_curation_capital_extension_logo(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_capital_extension_logo.{extension}")
+            errors, warnings, is_extreme = validate_curation(
+                f"test_curations/test_curation_capital_extension_logo.{extension}")
             self.assertCountEqual(errors, ["Logo file extension must be lowercase."])
             self.assertCountEqual(warnings, [])
 
     def test_curation_capital_extension_screenshot(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, is_extreme = validate_curation(f"test_curations/test_curation_capital_extension_screenshot.{extension}")
+            errors, warnings, is_extreme = validate_curation(
+                f"test_curations/test_curation_capital_extension_screenshot.{extension}")
             self.assertCountEqual(errors, ["Screenshot file extension must be lowercase."])
             self.assertCountEqual(warnings, [])
 
@@ -112,13 +118,15 @@ class TestCurationValidator(unittest.TestCase):
         for extension in ["7z", "zip"]:
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_meta.{extension}")
             self.assertCountEqual(errors,
-                                  ["Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?"])
+                                  [
+                                      "Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?"])
             self.assertCountEqual(warnings, [])
 
     def test_missing_root_folder(self):
         for extension in ["7z", "zip"]:
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_root_folder.{extension}")
-            self.assertCountEqual(errors, ["Logo, screenshot, content folder and meta not found. Is your curation structured properly?"])
+            self.assertCountEqual(errors, [
+                "Logo, screenshot, content folder and meta not found. Is your curation structured properly?"])
             self.assertCountEqual(warnings, [])
 
     def test_missing_ss(self):
@@ -149,7 +157,8 @@ class TestCurationValidator(unittest.TestCase):
 
     def test_missing_application_path_warning(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_application_path.{extension}")
+            errors, warnings, _ = validate_curation(
+                f"test_curations/test_curation_missing_application_path.{extension}")
             self.assertCountEqual(errors, ["The `Application Path` property in the meta file is mandatory."])
             self.assertCountEqual(warnings, [])
 
@@ -169,6 +178,12 @@ class TestCurationValidator(unittest.TestCase):
         for extension in ["7z", "zip"]:
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_status.{extension}")
             self.assertCountEqual(errors, ["The `Status` property in the meta file is mandatory."])
+            self.assertCountEqual(warnings, [])
+
+    def test_norway(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_Norwegian.{extension}")
+            self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
 
 
