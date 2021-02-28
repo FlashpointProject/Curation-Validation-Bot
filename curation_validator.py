@@ -210,7 +210,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                             errors.append(f"Code `{language}` is not a valid ISO 639-1 language code.")
 
         # tag: tuple[str, bool] = ("Tags", bool(props["Tags"]))
-        # source: tuple[str, bool] = ("Source", bool(props.get("Source")))
+        source: tuple[str, bool] = ("Source", bool(props.get("Source")))
         status: tuple[str, bool] = ("Status", bool(props.get("Status")))
         launch_command: tuple[str, bool] = ("Launch Command", bool(props.get("Launch Command")))
         application_path: tuple[str, bool] = ("Application Path", bool(props.get("Application Path")))
@@ -221,7 +221,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         #         bool(props["Curation Notes"]) or bool(props["Game Notes"])):
         #     reply += "Make sure you didn't put your description in the notes section.\n"
 
-        simple_mandatory_props: list[tuple[str, bool]] = [title, language_properties, launch_command, status, application_path]
+        simple_mandatory_props: list[tuple[str, bool]] = [title, language_properties, source, launch_command, status, application_path]
         if not all([x[1] for x in simple_mandatory_props]):
             for prop in simple_mandatory_props:
                 if prop[1] is False:

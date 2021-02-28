@@ -170,8 +170,14 @@ class TestCurationValidator(unittest.TestCase):
 
     def test_missing_languages(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_lanugages.{extension}")
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_languages.{extension}")
             self.assertCountEqual(errors, ["The `Languages` property in the meta file is mandatory."])
+            self.assertCountEqual(warnings, [])
+
+    def test_missing_source(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_source.{extension}")
+            self.assertCountEqual(errors, ["The `Source` property in the meta file is mandatory."])
             self.assertCountEqual(warnings, [])
 
     def test_missing_status(self):
