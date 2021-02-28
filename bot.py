@@ -344,35 +344,35 @@ async def linux(ctx: discord.ext.commands.Context, jump_url: str):
 async def curation_tutorial(ctx: discord.ext.commands.Context):
     l.debug(f"curation tutorial command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Curation tutorial:\n"
-                           "🔗 https://bluemaxima.org/flashpoint/datahub/Curation_Tutorial")
+                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Curation_Tutorial>")
 
 
 @bot.command(name="antivirus", aliases=["av", "avg", "avast"], brief="Antivirus interference.")
 async def antivirus(ctx: discord.ext.commands.Context):
     l.debug(f"antivirus command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Important Flashpoint components may be detected as a virus; this is a false positive.\n"
-                           "🔗 https://bluemaxima.org/flashpoint/datahub/Troubleshooting_Antivirus_Interference")
+                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Troubleshooting_Antivirus_Interference>")
 
 
 @bot.command(name="whitescreen", aliases=["ws", "wsod"], brief="White screen troubleshooting.")
 async def whitescreen(ctx: discord.ext.commands.Context):
     l.debug(f"whitescreen command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Launching games always shows a blank white screen:\n"
-                           "🔗 https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#Troubleshooting")
+                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#Troubleshooting>")
 
 
 @bot.command(name="faq", brief="FAQ.")
 async def faq(ctx: discord.ext.commands.Context):
     l.debug(f"FAQ command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("FAQ:\n"
-                           "🔗 https://bluemaxima.org/flashpoint/datahub/Extended_FAQ")
+                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ>")
 
 
 @bot.command(name="not-accepted", aliases=["notaccepted", "disallowed", "blacklist", "blacklisted"], brief="Not accepted curations.")
 async def not_accepted(ctx: discord.ext.commands.Context):
     l.debug(f"not-accepted command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("These are games/animations not allowed in Flashpoint for any reason:\n"
-                           "🔗 https://bluemaxima.org/flashpoint/datahub/Not_Accepted_Curations")
+                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Not_Accepted_Curations>")
 
 
 @bot.command(name="nitrome", brief="Nitrome information.")
@@ -388,21 +388,21 @@ async def nitrome(ctx: discord.ext.commands.Context):
 async def meta(ctx: discord.ext.commands.Context):
     l.debug(f"meta command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("List of Metadata Fields:\n"
-                           "🔗 https://bluemaxima.org/flashpoint/datahub/Curation_Format#List_of_Metadata_Fields")
+                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Curation_Format#List_of_Metadata_Fields>")
 
 
 @bot.command(name="tags", brief="Tags in Flashpoint.")
 async def tags(ctx: discord.ext.commands.Context):
     l.debug(f"tags command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("List of Tags:\n"
-                           "🔗 https://bluemaxima.org/flashpoint/datahub/Tags")
+                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Tags>")
 
 
 @bot.command(name="lang", aliases=["langs", "languages"], brief="Language codes.")
 async def lang(ctx: discord.ext.commands.Context):
     l.debug(f"lang command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("List of Language Codes:\n"
-                           "🔗 https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes")
+                           "🔗 <https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes>")
 
 
 @bot.command(name="masterlist", aliases=["ml", "master-list", "list", "games", "animations", "gamelist", "game-list", "search"],
@@ -411,25 +411,25 @@ async def master_list(ctx: discord.ext.commands.Context, search_query: Optional[
     if search_query is None:
         l.debug(f"masterlist command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Browse Flashpoint Catalog:\n"
-                               "🔗 https://nul.sh/misc/flashpoint/")
+                               "🔗 <https://nul.sh/misc/flashpoint/>")
     else:
         l.debug(f"masterlist with query command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Direct search not implemented yet.\n"
-                               "🔗 https://nul.sh/misc/flashpoint/")
+                               "🔗 <https://nul.sh/misc/flashpoint/>")
 
 
 @bot.command(name="downloads", aliases=["dl"], brief="Where to download Flashpoint.")
 async def downloads(ctx: discord.ext.commands.Context):
     l.debug(f"downloads command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Download Flashpoint from here:\n"
-                           "🔗 https://bluemaxima.org/flashpoint/downloads/")
+                           "🔗 <https://bluemaxima.org/flashpoint/downloads/>")
 
 
 @bot.command(name="platforms", aliases=["plugins"], brief="Supported platforms in Flashpoint.")
 async def platforms(ctx: discord.ext.commands.Context):
     l.debug(f"platforms command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Supported Platforms:\n"
-                           "🔗 https://bluemaxima.org/flashpoint/platforms/\n"
+                           "🔗 <https://bluemaxima.org/flashpoint/platforms/>\n"
                            "Technical information:\n"
                            "🔗 <https://bluemaxima.org/flashpoint/datahub/Platforms>")
 
@@ -438,21 +438,21 @@ async def platforms(ctx: discord.ext.commands.Context):
 async def github(ctx: discord.ext.commands.Context):
     l.debug(f"github command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Flashpoint Project on GitHub:\n"
-                           "🔗 https://github.com/FlashpointProject/")
+                           "🔗 <https://github.com/FlashpointProject/")
 
 
 @bot.command(name="chromebook", aliases=["cb"], brief="Chromebook compatibility.")
 async def github(ctx: discord.ext.commands.Context):
     l.debug(f"chromebook command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Flashpoint is compatible with Intel Chromebooks that support Linux:\n"
-                           "🔗 https://bluemaxima.org/flashpoint/datahub/Linux_Support")
+                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Linux_Support>")
 
 
 @bot.command(name="linux", brief="Linux compatibility.")
 async def linux(ctx: discord.ext.commands.Context):
     l.debug(f"linux command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Flashpoint on Linux:\n"
-                           "🔗 https://bluemaxima.org/flashpoint/datahub/Linux_Support")
+                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Linux_Support>")
 
 
 l.info(f"starting the bot...")
