@@ -429,7 +429,9 @@ async def downloads(ctx: discord.ext.commands.Context):
 async def platforms(ctx: discord.ext.commands.Context):
     l.debug(f"platforms command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Supported Platforms:\n"
-                           "🔗 https://bluemaxima.org/flashpoint/platforms/")
+                           "🔗 https://bluemaxima.org/flashpoint/platforms/\n"
+                           "Technical information:\n"
+                           "🔗 https://bluemaxima.org/flashpoint/datahub/Platforms")
 
 
 @bot.command(name="github", aliases=["gh"], brief="Flashpoint Project GitHub.")
