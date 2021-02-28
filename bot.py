@@ -431,7 +431,7 @@ async def platforms(ctx: discord.ext.commands.Context):
     await ctx.channel.send("Supported Platforms:\n"
                            "🔗 https://bluemaxima.org/flashpoint/platforms/\n"
                            "Technical information:\n"
-                           "🔗 https://bluemaxima.org/flashpoint/datahub/Platforms")
+                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Platforms>")
 
 
 @bot.command(name="github", aliases=["gh"], brief="Flashpoint Project GitHub.")
