@@ -174,6 +174,12 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, ["The `Languages` property in the meta file is mandatory."])
             self.assertCountEqual(warnings, [])
 
+    def test_comma_in_languages(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_comma_in_languages.{extension}")
+            self.assertCountEqual(errors, ["Languages should be separated with semicolons, not commas."])
+            self.assertCountEqual(warnings, [])
+
     def test_missing_source(self):
         for extension in ["7z", "zip"]:
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_source.{extension}")

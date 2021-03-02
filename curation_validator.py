@@ -190,7 +190,9 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                     language_codes.append(x["alpha2"])
                 for language in languages:
                     if language not in language_codes:
-                        if language == "sp":
+                        if ',' in language:
+                            errors.append("Languages should be separated with semicolons, not commas.")
+                        elif language == "sp":
                             errors.append("The correct ISO 639-1 language code for Spanish is `es`, not `sp`.")
                         elif language == "ge":
                             errors.append("The correct ISO 639-1 language code for German is `de`, not `ge`.")
