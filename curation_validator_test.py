@@ -192,7 +192,7 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, ["The `Status` property in the meta file is mandatory."])
             self.assertCountEqual(warnings, [])
 
-    def test_norway(self):
+    def test_Norway(self):
         for extension in ["7z", "zip"]:
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_Norwegian.{extension}")
             self.assertCountEqual(errors, [])

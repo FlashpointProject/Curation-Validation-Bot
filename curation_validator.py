@@ -144,7 +144,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                         errors.append("The meta file seems to be empty.")
                         archive_cleanup(filename, base_path)
                         return errors, warnings, None
-                except yaml.YAMLError:  # If this is being called, it's a meta .txt
+                except yaml.YAMLError:
                     errors.append("Unable to load meta YAML file")
                     archive_cleanup(filename, base_path)
                     return errors, warnings, None
@@ -202,6 +202,8 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                             errors.append("The correct ISO 639-1 language code for Korean is `ko`, not `kr`.")
                         elif language == "ch":
                             errors.append("The correct ISO 639-1 language code for Chinese is `zh`, not `ch`.")
+                        elif language == "cn":
+                            errors.append("The correct ISO 639-1 language code for Chinese is `zh`, not `cn`.")
                         elif language == "iw":
                             errors.append("The correct ISO 639-1 language code for Hebrew is `he`, not `iw`.")
                         elif language == "cz":
