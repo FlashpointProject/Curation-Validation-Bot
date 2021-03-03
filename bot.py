@@ -405,7 +405,8 @@ async def lang(ctx: discord.ext.commands.Context):
                            "🔗 <https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes>")
 
 
-@bot.command(name="masterlist", aliases=["ml", "master-list", "list", "games", "animations", "gamelist", "game-list", "search"],
+@bot.command(name="masterlist",
+             aliases=["ml", "master-list", "list", "games", "animations", "gamelist", "game-list", "search", "gl"],
              brief="Link or search master list")
 async def master_list(ctx: discord.ext.commands.Context, search_query: Optional[str] = None):
     if search_query is None:
