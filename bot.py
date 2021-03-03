@@ -368,7 +368,7 @@ async def faq(ctx: discord.ext.commands.Context):
                            "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ>")
 
 
-@bot.command(name="not-accepted", aliases=["notaccepted", "disallowed", "blacklist", "blacklisted"], brief="Not accepted curations.")
+@bot.command(name="not-accepted", aliases=["notaccepted", "disallowed", "blacklist", "blacklisted", "na"], brief="Not accepted curations.")
 async def not_accepted(ctx: discord.ext.commands.Context):
     l.debug(f"not-accepted command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("These are games/animations not allowed in Flashpoint for any reason:\n"
