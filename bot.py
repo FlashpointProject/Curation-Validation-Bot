@@ -384,7 +384,7 @@ async def nitrome(ctx: discord.ext.commands.Context):
                            "Flashpoint does not condone harassment over Nitrome's decision.")
 
 
-@bot.command(name="meta", aliases=["curation-format", "format", "metadata"], brief="Metadata file.")
+@bot.command(name="meta", aliases=["curation-format", "format", "metadata", "cf"], brief="Metadata file.")
 async def meta(ctx: discord.ext.commands.Context):
     l.debug(f"meta command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("List of Metadata Fields:\n"
