@@ -375,7 +375,7 @@ async def not_accepted(ctx: discord.ext.commands.Context):
                            "🔗 <https://bluemaxima.org/flashpoint/datahub/Not_Accepted_Curations>")
 
 
-@bot.command(name="nitrome", brief="Nitrome information.")
+@bot.command(name="nitrome", aliases=["nit"], brief="Nitrome information.")
 async def nitrome(ctx: discord.ext.commands.Context):
     l.debug(f"nitrome command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Nitrome politely asked us to remove their content from the collection. "
