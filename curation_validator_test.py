@@ -198,6 +198,11 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
 
+    def test_rar(self):
+        errors, warnings, _ = validate_curation("test_curations/test_curation_rar.rar")
+        self.assertCountEqual(errors, ["Curations must be either .zip or .7z, not .rar."])
+        self.assertCountEqual(warnings, [])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -73,7 +73,7 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
 
     attachment = message.attachments[0]
     archive_filename: str = attachment.filename
-    if not (archive_filename.endswith('.7z') or archive_filename.endswith('.zip')):
+    if not (archive_filename.endswith('.7z') or archive_filename.endswith('.zip') or archive_filename.endswith('.rar')):
         return
 
     l.debug(

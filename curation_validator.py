@@ -68,6 +68,9 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
             l.error(f"there was an error while reading file '{filename}': {e}")
             errors.append("There seems to a problem with your zip file.")
             return errors, warnings, None
+    elif filename.endswith(".rar"):
+        errors.append("Curations must be either .zip or .7z, not .rar.")
+        return errors, warnings, None
     else:
         l.warn(f"file type of file '{filename}' not supported")
 
@@ -164,7 +167,6 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
 
         title: tuple[str, bool] = ("Title", bool(props.get("Title")))
         # developer: tuple[str, bool] = ("Developer", bool(props["Developer"]))
-
         release_date: tuple[str, bool] = ("Release Date", bool(props.get("Release Date")))
         if release_date[1]:
             date_string = str(props.get("Release Date")).strip()
