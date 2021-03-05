@@ -73,7 +73,7 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
 
     attachment = message.attachments[0]
     archive_filename: str = attachment.filename
-    if not (archive_filename.endswith('.7z') or archive_filename.endswith('.zip')):
+    if not (archive_filename.endswith('.7z') or archive_filename.endswith('.zip') or archive_filename.endswith('.rar')):
         return
 
     l.debug(
@@ -368,14 +368,14 @@ async def faq(ctx: discord.ext.commands.Context):
                            "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ>")
 
 
-@bot.command(name="not-accepted", aliases=["notaccepted", "disallowed", "blacklist", "blacklisted"], brief="Not accepted curations.")
+@bot.command(name="not-accepted", aliases=["notaccepted", "disallowed", "blacklist", "blacklisted", "na"], brief="Not accepted curations.")
 async def not_accepted(ctx: discord.ext.commands.Context):
     l.debug(f"not-accepted command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("These are games/animations not allowed in Flashpoint for any reason:\n"
                            "🔗 <https://bluemaxima.org/flashpoint/datahub/Not_Accepted_Curations>")
 
 
-@bot.command(name="nitrome", brief="Nitrome information.")
+@bot.command(name="nitrome", aliases=["nit"], brief="Nitrome information.")
 async def nitrome(ctx: discord.ext.commands.Context):
     l.debug(f"nitrome command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Nitrome politely asked us to remove their content from the collection. "
@@ -384,7 +384,7 @@ async def nitrome(ctx: discord.ext.commands.Context):
                            "Flashpoint does not condone harassment over Nitrome's decision.")
 
 
-@bot.command(name="meta", aliases=["curation-format", "format"], brief="Metadata file.")
+@bot.command(name="meta", aliases=["curation-format", "format", "metadata", "cf"], brief="Metadata file.")
 async def meta(ctx: discord.ext.commands.Context):
     l.debug(f"meta command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("List of Metadata Fields:\n"
@@ -405,7 +405,8 @@ async def lang(ctx: discord.ext.commands.Context):
                            "🔗 <https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes>")
 
 
-@bot.command(name="masterlist", aliases=["ml", "master-list", "list", "games", "animations", "gamelist", "game-list", "search"],
+@bot.command(name="masterlist",
+             aliases=["ml", "master-list", "list", "games", "animations", "gamelist", "game-list", "search", "gl"],
              brief="Link or search master list")
 async def master_list(ctx: discord.ext.commands.Context, search_query: Optional[str] = None):
     if search_query is None:
