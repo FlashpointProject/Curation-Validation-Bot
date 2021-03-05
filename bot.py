@@ -64,7 +64,6 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
     is_other_game = message.channel.id == OTHER_GAMES_CHANNEL
     is_animation = message.channel.id == ANIMATIONS_CHANNEL
     is_audition = message.channel.id == AUDITIONS_CHANNEL
-
     # TODO disable
     # is_curator_lounge = message.channel.id == CURATOR_LOUNGE_CHANNEL
 
