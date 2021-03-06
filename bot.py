@@ -215,10 +215,18 @@ async def hell(ctx: discord.ext.commands.Context, channel_alias: str):
         await ctx.channel.send(f"Blue has earned his freedom... for now.")
 
 
+async def get_messages_without_bot_reaction_from_blue(channel_id: int, max_messages: int = 1) -> list[discord.Message]:
+    all_messages = await get_messages_without_bot_reaction_until_blue(channel_id, max_messages=100000)
+    all_messages.reverse()
+    from_index = 1  # remove blue's hammer
+    to_index = max_messages + from_index if max_messages + from_index <= len(all_messages) else len(all_messages)
+    return all_messages[from_index:to_index]
+
+
 async def get_messages_without_bot_reaction_until_blue(channel_id: int, max_messages: int = 1) -> list[discord.Message]:
     """
     Returns list of messages from a channel which bot did not react to,
-    up until max_messages or until Blue's hammer reaction is found.
+    up until max_messages or until Blue's hammer reaction is found, including the hammer message.
     """
     BLUE_ID = 144019275210817536
     message_counter = 0
@@ -292,13 +300,13 @@ async def batch_validate_command(ctx: discord.ext.commands.Context, channel_alia
         return
 
     if dry_run:
-        await ctx.channel.send(f"[DRY RUN] Validating a batch of up to {limit} of most recent unprocessed curations."
+        await ctx.channel.send(f"[DRY RUN] Validating a batch of up to {limit} of the oldest* unprocessed curations. "
                                f"Sit back and relax, this will take a while {COOL_CRAB}.")
     else:
-        await ctx.channel.send(f"Validating a batch of up to {limit} of most recent unprocessed curations."
+        await ctx.channel.send(f"Validating a batch of up to {limit} of the oldest* unprocessed curations. "
                                f"Sit back and relax, this will take a while {COOL_CRAB}.")
 
-    messages = await get_messages_without_bot_reaction_until_blue(channel_id, limit)
+    messages = await get_messages_without_bot_reaction_from_blue(channel_id, limit)
     if len(messages) == 0:
         await ctx.channel.send(f"No unchecked curations found.")
         return
