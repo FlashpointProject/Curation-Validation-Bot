@@ -203,6 +203,12 @@ class TestCurationValidator(unittest.TestCase):
         self.assertCountEqual(errors, ["Curations must be either .zip or .7z, not .rar."])
         self.assertCountEqual(warnings, [])
 
+    def test_trailing_language_semicolon(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_languages_semicolon.{extension}")
+            self.assertCountEqual(errors, [])
+            self.assertCountEqual(warnings, [])
+
 
 if __name__ == '__main__':
     unittest.main()
