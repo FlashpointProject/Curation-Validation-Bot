@@ -115,17 +115,19 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
         for curation_error in curation_errors:
             final_reply += f"🚫 {curation_error}\n"
 
+    # TODO tag warnings changed to errors this way because i'm lazy for now
     if len(curation_warnings) > 0:
         if not dry_run:
-            l.debug(f"adding ℹ️ reaction to message '{message.id}'")
-            await message.add_reaction('ℹ️')
+            l.debug(f"adding 🚫 reaction to message '{message.id}'")
+            await message.add_reaction('🚫')
         for curation_warning in curation_warnings:
-            final_reply += f"ℹ️ {curation_warning}\n"
+            final_reply += f"🚫 {curation_warning}\n"
 
     if len(final_reply) > 0:
-        if len(curation_errors) == 0 and len(curation_warnings) > 0:
-            final_reply += "⚠️ If the problems detected are valid and you're going to upload a fixed version, " \
-                           "please remove the original curation submission after you upload the new one."
+        # TODO tag warnings changed to errors this way because i'm lazy for now
+        # if len(curation_errors) == 0 and len(curation_warnings) > 0:
+        #     final_reply += "⚠️ If the problems detected are valid and you're going to upload a fixed version, " \
+        #                    "please remove the original curation submission after you upload the new one."
         reply_channel: discord.TextChannel = bot.get_channel(BOT_ALERTS_CHANNEL)
         if is_extreme:
             reply_channel = bot.get_channel(NSFW_LOUNGE_CHANNEL)
