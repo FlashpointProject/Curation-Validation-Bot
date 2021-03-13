@@ -478,7 +478,7 @@ async def linux(ctx: discord.ext.commands.Context):
                            "'Yeah, well, that's a good reason, I guess,' he agreed. 'But why did you want to keep living?'\n"
                            "This question seemed so fundamentally redundant that "
                            "it took me a precious moment to even contemplate an answer.\n"
-                           "'I want to keep living, Tim, because if I didn't then I wouldn't be here to answer that question. Out of"
+                           "'I want to keep living, Tim, because if I didn't then I wouldn't be here to answer that question. Out of "
                            "all possible versions of myself, the one who wants to exist will always be the one that exists the longest.'\n"
                            "'Yeah, but what was it that always made you want to see the next day?' he asked me. "
                            "'What was it about tomorrow that you always wanted to see so badly?'\n"
