@@ -96,6 +96,12 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, ["The archive is too large to be validated (`2000MB/1000MB`)."])
 
+    def test_curation_null_languages(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_nul_languages.{extension}")
+            self.assertCountEqual(errors, ["The `Languages` property in the meta file is mandatory."])
+            self.assertCountEqual(warnings, [])
+
     def test_empty_content(self):
         for extension in ["7z", "zip"]:
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_empty_content.{extension}")
