@@ -483,7 +483,7 @@ async def linux(ctx: discord.ext.commands.Context):
                            "'Yeah, but what was it that always made you want to see the next day?' he asked me. "
                            "'What was it about tomorrow that you always wanted to see so badly?'\n"
                            "I considered how to address this in a way that might make sense to him.\n"
-                           "'I suppose I though it might be cool,' I said.\n"
+                           "'I suppose I thought it might be cool,' I said.\n"
                            "```")
 
 
