@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 l = getLogger("main")
 
 
-def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
+def validate_curation(filename: str, is_flash_game: bool, is_other_game: bool) -> tuple[list, list, Optional[bool]]:
     errors: list = []
     warnings: list = []
 
@@ -166,6 +166,22 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                 return errors, warnings, None
 
         title: tuple[str, bool] = ("Title", bool(props.get("Title")))
+
+        library: tuple[str, bool] = ("Library", bool(props.get("Library")))
+        platform: tuple[str, bool] = ("Platform", bool(props.get("Platform")))
+        if library[1]:
+            library_string = str(props.get("Library").strip().lower())
+            if library_string == 'arcade' and not (is_flash_game or is_other_game):
+                errors.append(f'If this is a game and not an animation, go to #flash-game-curations or #other-game-curations. Otherwise change the Library to "Animations".')
+            elif library_string == 'theatre' and (is_flash_game or is_other_game):
+                errors.append(f'If this is an animation and not a game, go to #animation-curations. Otherwise change the Library to "Games".')
+            elif platform[1]:
+                platform_string = str(props.get("Platform").strip())
+                if platform_string == 'Flash' and is_other_game:
+                    errors.append(f'If this is a flash game, go to #flash-game-curations. Otherwise change the Platform to the appropriate one.')
+                if platform_string != 'Flash' and is_flash_game:
+                    errors.append(f'If this is a not a flash game, go to #other-game-curations. Otherwise change the Platform to "Flash".')
+        
         # developer: tuple[str, bool] = ("Developer", bool(props["Developer"]))
         release_date: tuple[str, bool] = ("Release Date", bool(props.get("Release Date")))
         if release_date[1]:
@@ -226,7 +242,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         #         bool(props["Curation Notes"]) or bool(props["Game Notes"])):
         #     reply += "Make sure you didn't put your description in the notes section.\n"
 
-        simple_mandatory_props: list[tuple[str, bool]] = [title, language_properties, source, launch_command, status, application_path]
+        simple_mandatory_props: list[tuple[str, bool]] = [title, library, language_properties, source, platform, launch_command, status, application_path]
         if not all([x[1] for x in simple_mandatory_props]):
             for prop in simple_mandatory_props:
                 if prop[1] is False:

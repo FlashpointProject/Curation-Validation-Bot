@@ -8,7 +8,7 @@ from discord.ext import commands
 
 from dotenv import load_dotenv
 from logger import getLogger, set_global_logging_level
-from curation_validator import archive_cleanup, validate_curation
+from curation_validator import validate_curation
 
 set_global_logging_level('DEBUG')
 l = getLogger("main")
@@ -79,9 +79,9 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
         f"detected message '{message.id}' from user '{message.author}' in channel '{message.channel}' with attachment '{archive_filename}'")
     l.debug(f"downloading attachment '{attachment.id}' - '{archive_filename}'...")
     await attachment.save(archive_filename)
-
+    
     try:
-        curation_errors, curation_warnings, is_extreme = validate_curation(archive_filename)
+        curation_errors, curation_warnings, is_extreme = validate_curation(archive_filename, is_flash_game, is_other_game)
     except Exception as e:
         l.exception(e)
         l.debug(f"removing archive {archive_filename}...")
