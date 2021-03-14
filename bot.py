@@ -123,6 +123,10 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
         for curation_warning in curation_warnings:
             final_reply += f"🚫 {curation_warning}\n"
 
+    if is_extreme and not dry_run:
+        l.debug(f"adding 🔞 reaction to message '{message.id}'")
+        await message.add_reaction('🔞')
+
     if len(final_reply) > 0:
         # TODO tag warnings changed to errors this way because i'm lazy for now
         # if len(curation_errors) == 0 and len(curation_warnings) > 0:
