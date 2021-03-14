@@ -319,8 +319,8 @@ async def batch_validate_command(ctx: discord.ext.commands.Context, channel_alia
         counter += 1
         await check_curation_in_message(message, dry_run=dry_run)
 
-    l.debug(f"Batch validation done.")
-    await ctx.channel.send(f"Batch validation done.")
+    l.debug(f"Batch validated {counter} curations.")
+    await ctx.channel.send(f"Batch validated {counter} curations.")
 
 
 @bot.command(name="approve", brief="Override the bot's decision and approve the curation (Moderator).")
