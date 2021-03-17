@@ -159,7 +159,6 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                     props, break_index = parse_multiline(meta_file.readlines(), props, break_index)
                     if props.get("Genre") is not None:
                         props["Tags"] = props["Genre"]
-
             else:
                 errors.append("Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
                 archive_cleanup(filename, base_path)
@@ -323,7 +322,7 @@ def get_tag_list() -> list[str]:
 def parse_lines_until_multiline(lines: list[str], d: dict, starting_number: int):
     break_number: int = -1
     for idx, line in enumerate(lines[starting_number:]):
-        if '|' not in line:
+        if '|' not in line and line.strip():
             split: list[str] = line.split(":")
             split: list[str] = [x.strip(' ') for x in split]
             d.update({split[0]: split[1]})
