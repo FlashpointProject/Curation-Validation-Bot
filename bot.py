@@ -115,17 +115,19 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
         for curation_error in curation_errors:
             final_reply += f"🚫 {curation_error}\n"
 
+    # TODO tag warnings changed to errors this way because i'm lazy for now
     if len(curation_warnings) > 0:
         if not dry_run:
-            l.debug(f"adding ℹ️ reaction to message '{message.id}'")
-            await message.add_reaction('ℹ️')
+            l.debug(f"adding 🚫 reaction to message '{message.id}'")
+            await message.add_reaction('🚫')
         for curation_warning in curation_warnings:
-            final_reply += f"ℹ️ {curation_warning}\n"
+            final_reply += f"🚫 {curation_warning}\n"
 
     if len(final_reply) > 0:
-        if len(curation_errors) == 0 and len(curation_warnings) > 0:
-            final_reply += "⚠️ If the problems detected are valid and you're going to upload a fixed version, " \
-                           "please remove the original curation submission after you upload the new one."
+        # TODO tag warnings changed to errors this way because i'm lazy for now
+        # if len(curation_errors) == 0 and len(curation_warnings) > 0:
+        #     final_reply += "⚠️ If the problems detected are valid and you're going to upload a fixed version, " \
+        #                    "please remove the original curation submission after you upload the new one."
         reply_channel: discord.TextChannel = bot.get_channel(BOT_ALERTS_CHANNEL)
         if is_extreme:
             reply_channel = bot.get_channel(NSFW_LOUNGE_CHANNEL)
@@ -317,8 +319,8 @@ async def batch_validate_command(ctx: discord.ext.commands.Context, channel_alia
         counter += 1
         await check_curation_in_message(message, dry_run=dry_run)
 
-    l.debug(f"Batch validation done.")
-    await ctx.channel.send(f"Batch validation done.")
+    l.debug(f"Batch validated {counter} curations.")
+    await ctx.channel.send(f"Batch validated {counter} curations.")
 
 
 @bot.command(name="approve", brief="Override the bot's decision and approve the curation (Moderator).")
@@ -461,6 +463,28 @@ async def linux(ctx: discord.ext.commands.Context):
     l.debug(f"linux command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Flashpoint on Linux:\n"
                            "🔗 <https://bluemaxima.org/flashpoint/datahub/Linux_Support>")
+
+
+@bot.command(name="mood", brief="Mood.", hidden=True)
+@commands.has_role("Moderator")
+async def linux(ctx: discord.ext.commands.Context):
+    l.debug(f"mood command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+    await ctx.channel.send("```\n"
+                           "'You thought it would be cool?' This was not as interesting an explanation as I had hoped for.\n"
+                           "'Yeah. What?' He turned to look at me. 'You never did something just because you thought it might be cool?'\n"
+                           "I gazed up at the collapsing heavens, wondering what it might mean for something to be cool.\n"
+                           "'Everything I have ever done,' I told him, 'Every decision I ever made, "
+                           "was specifically designed to prolong my existence.'\n"
+                           "'Yeah, well, that's a good reason, I guess,' he agreed. 'But why did you want to keep living?'\n"
+                           "This question seemed so fundamentally redundant that "
+                           "it took me a precious moment to even contemplate an answer.\n"
+                           "'I want to keep living, Tim, because if I didn't then I wouldn't be here to answer that question. Out of "
+                           "all possible versions of myself, the one who wants to exist will always be the one that exists the longest.'\n"
+                           "'Yeah, but what was it that always made you want to see the next day?' he asked me. "
+                           "'What was it about tomorrow that you always wanted to see so badly?'\n"
+                           "I considered how to address this in a way that might make sense to him.\n"
+                           "'I suppose I thought it might be cool,' I said.\n"
+                           "```")
 
 
 l.info(f"starting the bot...")

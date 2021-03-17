@@ -174,7 +174,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                 if not date_regex.match(date_string):
                     errors.append(f"Release date {date_string} is incorrect. Release dates should always be in `YYYY-MM-DD` format.")
 
-        language_properties: tuple[str, bool] = ("Languages", props.get("Languages") != ("" and None))
+        language_properties: tuple[str, bool] = "Languages", props.get("Languages") is not None and props.get("Languages") != ""
         if language_properties[1]:
             with open("language-codes.json") as f:
                 list_of_language_codes: list[dict] = json.load(f)
