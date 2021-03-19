@@ -215,6 +215,12 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
 
+    def test_valid_date(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_invalid_date.{extension}")
+            self.assertCountEqual(errors, ["Invalid release date. Ensure entered date is valid."])
+            self.assertCountEqual(warnings, [])
+
 
 if __name__ == '__main__':
     unittest.main()

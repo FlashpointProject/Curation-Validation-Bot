@@ -151,6 +151,10 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                     errors.append("Unable to load meta YAML file")
                     archive_cleanup(filename, base_path)
                     return errors, warnings, None
+                except ValueError:
+                    errors.append("Invalid release date. Ensure entered date is valid.")
+                    archive_cleanup(filename, base_path)
+                    return errors, warnings, None
             elif meta_filename.endswith(".txt"):
                 break_index: int = 0
                 while break_index != -1:
