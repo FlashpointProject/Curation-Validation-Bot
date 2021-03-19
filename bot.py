@@ -465,6 +465,16 @@ async def linux(ctx: discord.ext.commands.Context):
                            "🔗 <https://bluemaxima.org/flashpoint/datahub/Linux_Support>")
 
 
+@bot.command(name="extreme", aliases=["enableextreme", "enable-extreme", "disableextreme", "disable-extreme"],
+             brief="Toggle Extreme games.")
+async def extreme(ctx: discord.ext.commands.Context):
+    l.debug(f"extreme command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+    await ctx.channel.send("To toggle Extreme games in Flashpoint, click the Config tab in the launcher, click the `Extreme Games` "
+                           "checkbox to turn them on or off, then scroll down and click `Save and Restart`.\n"
+                           "If you want to hide both the games and this option, you can edit the file `config.json` with any "
+                           "text editor to change the `false` next to `disableExtremeGames` to `true`, saving the file afterwards.")
+
+
 @bot.command(name="mood", brief="Mood.", hidden=True)
 @commands.has_role("Moderator")
 async def linux(ctx: discord.ext.commands.Context):
