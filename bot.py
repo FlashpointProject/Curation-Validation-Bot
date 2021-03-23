@@ -515,7 +515,7 @@ async def check_lc(ctx: discord.ext.commands.Context, *args):
     l.debug(f"check_lc command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
 
     def normalize_launch_command(launch_command: str) -> str:
-        return launch_command.replace('"', "").replace("'", "").replace(" ", "")
+        return launch_command.replace('"', "").replace("'", "").replace(" ", "").replace("`", "")
 
     launch_command_user = ""
     for arg in args:
