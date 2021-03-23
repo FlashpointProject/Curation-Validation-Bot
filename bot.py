@@ -417,9 +417,9 @@ async def lang(ctx: discord.ext.commands.Context):
     await ctx.channel.send("List of Language Codes:\n"
                            "🔗 <https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes>")
     
-@bot.command(name="infinitypartialdownloads", aliases=["infinitypartialdownload", "ipd", "partial", "partialdownload", "partialdownloads", "infinitypartial"], brief="Partial download troubleshooting for Flashpoint Infinity.")
-async def infinitypartialdownloads(ctx: discord.ext.commands.Context):
-    l.debug(f"infinitypartialdownloads command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+@bot.command(name="partial-downloads", aliases=["infinitypartialdownload", "ipd", "partial", "partialdownload", "infinitypartialdownloads", "infinitypartial"], brief="Partial download troubleshooting for Flashpoint Infinity.")
+async def partial_downloads(ctx: discord.ext.commands.Context):
+    l.debug(f"partial_downloads command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Games in Flashpoint Infinity may fail to download properly:\n"
                            "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#InfinityPartialDownloads>")
 
