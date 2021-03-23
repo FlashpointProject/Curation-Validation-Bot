@@ -8,7 +8,7 @@ from discord.ext import commands
 
 from dotenv import load_dotenv
 from logger import getLogger, set_global_logging_level
-from curation_validator import archive_cleanup, validate_curation
+from curation_validator import archive_cleanup, get_launch_commands_bluebot, validate_curation
 
 set_global_logging_level('DEBUG')
 l = getLogger("main")
@@ -416,12 +416,16 @@ async def lang(ctx: discord.ext.commands.Context):
     l.debug(f"lang command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("List of Language Codes:\n"
                            "🔗 <https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes>")
-    
-@bot.command(name="partial-downloads", aliases=["infinitypartialdownload", "ipd", "partial", "partialdownload", "infinitypartialdownloads", "infinitypartial"], brief="Partial download troubleshooting for Flashpoint Infinity.")
+
+
+@bot.command(name="partial-downloads",
+             aliases=["infinitypartialdownload", "ipd", "partial", "partialdownload", "infinitypartialdownloads", "infinitypartial"],
+             brief="Partial download troubleshooting for Flashpoint Infinity.")
 async def partial_downloads(ctx: discord.ext.commands.Context):
     l.debug(f"partial_downloads command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Games in Flashpoint Infinity may fail to download properly:\n"
                            "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#InfinityPartialDownloads>")
+
 
 @bot.command(name="masterlist",
              aliases=["ml", "master-list", "list", "games", "animations", "gamelist", "game-list", "search", "gl"],
@@ -504,6 +508,26 @@ async def linux(ctx: discord.ext.commands.Context):
                            "I considered how to address this in a way that might make sense to him.\n"
                            "'I suppose I thought it might be cool,' I said.\n"
                            "```")
+
+
+@bot.command(name="check-lc", brief="Check if a given launch command is already in the master database.")
+async def check_lc(ctx: discord.ext.commands.Context, *args):
+    l.debug(f"check_lc command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+
+    def normalize_launch_command(launch_command: str) -> str:
+        return launch_command.replace('"', "").replace("'", "").replace(" ", "")
+
+    launch_command_user = ""
+    for arg in args:
+        launch_command_user += arg
+
+    launch_command_user = normalize_launch_command(launch_command_user)
+    normalized_commands = {normalize_launch_command(command) for command in get_launch_commands_bluebot()}
+
+    if launch_command_user in normalized_commands:
+        await ctx.channel.send("Launch command **found** in the master database, most likely a duplicate.")
+    else:
+        await ctx.channel.send("Launch command **not found** in the master database, most likely not a duplicate.")
 
 
 l.info(f"starting the bot...")
