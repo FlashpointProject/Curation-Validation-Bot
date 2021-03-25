@@ -28,7 +28,7 @@ GOD_USER = int(os.getenv('GOD_USER'))
 
 bot = commands.Bot(command_prefix="-")
 COOL_CRAB = "<:cool_crab:587188729362513930>"
-EXTREME = "<:extreme:824659305051586612>"
+EXTREME_EMOJI_ID = 778145279714918400
 
 
 @bot.event
@@ -125,8 +125,9 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
             final_reply += f"🚫 {curation_warning}\n"
 
     if is_extreme and not dry_run:
-        l.debug(f"adding {EXTREME} reaction to message '{message.id}'")
-        await message.add_reaction(EXTREME)
+        l.debug(f"adding :extreme: reaction to message '{message.id}'")
+        emoji = bot.get_emoji(EXTREME_EMOJI_ID)
+        await message.add_reaction(emoji)
 
     if len(final_reply) > 0:
         # TODO tag warnings changed to errors this way because i'm lazy for now
