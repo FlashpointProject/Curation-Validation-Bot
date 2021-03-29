@@ -221,6 +221,18 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, ["Invalid release date. Ensure entered date is valid."])
             self.assertCountEqual(warnings, [])
 
+    def test_localflash_too_many_files(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_localflash_too_many_files.{extension}")
+            self.assertCountEqual(errors, ["Content must be in additional folder in localflash rather than in localflash directly."])
+            self.assertCountEqual(warnings, [])
+
+    def test_localflash_no_folder(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_localflash_no_folder.{extension}")
+            self.assertCountEqual(errors, ["Content must be in additional folder in localflash rather than in localflash directly."])
+            self.assertCountEqual(warnings, [])
+
 
 if __name__ == '__main__':
     unittest.main()
