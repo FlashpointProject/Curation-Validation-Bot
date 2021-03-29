@@ -132,15 +132,16 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         filecount_in_content = sum([len(files) for r, d, files in os.walk(content_folder_path)])
         if filecount_in_content == 0:
             errors.append("No files found in content folder.")
-
+        # localflash checking
         if 'localflash' in os.listdir(content_folder_path):
-            filecount_in_localflash = sum(len(file) for file in os.listdir(content_folder_path + '/localflash'))
-            if filecount_in_localflash > 1:
+            files_in_localflash = list(file for file in os.listdir(content_folder_path + '/localflash'))
+            if len(files_in_localflash) > 1:
                 errors.append("Content must be in additional folder in localflash rather than in localflash directly.")
             else:
                 for file in os.listdir(content_folder_path + '/localflash'):
-                    if os.path.isfile(file):
+                    if os.path.isfile(content_folder_path + '/localflash/' + file):
                         errors.append("Content must be in additional folder in localflash rather than in localflash directly.")
+                        break
 
     # process meta
     is_extreme = False
