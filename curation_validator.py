@@ -139,9 +139,15 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                 errors.append("Content must be in additional folder in localflash rather than in localflash directly.")
             else:
                 for file in os.listdir(content_folder_path + '/localflash'):
-                    if os.path.isfile(content_folder_path + '/localflash/' + file):
+                    localflash_name = 'localflash/' + file
+                    filepath = content_folder_path + '/localflash/' + file
+                    launch_commands = get_launch_commands_bluebot()
+                    if os.path.isfile(filepath):
                         errors.append("Content must be in additional folder in localflash rather than in localflash directly.")
                         break
+                    elif any(localflash_name in s for s in launch_commands):
+                        errors.append("Folder name already present in localflash, your curation may be a duplicate."
+                                      " Otherwise, choose a different containing folder name")
 
     # process meta
     is_extreme = False
