@@ -9,7 +9,7 @@ def mock_get_tag_list() -> list[str]:
 
 
 def mock_get_launch_commands_bluebot() -> list[str]:
-    return ["http://www.bluemaxima.org/a.html", "http://www.bluemaxima.org/b.html"]
+    return ["http://www.bluemaxima.org/a.html", "http://www.bluemaxima.org/b.html", "http://localflash/lab/c.html"]
 
 
 class TestCurationValidator(unittest.TestCase):
@@ -219,6 +219,25 @@ class TestCurationValidator(unittest.TestCase):
         for extension in ["7z", "zip"]:
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_invalid_date.{extension}")
             self.assertCountEqual(errors, ["Invalid release date. Ensure entered date is valid."])
+            self.assertCountEqual(warnings, [])
+
+    def test_localflash_too_many_files(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_localflash_too_many_files.{extension}")
+            self.assertCountEqual(errors, ["Content must be in additional folder in localflash rather than in localflash directly."])
+            self.assertCountEqual(warnings, [])
+
+    def test_localflash_no_folder(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_localflash_no_folder.{extension}")
+            self.assertCountEqual(errors, ["Content must be in additional folder in localflash rather than in localflash directly."])
+            self.assertCountEqual(warnings, [])
+
+    def test_localflash_bad_name(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_localflash_bad_name.{extension}")
+            self.assertCountEqual(errors, ["Folder name already present in localflash, your curation may be a duplicate."
+                                           " Otherwise, choose a different containing folder name"])
             self.assertCountEqual(warnings, [])
 
 

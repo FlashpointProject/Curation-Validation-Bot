@@ -128,9 +128,26 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
     if len(content_folder) == 0:
         errors.append("Content folder not found.")
     else:
-        filecount_in_content = sum([len(files) for r, d, files in os.walk(base_path + content_folder[0])])
+        content_folder_path = base_path + content_folder[0]
+        filecount_in_content = sum([len(files) for r, d, files in os.walk(content_folder_path)])
         if filecount_in_content == 0:
             errors.append("No files found in content folder.")
+        # localflash checking
+        if 'localflash' in os.listdir(content_folder_path):
+            files_in_localflash = list(file for file in os.listdir(content_folder_path + '/localflash'))
+            if len(files_in_localflash) > 1:
+                errors.append("Content must be in additional folder in localflash rather than in localflash directly.")
+            else:
+                for file in os.listdir(content_folder_path + '/localflash'):
+                    localflash_name = 'localflash/' + file
+                    filepath = content_folder_path + '/localflash/' + file
+                    launch_commands = get_launch_commands_bluebot()
+                    if os.path.isfile(filepath):
+                        errors.append("Content must be in additional folder in localflash rather than in localflash directly.")
+                        break
+                    elif any(localflash_name in s for s in launch_commands):
+                        errors.append("Folder name already present in localflash, your curation may be a duplicate."
+                                      " Otherwise, choose a different containing folder name")
 
     # process meta
     is_extreme = False
