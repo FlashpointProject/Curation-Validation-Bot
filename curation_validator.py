@@ -145,7 +145,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                     if os.path.isfile(filepath):
                         errors.append("Content must be in additional folder in localflash rather than in localflash directly.")
                         break
-                    elif any(localflash_name in s for s in launch_commands):
+                    elif any(localflash_name in lc for lc in launch_commands):
                         errors.append("Folder name already present in localflash, your curation may be a duplicate."
                                       " Otherwise, choose a different containing folder name")
 
