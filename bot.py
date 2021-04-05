@@ -43,6 +43,7 @@ async def on_ready():
 async def on_message(message: discord.Message):
     await bot.process_commands(message)
     await forward_ping(message)
+    await notify_me(message)
     await check_curation_in_message(message, dry_run=False)
 
 
@@ -58,6 +59,17 @@ async def forward_ping(message: discord.Message):
     if mention in message.content:
         reply_channel: discord.TextChannel = bot.get_channel(BOT_TESTING_CHANNEL)
         await reply_channel.send(f"<@{GOD_USER}> the bot was mentioned in {message.jump_url}")
+
+
+async def notify_me(message: discord.Message):
+    notification_squad = message.guild.get_role(NOTIFICATION_SQUAD_ID)
+    if message.channel is bot.get_channel(PENDING_FIXES_CHANNEL):
+        if "notify me" in message.content.lower():
+            l.debug(f"Gave role to {message.author.id}")
+            await message.author.add_roles(notification_squad)
+        elif "unnotify me" in message.content.lower():
+            l.debug(f"Removed role from {message.author.id}")
+            await message.author.remove_roles(notification_squad)
 
 
 async def check_curation_in_message(message: discord.Message, dry_run: bool = True):
