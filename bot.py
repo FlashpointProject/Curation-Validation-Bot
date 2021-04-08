@@ -247,6 +247,7 @@ async def get_raw_json_messages_in_pending_fixes(oldest_message: Optional[discor
     messages_with_valid_json: list[discord.Message] = []
 
     channel: discord.TextChannel = bot.get_channel(PENDING_FIXES_CHANNEL)
+    pins = await channel.pins()
     while True:
         if oldest_message is None:
             l.debug(f"getting {batch_size} messages...")
@@ -277,7 +278,7 @@ async def get_raw_json_messages_in_pending_fixes(oldest_message: Optional[discor
             for reaction in reactions:
                 if reaction.emoji == "⚠️":
                     should_be_manual = True
-            if msg in await channel.pins():
+            if msg in pins:
                 found_pin = True
             if not should_be_manual and is_json:
                 messages_with_valid_json.append(msg)
