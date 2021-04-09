@@ -425,7 +425,7 @@ async def linux(ctx: discord.ext.commands.Context, jump_url: str):
 @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
 async def automatic_get_jsons(ctx: discord.ext.commands.Context, jump_url: Optional[str]):
     l.debug(f"pending fixes command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    folder = tempfile.mkdtemp(prefix='pending_fixes')
+    temp_folder = tempfile.mkdtemp(prefix='pending_fixes')
     if jump_url is not None:
         await ctx.send(f"Getting all jsons in #pending-fixes not marked with a ⚠️ before <{jump_url}> and after the pin. "
                        f"Sit back and relax, this will take a while {COOL_CRAB}.")
@@ -449,10 +449,12 @@ async def automatic_get_jsons(ctx: discord.ext.commands.Context, jump_url: Optio
         all_json_messages = await get_raw_json_messages_in_pending_fixes(None)
     for msg in all_json_messages:
         l.debug(f"Downloading json {msg.attachments[0].filename} from message {msg.id}")
-        await msg.attachments[0].save(folder + '/' + msg.attachments[0].filename)
-    archive = shutil.make_archive('pending_fixes', 'zip', folder)
+        await msg.attachments[0].save(temp_folder + '/' + msg.attachments[0].filename)
+    last_date = all_json_messages[0].created_at.date().strftime('%Y-%m-%d')
+    first_date = all_json_messages[-1].created_at.date().strftime('%Y-%m-%d')
+    archive = shutil.make_archive(f'pending_fixes {first_date} to {last_date}', 'zip', temp_folder)
     await ctx.send(file=discord.File(archive))
-    shutil.rmtree(folder, True)
+    shutil.rmtree(temp_folder, True)
     os.remove(archive)
 
 
