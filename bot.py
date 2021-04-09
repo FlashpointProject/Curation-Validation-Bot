@@ -596,9 +596,9 @@ async def extreme(ctx: discord.ext.commands.Context):
 @bot.command(name="win7", aliases=["windows7", "win7support"], brief="Windows 7 support.")
 async def win7(ctx: discord.ext.commands.Context):
     l.debug(f"Windows 7 command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.send("For flashpoint to work on Windows 7, the Visual Studio C++ Redistributable and .NET framework are required."
-                   " They can be found at https://www.microsoft.com/en-us/download/details.aspx?id=55170 and "
-                   "https://www.microsoft.com/en-us/download/details.aspx?id=55170 respectively."
+    await ctx.send("For Flashpoint to work on Windows 7, Service Pack 1, the Visual C++ Redistributable and .NET framework are required."
+                   " The C++ Redistributable and .NET framework can be found at <https://www.microsoft.com/en-us/download/details.aspx?id=48145> and "
+                   "<https://www.microsoft.com/en-us/download/details.aspx?id=55170> respectively, while you can get Service Pack 1 from Windows Update."
                    " When you install the Visual C++ Redistributable, make sure to install the x86 version,"
                    " even if you're on a 64-bit machine!")
 
@@ -606,7 +606,7 @@ async def win7(ctx: discord.ext.commands.Context):
 @bot.command(name="fb", aliases=["mp", "facebook", "multiplayer"], brief="Flashpoint multiplayer support.")
 async def facebook(ctx: discord.ext.commands.Context):
     l.debug(f"Windows 7 command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.send("Flashpooint will not support online or Facebook-based games ."
+    await ctx.send("Flashpooint will likely not support online or Facebook-based games. "
                    "To support always online games, the emulation of a server is required. "
                    "To be able to do that is almost as much work as all of Flashpoint itself, "
                    "so it really wouldn't be practical to put time into.")
