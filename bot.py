@@ -115,6 +115,9 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
     l.debug(f"removing archive {archive_filename}...")
     os.remove(archive_filename)
 
+    if message.content == "":
+        curation_errors.append("Discord upload must include title of game.")
+
     # format reply
     final_reply: str = ""
     if len(curation_errors) > 0:
@@ -203,7 +206,8 @@ async def approve(ctx: discord.ext.commands.Context, jump_url: str):
 
 @bot.command(name="curation", aliases=["ct", "curation-tutorial"], brief="Curation tutorial.")
 async def curation_tutorial(ctx: discord.ext.commands.Context):
-    l.debug(f"curation tutorial command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+    l.debug(
+        f"curation tutorial command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Curation tutorial:\n"
                            "🔗 <https://bluemaxima.org/flashpoint/datahub/Curation_Tutorial>")
 
@@ -229,7 +233,8 @@ async def faq(ctx: discord.ext.commands.Context):
                            "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ>")
 
 
-@bot.command(name="not-accepted", aliases=["notaccepted", "disallowed", "blacklist", "blacklisted", "na"], brief="Not accepted curations.")
+@bot.command(name="not-accepted", aliases=["notaccepted", "disallowed", "blacklist", "blacklisted", "na"],
+             brief="Not accepted curations.")
 async def not_accepted(ctx: discord.ext.commands.Context):
     l.debug(f"not-accepted command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("These are games/animations not allowed in Flashpoint for any reason:\n"
@@ -267,10 +272,12 @@ async def lang(ctx: discord.ext.commands.Context):
 
 
 @bot.command(name="partial-downloads",
-             aliases=["infinitypartialdownload", "ipd", "partial", "partialdownload", "infinitypartialdownloads", "infinitypartial"],
+             aliases=["infinitypartialdownload", "ipd", "partial", "partialdownload", "infinitypartialdownloads",
+                      "infinitypartial"],
              brief="Partial download troubleshooting for Flashpoint Infinity.")
 async def partial_downloads(ctx: discord.ext.commands.Context):
-    l.debug(f"partial_downloads command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+    l.debug(
+        f"partial_downloads command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("Games in Flashpoint Infinity may fail to download properly:\n"
                            "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#InfinityPartialDownloads>")
 
@@ -284,7 +291,8 @@ async def master_list(ctx: discord.ext.commands.Context, search_query: Optional[
         await ctx.channel.send("Browse Flashpoint Catalog:\n"
                                "🔗 <https://nul.sh/misc/flashpoint/>")
     else:
-        l.debug(f"masterlist with query command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+        l.debug(
+            f"masterlist with query command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Direct search not implemented yet.\n"
                                "🔗 <https://nul.sh/misc/flashpoint/>")
 
@@ -330,20 +338,22 @@ async def linux(ctx: discord.ext.commands.Context):
              brief="Toggle Extreme games.")
 async def extreme(ctx: discord.ext.commands.Context):
     l.debug(f"extreme command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("To toggle Extreme games in Flashpoint, click the Config tab in the launcher, click the `Extreme Games` "
-                           "checkbox to turn them on or off, then scroll down and click `Save and Restart`.\n"
-                           "If you want to hide both the games and this option, you can edit the file `config.json` with any "
-                           "text editor to change the `false` next to `disableExtremeGames` to `true`, saving the file afterwards.")
+    await ctx.channel.send(
+        "To toggle Extreme games in Flashpoint, click the Config tab in the launcher, click the `Extreme Games` "
+        "checkbox to turn them on or off, then scroll down and click `Save and Restart`.\n"
+        "If you want to hide both the games and this option, you can edit the file `config.json` with any "
+        "text editor to change the `false` next to `disableExtremeGames` to `true`, saving the file afterwards.")
 
 
 @bot.command(name="win7", aliases=["windows7", "win7support"], brief="Windows 7 support.")
 async def win7(ctx: discord.ext.commands.Context):
     l.debug(f"Windows 7 command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.send("For Flashpoint to work on Windows 7, Service Pack 1, the Visual C++ Redistributable and .NET framework are required."
-                   " The C++ Redistributable and .NET framework can be found at <https://www.microsoft.com/en-us/download/details.aspx?id=48145> and "
-                   "<https://www.microsoft.com/en-us/download/details.aspx?id=55170> respectively, while you can get Service Pack 1 from Windows Update."
-                   " When you install the Visual C++ Redistributable, make sure to install the x86 version,"
-                   " even if you're on a 64-bit machine!")
+    await ctx.send(
+        "For Flashpoint to work on Windows 7, Service Pack 1, the Visual C++ Redistributable and .NET framework are required."
+        " The C++ Redistributable and .NET framework can be found at <https://www.microsoft.com/en-us/download/details.aspx?id=48145> and "
+        "<https://www.microsoft.com/en-us/download/details.aspx?id=55170> respectively, while you can get Service Pack 1 from Windows Update."
+        " When you install the Visual C++ Redistributable, make sure to install the x86 version,"
+        " even if you're on a 64-bit machine!")
 
 
 @bot.command(name="fb", aliases=["mp", "facebook", "multiplayer"], brief="Flashpoint multiplayer support.")
