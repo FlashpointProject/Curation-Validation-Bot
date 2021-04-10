@@ -356,7 +356,7 @@ async def win7(ctx: discord.ext.commands.Context):
         " even if you're on a 64-bit machine!")
 
 
-@bot.command(name="fb", aliases=["mp", "facebook", "multiplayer"], brief="Flashpoint multiplayer support.")
+@bot.command(name="multiplayer", aliases=["fb", "mp", "facebook"], brief="Flashpoint multiplayer support.")
 async def facebook(ctx: discord.ext.commands.Context):
     l.debug(f"Facebook command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.send("Flashpooint will likely not support online or Facebook-based games. "
