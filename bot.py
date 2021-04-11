@@ -359,7 +359,7 @@ async def win7(ctx: discord.ext.commands.Context):
 @bot.command(name="fb", aliases=["mp", "facebook", "multiplayer"], brief="Flashpoint multiplayer support.")
 async def facebook(ctx: discord.ext.commands.Context):
     l.debug(f"Facebook command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.send("Flashpooint will likely not support online or Facebook-based games. "
+    await ctx.send("Flashpoint will likely not support online or Facebook-based games. "
                    "To support always online games, the emulation of a server is required. "
                    "To be able to do that is almost as much work as all of Flashpoint itself, "
                    "so it really wouldn't be practical to put time into.")
