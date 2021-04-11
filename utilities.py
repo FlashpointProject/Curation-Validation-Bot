@@ -20,14 +20,14 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
         self.bot = bot
 
     @commands.command(name="check-lc", brief="Check if a given launch command is already in the master database.")
-    async def check_lc(self, ctx: discord.ext.commands.Context, *args):
+    async def check_lc(self, ctx: discord.ext.commands.Context, *launch_command):
         l.debug(f"check_lc command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
 
         def normalize_launch_command(launch_command: str) -> str:
             return launch_command.replace('"', "").replace("'", "").replace(" ", "").replace("`", "")
 
         launch_command_user = ""
-        for arg in args:
+        for arg in launch_command:
             launch_command_user += arg
 
         launch_command_user = normalize_launch_command(launch_command_user)
@@ -69,7 +69,7 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                 await message.remove_reaction(reaction.emoji, self.bot.user)
         await message.add_reaction("🤖")
 
-    @commands.command(name="get_fixes")
+    @commands.command(name="get_fixes", hidden=True)
     @commands.has_role("Administrator")
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
     async def automatic_get_jsons(self, ctx: discord.ext.commands.Context, jump_url: Optional[str]):
