@@ -10,7 +10,6 @@ from pretty_help import PrettyHelp
 from dotenv import load_dotenv
 from logger import getLogger, set_global_logging_level
 from curation_validator import get_launch_commands_bluebot, validate_curation
-from troubleshooting import Troubleshooting
 
 set_global_logging_level('DEBUG')
 l = getLogger("main")
@@ -30,7 +29,7 @@ PENDING_FIXES_CHANNEL = int(os.getenv('PENDING_FIXES_CHANNEL'))
 NOTIFY_ME_CHANNEL = int(os.getenv('NOTIFY_ME_CHANNEL'))
 GOD_USER = int(os.getenv('GOD_USER'))
 
-bot = commands.Bot(command_prefix="-", help_command=PrettyHelp())
+bot = commands.Bot(command_prefix="-", help_command=PrettyHelp(color=discord.Color.red()))
 COOL_CRAB = "<:cool_crab:587188729362513930>"
 EXTREME_EMOJI_ID = 778145279714918400
 NOTIFICATION_SQUAD_ID = 478369603622273024
