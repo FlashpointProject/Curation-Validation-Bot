@@ -19,7 +19,8 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="check-lc", brief="Check if a given launch command is already in the master database.")
+    @commands.command(name="check-lc", brief="Check if a given launch command is already in the master database.",
+                      description="Check if a given launch command is already in the master database.")
     async def check_lc(self, ctx: discord.ext.commands.Context, *launch_command):
         l.debug(f"check_lc command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
 
@@ -44,7 +45,8 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
         l.debug(f"received ping from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("pong")
 
-    @commands.command(name="approve", brief="Override the bot's decision and approve the curation (Moderator).")
+    @commands.command(name="approve", brief="Override the bot's decision and approve the curation (Moderator).",
+                      description="Override the bot's decision and approve the curation (Moderator only).")
     @commands.has_role("Moderator")
     async def approve(self, ctx: discord.ext.commands.Context, jump_url: str):
         l.debug(f"approve command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
@@ -69,19 +71,19 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                 await message.remove_reaction(reaction.emoji, self.bot.user)
         await message.add_reaction("🤖")
 
-    @commands.command(name="get_fixes", hidden=True)
+    @commands.command(name="get-fixes", hidden=True)
     @commands.has_role("Administrator")
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
-    async def automatic_get_jsons(self, ctx: discord.ext.commands.Context, jump_url: Optional[str]):
+    async def automatic_get_jsons(self, ctx: discord.ext.commands.Context, last_message_url: Optional[str]):
         l.debug(
             f"pending fixes command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         temp_folder = tempfile.mkdtemp(prefix='pending_fixes')
-        if jump_url is not None:
+        if last_message_url is not None:
             await ctx.send(
-                f"Getting all jsons in #pending-fixes not marked with a ⚠️ before <{jump_url}> and after the pin. "
+                f"Getting all jsons in #pending-fixes not marked with a ⚠️ before <{last_message_url}> and after the pin. "
                 f"Sit back and relax, this will take a while {COOL_CRAB}.")
             jump_url_regex = re.compile(r"https://discord\.com/channels/(\d+)/(\d+)/(\d+)")
-            url_match = jump_url_regex.match(jump_url)
+            url_match = jump_url_regex.match(last_message_url)
             if url_match is None or ctx.guild != self.bot.get_guild(int(url_match.group(1))):
                 ctx.channel.send("Invalid jump URL provided\n")
                 return

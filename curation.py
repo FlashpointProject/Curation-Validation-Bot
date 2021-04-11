@@ -11,7 +11,8 @@ class Curation(commands.Cog, description="Information about curating games for F
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="curation", aliases=["ct", "curation-tutorial"], brief="Curation tutorial.")
+    @commands.command(name="curation", aliases=["ct", "curation-tutorial"], brief="Curation tutorial.",
+                      description="Curation tutorial.")
     async def curation_tutorial(self, ctx: discord.ext.commands.Context):
         l.debug(
             f"curation tutorial command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
@@ -19,7 +20,7 @@ class Curation(commands.Cog, description="Information about curating games for F
                                "🔗 <https://bluemaxima.org/flashpoint/datahub/Curation_Tutorial>")
 
     @commands.command(name="not-accepted", aliases=["notaccepted", "disallowed", "blacklist", "blacklisted", "na"],
-                 brief="Not accepted curations.")
+                 brief="Not accepted curations.", description="A list of curations not accepted in Flashpoint.")
     async def not_accepted(self, ctx: discord.ext.commands.Context):
         l.debug(
             f"not-accepted command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
@@ -32,13 +33,14 @@ class Curation(commands.Cog, description="Information about curating games for F
         await ctx.channel.send("List of Metadata Fields:\n"
                                "🔗 <https://bluemaxima.org/flashpoint/datahub/Curation_Format#List_of_Metadata_Fields>")
 
-    @commands.command(name="tags", brief="Tags in Flashpoint.")
+    @commands.command(name="tags", brief="Tags in Flashpoint.", description="A list of tags in Flashpoint.")
     async def tags(self, ctx: discord.ext.commands.Context):
         l.debug(f"tags command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("List of Tags:\n"
                                "🔗 <https://bluemaxima.org/flashpoint/datahub/Tags>")
 
-    @commands.command(name="lang", aliases=["langs", "languages"], brief="Language codes.")
+    @commands.command(name="lang", aliases=["langs", "languages"], brief="Language codes.",
+                      description="A list of ISO631-1 codes from Wikipedia.")
     async def lang(self, ctx: discord.ext.commands.Context):
         l.debug(f"lang command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("List of Language Codes:\n"
