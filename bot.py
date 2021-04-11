@@ -365,6 +365,14 @@ async def facebook(ctx: discord.ext.commands.Context):
                    "so it really wouldn't be practical to put time into.")
 
 
+@bot.command(name="notopening", aliases=["launchernotopening", "lno"], brief="Launcher not opening fix.")
+async def launcher_not_opening(ctx: discord.ext.commands.Context):
+    l.debug(f"Launcher not opening command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+    await ctx.send("The first time you start Flashpoint Launcher, a bug may occur that prevents it from showing the window. "
+                   "If this happens, open Windows Task Manager, click the Details tab, and look for `Flashpoint.exe`. "
+                   "Then click \"End Process\", and Flashpoint should start normally next time.")
+
+
 @bot.command(name="mood", brief="Mood.", hidden=True)
 @commands.has_role("Moderator")
 async def linux(ctx: discord.ext.commands.Context):
