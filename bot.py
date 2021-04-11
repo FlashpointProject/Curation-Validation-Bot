@@ -5,10 +5,12 @@ from typing import Optional
 
 import discord
 from discord.ext import commands
+from pretty_help import PrettyHelp
 
 from dotenv import load_dotenv
 from logger import getLogger, set_global_logging_level
 from curation_validator import get_launch_commands_bluebot, validate_curation
+from troubleshooting import Troubleshooting
 
 set_global_logging_level('DEBUG')
 l = getLogger("main")
@@ -28,7 +30,7 @@ PENDING_FIXES_CHANNEL = int(os.getenv('PENDING_FIXES_CHANNEL'))
 NOTIFY_ME_CHANNEL = int(os.getenv('NOTIFY_ME_CHANNEL'))
 GOD_USER = int(os.getenv('GOD_USER'))
 
-bot = commands.Bot(command_prefix="-")
+bot = commands.Bot(command_prefix="-", help_command=PrettyHelp())
 COOL_CRAB = "<:cool_crab:587188729362513930>"
 EXTREME_EMOJI_ID = 778145279714918400
 NOTIFICATION_SQUAD_ID = 478369603622273024
@@ -171,211 +173,9 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
         l.info(f"curation in message '{message.id}' validated and is OK - {message.jump_url}")
 
 
-@bot.command(hidden=True)
-@commands.has_role("Administrator")
-async def ping(ctx: discord.ext.commands.Context):
-    l.debug(f"received ping from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("pong")
-
-
-@bot.command(name="approve", brief="Override the bot's decision and approve the curation (Moderator).")
-@commands.has_role("Moderator")
-async def approve(ctx: discord.ext.commands.Context, jump_url: str):
-    l.debug(f"approve command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-
-    jump_url_regex = re.compile(r"https://discord\.com/channels/(\d+)/(\d+)/(\d+)")
-    url_match = jump_url_regex.match(jump_url)
-    if url_match is None or ctx.guild != bot.get_guild(int(url_match.group(1))):
-        ctx.channel.send("Invalid jump URL provided\n")
-        return
-
-    # guild_id = int(url_match.group(1))
-    channel_id = int(url_match.group(2))
-    message_id = int(url_match.group(3))
-
-    l.debug(f"fetching message {message_id}")
-    channel = bot.get_channel(channel_id)
-    message = await channel.fetch_message(message_id)
-    reactions: list[discord.Reaction] = message.reactions
-    for reaction in reactions:
-        if reaction.me:
-            l.debug(f"removing bot's reaction {reaction} from message {message.id}")
-            await message.remove_reaction(reaction.emoji, bot.user)
-    await message.add_reaction("🤖")
-
-
-@bot.command(name="curation", aliases=["ct", "curation-tutorial"], brief="Curation tutorial.")
-async def curation_tutorial(ctx: discord.ext.commands.Context):
-    l.debug(
-        f"curation tutorial command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("Curation tutorial:\n"
-                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Curation_Tutorial>")
-
-
-@bot.command(name="antivirus", aliases=["av", "avg", "avast"], brief="Antivirus interference.")
-async def antivirus(ctx: discord.ext.commands.Context):
-    l.debug(f"antivirus command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("Important Flashpoint components may be detected as a virus; this is a false positive.\n"
-                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Troubleshooting_Antivirus_Interference>")
-
-
-@bot.command(name="whitescreen", aliases=["ws", "wsod"], brief="White screen troubleshooting.")
-async def whitescreen(ctx: discord.ext.commands.Context):
-    l.debug(f"whitescreen command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("Launching games always shows a blank white screen:\n"
-                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#Troubleshooting>")
-
-
-@bot.command(name="faq", brief="FAQ.")
-async def faq(ctx: discord.ext.commands.Context):
-    l.debug(f"FAQ command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("FAQ:\n"
-                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ>")
-
-
-@bot.command(name="not-accepted", aliases=["notaccepted", "disallowed", "blacklist", "blacklisted", "na"],
-             brief="Not accepted curations.")
-async def not_accepted(ctx: discord.ext.commands.Context):
-    l.debug(f"not-accepted command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("These are games/animations not allowed in Flashpoint for any reason:\n"
-                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Not_Accepted_Curations>")
-
-
-@bot.command(name="nitrome", aliases=["nit"], brief="Nitrome information.")
-async def nitrome(ctx: discord.ext.commands.Context):
-    l.debug(f"nitrome command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("Nitrome politely asked us to remove their content from the collection. "
-                           "If you're looking to play their games, do it at their website, and if Flash "
-                           "isn't an option, follow their growing HTML5-compatible catalog. "
-                           "Flashpoint does not condone harassment over Nitrome's decision.")
-
-
-@bot.command(name="meta", aliases=["curation-format", "format", "metadata", "cf"], brief="Metadata file.")
-async def meta(ctx: discord.ext.commands.Context):
-    l.debug(f"meta command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("List of Metadata Fields:\n"
-                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Curation_Format#List_of_Metadata_Fields>")
-
-
-@bot.command(name="tags", brief="Tags in Flashpoint.")
-async def tags(ctx: discord.ext.commands.Context):
-    l.debug(f"tags command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("List of Tags:\n"
-                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Tags>")
-
-
-@bot.command(name="lang", aliases=["langs", "languages"], brief="Language codes.")
-async def lang(ctx: discord.ext.commands.Context):
-    l.debug(f"lang command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("List of Language Codes:\n"
-                           "🔗 <https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes>")
-
-
-@bot.command(name="partial-downloads",
-             aliases=["infinitypartialdownload", "ipd", "partial", "partialdownload", "infinitypartialdownloads",
-                      "infinitypartial"],
-             brief="Partial download troubleshooting for Flashpoint Infinity.")
-async def partial_downloads(ctx: discord.ext.commands.Context):
-    l.debug(
-        f"partial_downloads command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("Games in Flashpoint Infinity may fail to download properly:\n"
-                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#InfinityPartialDownloads>")
-
-
-@bot.command(name="masterlist",
-             aliases=["ml", "master-list", "list", "games", "animations", "gamelist", "game-list", "search", "gl"],
-             brief="Link or search master list")
-async def master_list(ctx: discord.ext.commands.Context, search_query: Optional[str] = None):
-    if search_query is None:
-        l.debug(f"masterlist command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-        await ctx.channel.send("Browse Flashpoint Catalog:\n"
-                               "🔗 <https://nul.sh/misc/flashpoint/>")
-    else:
-        l.debug(
-            f"masterlist with query command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-        await ctx.channel.send("Direct search not implemented yet.\n"
-                               "🔗 <https://nul.sh/misc/flashpoint/>")
-
-
-@bot.command(name="downloads", aliases=["dl"], brief="Where to download Flashpoint.")
-async def downloads(ctx: discord.ext.commands.Context):
-    l.debug(f"downloads command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("Download Flashpoint from here:\n"
-                           "🔗 <https://bluemaxima.org/flashpoint/downloads/>")
-
-
-@bot.command(name="platforms", aliases=["plugins"], brief="Supported platforms in Flashpoint.")
-async def platforms(ctx: discord.ext.commands.Context):
-    l.debug(f"platforms command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("Supported Platforms:\n"
-                           "🔗 <https://bluemaxima.org/flashpoint/platforms/>\n"
-                           "Technical information:\n"
-                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Platforms>")
-
-
-@bot.command(name="github", aliases=["gh"], brief="Flashpoint Project GitHub.")
-async def github(ctx: discord.ext.commands.Context):
-    l.debug(f"github command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("Flashpoint Project on GitHub:\n"
-                           "🔗 <https://github.com/FlashpointProject/")
-
-
-@bot.command(name="chromebook", aliases=["cb"], brief="Chromebook compatibility.")
-async def github(ctx: discord.ext.commands.Context):
-    l.debug(f"chromebook command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("Flashpoint is compatible with Intel Chromebooks that support Linux:\n"
-                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Linux_Support>")
-
-
-@bot.command(name="linux", brief="Linux compatibility.")
-async def linux(ctx: discord.ext.commands.Context):
-    l.debug(f"linux command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send("Flashpoint on Linux:\n"
-                           "🔗 <https://bluemaxima.org/flashpoint/datahub/Linux_Support>")
-
-
-@bot.command(name="extreme", aliases=["enableextreme", "enable-extreme", "disableextreme", "disable-extreme"],
-             brief="Toggle Extreme games.")
-async def extreme(ctx: discord.ext.commands.Context):
-    l.debug(f"extreme command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.channel.send(
-        "To toggle Extreme games in Flashpoint, click the Config tab in the launcher, click the `Extreme Games` "
-        "checkbox to turn them on or off, then scroll down and click `Save and Restart`.\n"
-        "If you want to hide both the games and this option, you can edit the file `config.json` with any "
-        "text editor to change the `false` next to `disableExtremeGames` to `true`, saving the file afterwards.")
-
-
-@bot.command(name="win7", aliases=["windows7", "win7support"], brief="Windows 7 support.")
-async def win7(ctx: discord.ext.commands.Context):
-    l.debug(f"Windows 7 command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.send(
-        "For Flashpoint to work on Windows 7, Service Pack 1, the Visual C++ Redistributable and .NET framework are required."
-        " The C++ Redistributable and .NET framework can be found at <https://www.microsoft.com/en-us/download/details.aspx?id=48145> and "
-        "<https://www.microsoft.com/en-us/download/details.aspx?id=55170> respectively, while you can get Service Pack 1 from Windows Update."
-        " When you install the Visual C++ Redistributable, make sure to install the x86 version,"
-        " even if you're on a 64-bit machine!")
-
-
-@bot.command(name="multiplayer", aliases=["fb", "mp", "facebook"], brief="Flashpoint multiplayer support.")
-async def facebook(ctx: discord.ext.commands.Context):
-    l.debug(f"Facebook command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.send("Flashpoint will likely not support online or Facebook-based games. "
-                   "To support always online games, the emulation of a server is required. "
-                   "To be able to do that is almost as much work as all of Flashpoint itself, "
-                   "so it really wouldn't be practical to put time into.")
-
-
-@bot.command(name="notopening", aliases=["launchernotopening", "lno"], brief="Launcher not opening fix.")
-async def launcher_not_opening(ctx: discord.ext.commands.Context):
-    l.debug(f"Launcher not opening command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-    await ctx.send("The first time you start Flashpoint Launcher, a bug may occur that prevents it from showing the window. "
-                   "If this happens, open Windows Task Manager, click the Details tab, and look for `Flashpoint.exe`. "
-                   "Then click \"End Process\", and Flashpoint should start normally next time.")
-
-
 @bot.command(name="mood", brief="Mood.", hidden=True)
 @commands.has_role("Moderator")
-async def linux(ctx: discord.ext.commands.Context):
+async def mood(ctx: discord.ext.commands.Context):
     l.debug(f"mood command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
     await ctx.channel.send("```\n"
                            "'You thought it would be cool?' This was not as interesting an explanation as I had hoped for.\n"
@@ -394,26 +194,9 @@ async def linux(ctx: discord.ext.commands.Context):
                            "'I suppose I thought it might be cool,' I said.\n"
                            "```")
 
-
-@bot.command(name="check-lc", brief="Check if a given launch command is already in the master database.")
-async def check_lc(ctx: discord.ext.commands.Context, *args):
-    l.debug(f"check_lc command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-
-    def normalize_launch_command(launch_command: str) -> str:
-        return launch_command.replace('"', "").replace("'", "").replace(" ", "").replace("`", "")
-
-    launch_command_user = ""
-    for arg in args:
-        launch_command_user += arg
-
-    launch_command_user = normalize_launch_command(launch_command_user)
-    normalized_commands = {normalize_launch_command(command) for command in get_launch_commands_bluebot()}
-
-    if launch_command_user in normalized_commands:
-        await ctx.channel.send("Launch command **found** in the master database, most likely a duplicate.")
-    else:
-        await ctx.channel.send("Launch command **not found** in the master database, most likely not a duplicate.")
-
-
+bot.load_extension('troubleshooting')
+bot.load_extension('curation')
+bot.load_extension('info')
+bot.load_extension('utilities')
 l.info(f"starting the bot...")
 bot.run(TOKEN)
