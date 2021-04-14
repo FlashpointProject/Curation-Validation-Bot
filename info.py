@@ -50,7 +50,7 @@ class Info(commands.Cog, description="General information about Flashpoint."):
     async def github(self, ctx: discord.ext.commands.Context):
         l.debug(f"github command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Flashpoint Project on GitHub:\n"
-                               "🔗 <https://github.com/FlashpointProject/")
+                               "🔗 <https://github.com/FlashpointProject/>")
 
     @commands.command(name="chromebook", aliases=["cb"], brief="Chromebook compatibility.",
                       desription="Flashpoint's chromebook compatibility.")
