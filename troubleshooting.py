@@ -19,7 +19,7 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
         await ctx.send(
             "The first time you start Flashpoint Launcher, a bug may occur that prevents it from showing the window. "
             "If this happens, open Windows Task Manager, click the Details tab, and look for `Flashpoint.exe`. "
-            "Then click \"End Process\", and Flashpoint should start normally next time.")
+            "Then click `End Process`, and Flashpoint should start normally next time.")
 
     @commands.command(name="antivirus", aliases=["av", "avg", "avast"], brief="Troubleshooting antivirus interference.",
                       description="Troubleshooting antivirus interference.")
