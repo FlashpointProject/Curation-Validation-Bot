@@ -147,7 +147,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                         break
                     elif any(localflash_name in lc for lc in launch_commands):
                         errors.append("Folder name already present in localflash, your curation may be a duplicate."
-                                      " Otherwise, choose a different containing folder name")
+                                      " Otherwise, choose a different containing folder name.")
 
     # process meta
     is_extreme = False
