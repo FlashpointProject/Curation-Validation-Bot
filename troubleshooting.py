@@ -39,7 +39,7 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
     @commands.command(name="win7", aliases=["windows7", "win7support"], brief="Troubleshooting Windows 7.",
                       description="Troubleshooting Windows 7.")
     async def win7(self, ctx: discord.ext.commands.Context):
-        l.ebug(
+        l.debug(
             f"Windows 7 command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.send(
             "For Flashpoint to work on Windows 7, Service Pack 1, the Visual C++ Redistributable and .NET framework are required."
