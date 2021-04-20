@@ -128,7 +128,8 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
         final_reply += message.author.mention + f" Your curation might have some problems:\n" \
                                                 f"🔗 {message.jump_url}\n"
 
-    if len(curation_errors) > 0:
+    has_errors = len(curation_errors) > 0
+    if has_errors:
         if not dry_run:
             l.debug(f"adding 🚫 reaction to message '{message.id}'")
             await message.add_reaction('🚫')
@@ -136,13 +137,16 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
             final_reply += f"🚫 {curation_error}\n"
 
     # TODO tag warnings changed to errors this way because i'm lazy for now
-    if len(curation_warnings) > 0:
+    has_warnings = len(curation_warnings) > 0
+    if has_warnings:
         if not dry_run:
             l.debug(f"adding 🚫 reaction to message '{message.id}'")
             await message.add_reaction('🚫')
         for curation_warning in curation_warnings:
             final_reply += f"🚫 {curation_warning}\n"
 
+    if is_audition and (has_warnings or has_errors):
+        final_reply += "Please fix these errors and resubmit."
     if is_extreme and not dry_run:
         l.debug(f"adding :extreme: reaction to message '{message.id}'")
         emoji = bot.get_emoji(EXTREME_EMOJI_ID)
