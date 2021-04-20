@@ -145,8 +145,12 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
         for curation_warning in curation_warnings:
             final_reply += f"🚫 {curation_warning}\n"
 
-    if is_audition and (has_warnings or has_errors):
+    is_audition_with_mistakes = is_audition and (has_warnings or has_errors)
+    if is_audition_with_mistakes and "duplicate" not in final_reply:
         final_reply += "Please fix these errors and resubmit."
+    elif is_audition_with_mistakes:
+        final_reply += "Feel free to curate another game instead."
+
     if is_extreme and not dry_run:
         l.debug(f"adding :extreme: reaction to message '{message.id}'")
         emoji = bot.get_emoji(EXTREME_EMOJI_ID)
@@ -196,6 +200,7 @@ async def mood(ctx: discord.ext.commands.Context):
                            "I considered how to address this in a way that might make sense to him.\n"
                            "'I suppose I thought it might be cool,' I said.\n"
                            "```")
+
 
 bot.load_extension('troubleshooting')
 bot.load_extension('curation')
