@@ -236,8 +236,7 @@ class TestCurationValidator(unittest.TestCase):
     def test_localflash_bad_name(self):
         for extension in ["7z", "zip"]:
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_localflash_bad_name.{extension}")
-            self.assertCountEqual(errors, ["Folder name already present in localflash, your curation may be a duplicate."
-                                           " Otherwise, choose a different containing folder name"])
+            self.assertCountEqual(errors, ["Extremely common localflash containing folder name, please change."])
             self.assertCountEqual(warnings, [])
 
 
