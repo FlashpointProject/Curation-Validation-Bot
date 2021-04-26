@@ -2,7 +2,7 @@ wheel
 py7zr
 discord
 python-dotenv
-pyyaml
+ruamel.yaml
 colorlog
 pytest
 requests
