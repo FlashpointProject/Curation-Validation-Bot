@@ -207,12 +207,17 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
             for x in list_of_language_codes:
                 valid_language_codes.append(x["alpha2"])
             for language_code in language_codes:
+                replacement_code = replacements.get(language_code)
                 if language_code not in valid_language_codes:
-                    replacement_code = replacements.get(language_code)
                     if language_code == "":
                         pass
                     elif ',' in language_code:
                         errors.append("Languages should be separated with semicolons, not commas.")
+                    elif language_code in [x["English"] for x in list_of_language_codes]:
+                        for x in list_of_language_codes:
+                            if language_code in x["English"]:
+                                errors.append(
+                                    f"Languages must be in ISO 639-1 format, so please use `{x['alpha2']}` instead of `{language_code}`")
                     elif replacement_code is not None:
                         for x in list_of_language_codes:
                             if replacement_code == x["alpha2"]:
