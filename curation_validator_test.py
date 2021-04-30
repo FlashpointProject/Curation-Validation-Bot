@@ -186,6 +186,18 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, ["Languages should be separated with semicolons, not commas."])
             self.assertCountEqual(warnings, [])
 
+    def test_common_bad_language(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_common_bad_language.{extension}")
+            self.assertCountEqual(errors, ["The correct ISO 639-1 language code for Japanese is `ja`, not `jp`."])
+            self.assertCountEqual(warnings, [])
+
+    def test_language_name(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _ = validate_curation(f"test_curations/test_curation_language_name.{extension}")
+            self.assertCountEqual(errors, ["Languages must be in ISO 639-1 format, so please use `ja` instead of `Japanese`"])
+            self.assertCountEqual(warnings, [])
+
     def test_missing_source(self):
         for extension in ["7z", "zip"]:
             errors, warnings, _ = validate_curation(f"test_curations/test_curation_missing_source.{extension}")
