@@ -199,37 +199,37 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
             with open("language-codes.json") as f:
                 list_of_language_codes: list[dict] = json.load(f)
                 language_str: str = props.get("Languages", "")
-                languages = language_str.split(";")
-                languages = [x.strip() for x in languages]
-                language_codes = []
+                language_codes = language_str.split(";")
+                language_codes = [x.strip() for x in language_codes]
+                valid_language_codes = []
                 for x in list_of_language_codes:
-                    language_codes.append(x["alpha2"])
-                for language in languages:
-                    if language not in language_codes:
-                        if language == "":
+                    valid_language_codes.append(x["alpha2"])
+                for language_code in language_codes:
+                    if language_code not in valid_language_codes:
+                        if language_code == "":
                             pass
-                        elif ',' in language:
+                        elif ',' in language_code:
                             errors.append("Languages should be separated with semicolons, not commas.")
-                        elif language == "sp":
+                        elif language_code == "sp":
                             errors.append("The correct ISO 639-1 language code for Spanish is `es`, not `sp`.")
-                        elif language == "ge":
+                        elif language_code == "ge":
                             errors.append("The correct ISO 639-1 language code for German is `de`, not `ge`.")
-                        elif language == "jp":
+                        elif language_code == "jp":
                             errors.append("The correct ISO 639-1 language code for Japanese is `ja`, not `jp`.")
-                        elif language == "kr":
+                        elif language_code == "kr":
                             errors.append("The correct ISO 639-1 language code for Korean is `ko`, not `kr`.")
-                        elif language == "ch":
+                        elif language_code == "ch":
                             errors.append("The correct ISO 639-1 language code for Chinese is `zh`, not `ch`.")
-                        elif language == "cn":
+                        elif language_code == "cn":
                             errors.append("The correct ISO 639-1 language code for Chinese is `zh`, not `cn`.")
-                        elif language == "iw":
+                        elif language_code == "iw":
                             errors.append("The correct ISO 639-1 language code for Hebrew is `he`, not `iw`.")
-                        elif language == "cz":
+                        elif language_code == "cz":
                             errors.append("The correct ISO 639-1 language code for Czech is `cs`, not `cz`.")
-                        elif language == "pe":
+                        elif language_code == "pe":
                             errors.append("The correct ISO 639-1 language code for Farsi is `fa`, not `pe`.")
                         else:
-                            errors.append(f"Code `{language}` is not a valid ISO 639-1 language code.")
+                            errors.append(f"Code `{language_code}` is not a valid ISO 639-1 language code.")
 
         # tag: tuple[str, bool] = ("Tags", bool(props["Tags"]))
         source: tuple[str, bool] = ("Source", bool(props.get("Source")))
