@@ -1,6 +1,7 @@
 import shutil
 import json
 import re
+from enum import Enum, auto
 from typing import Optional
 
 import py7zr
@@ -17,7 +18,13 @@ from bs4 import BeautifulSoup
 l = getLogger("main")
 
 
-def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
+class CurationType(Enum):
+    FLASH_GAME = auto()
+    OTHER_GAME = auto()
+    ANIMATION = auto()
+
+
+def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Optional[CurationType]]:
     errors: list = []
     warnings: list = []
 
@@ -38,7 +45,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                 warnings.append(
                     f"The archive is too large to be validated (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
                 archive.close()
-                return errors, warnings, None
+                return errors, warnings, None, None
 
             filenames = archive.getnames()
             base_path = tempfile.mkdtemp(prefix="curation_validator_") + "/"
@@ -47,7 +54,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         except Exception as e:
             l.error(f"there was an error while reading file '{filename}': {e}")
             errors.append("There seems to a problem with your 7z file.")
-            return errors, warnings, None
+            return errors, warnings, None, None
     elif filename.endswith(".zip"):
         try:
             l.debug(f"reading archive '{filename}'...")
@@ -58,7 +65,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                 warnings.append(
                     f"The archive is too large to be validated (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
                 archive.close()
-                return errors, warnings, None
+                return errors, warnings, None, None
 
             filenames = archive.namelist()
             base_path = tempfile.mkdtemp(prefix="curation_validator_") + "/"
@@ -67,10 +74,10 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         except Exception as e:
             l.error(f"there was an error while reading file '{filename}': {e}")
             errors.append("There seems to a problem with your zip file.")
-            return errors, warnings, None
+            return errors, warnings, None, None
     elif filename.endswith(".rar"):
         errors.append("Curations must be either .zip or .7z, not .rar.")
-        return errors, warnings, None
+        return errors, warnings, None, None
     else:
         l.warn(f"file type of file '{filename}' not supported")
 
@@ -110,7 +117,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
     if len(logo) == 0 and len(ss) == 0 and len(content_folder) == 0 and len(meta) == 0:
         errors.append("Logo, screenshot, content folder and meta not found. Is your curation structured properly?")
         archive_cleanup(filename, base_path)
-        return errors, warnings, None
+        return errors, warnings, None, None
 
     if set(logo) != set(logo_case):
         errors.append("Logo file extension must be lowercase.")
@@ -149,6 +156,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                             errors.append("Extremely common localflash containing folder name, please change.")
     # process meta
     is_extreme = False
+    curation_type = None
     props: dict = {}
     if len(meta) == 0:
         errors.append("Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
@@ -162,15 +170,15 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
                     if props is None:
                         errors.append("The meta file seems to be empty.")
                         archive_cleanup(filename, base_path)
-                        return errors, warnings, None
+                        return errors, warnings, None, None
                 except YAMLError:
                     errors.append("Unable to load meta YAML file")
                     archive_cleanup(filename, base_path)
-                    return errors, warnings, None
+                    return errors, warnings, None, None
                 except ValueError:
                     errors.append("Invalid release date. Ensure entered date is valid.")
                     archive_cleanup(filename, base_path)
-                    return errors, warnings, None
+                    return errors, warnings, None, None
             elif meta_filename.endswith(".txt"):
                 break_index: int = 0
                 while break_index != -1:
@@ -182,7 +190,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
             else:
                 errors.append("Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
                 archive_cleanup(filename, base_path)
-                return errors, warnings, None
+                return errors, warnings, None, None
 
         title: tuple[str, bool] = ("Title", bool(props.get("Title")))
         # developer: tuple[str, bool] = ("Developer", bool(props["Developer"]))
@@ -272,9 +280,17 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool]]:
         is_extreme = False
         if extreme[1] and (props["Extreme"] == "Yes" or props["Extreme"] is True):
             is_extreme = True
+        if props.get("Library") == "theatre":
+            curation_type = CurationType.ANIMATION
+        else:
+            platform = props.get("Platform")
+            if platform == "Flash" or platform is None:
+                curation_type = CurationType.FLASH_GAME
+            else:
+                curation_type = CurationType.OTHER_GAME
 
     archive_cleanup(filename, base_path)
-    return errors, warnings, is_extreme
+    return errors, warnings, is_extreme, curation_type
 
 
 def archive_cleanup(filename, base_path):

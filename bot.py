@@ -9,7 +9,7 @@ from pretty_help import PrettyHelp
 
 from dotenv import load_dotenv
 from logger import getLogger, set_global_logging_level
-from curation_validator import get_launch_commands_bluebot, validate_curation
+from curation_validator import get_launch_commands_bluebot, validate_curation, CurationType
 
 set_global_logging_level('DEBUG')
 l = getLogger("main")
@@ -77,14 +77,14 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
     if len(message.attachments) != 1:  # TODO can we have more than one attachment?
         return
 
-    is_flash_game = message.channel.id == FLASH_GAMES_CHANNEL
-    is_other_game = message.channel.id == OTHER_GAMES_CHANNEL
-    is_animation = message.channel.id == ANIMATIONS_CHANNEL
+    is_in_flash_game_channel = message.channel.id == FLASH_GAMES_CHANNEL
+    is_in_other_game_channel = message.channel.id == OTHER_GAMES_CHANNEL
+    is_in_animation_channel = message.channel.id == ANIMATIONS_CHANNEL
     is_audition = message.channel.id == AUDITIONS_CHANNEL
     # TODO disable
     # is_curator_lounge = message.channel.id == CURATOR_LOUNGE_CHANNEL
 
-    if not (is_flash_game or is_other_game or is_animation or is_audition):  # or is_curator_lounge):
+    if not (is_in_flash_game_channel or is_in_other_game_channel or is_in_animation_channel or is_audition):  # or is_curator_lounge):
         return
 
     attachment = message.attachments[0]
@@ -98,7 +98,7 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
     await attachment.save(archive_filename)
 
     try:
-        curation_errors, curation_warnings, is_extreme = validate_curation(archive_filename)
+        curation_errors, curation_warnings, is_extreme, curation_type = validate_curation(archive_filename)
     except Exception as e:
         l.exception(e)
         l.debug(f"removing archive {archive_filename}...")
@@ -115,9 +115,19 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
     # archive cleanup
     l.debug(f"removing archive {archive_filename}...")
     os.remove(archive_filename)
-
     if message.content == "":
         curation_errors.append("Discord upload must include title of game.")
+    if not is_audition:
+        mentioned_channel: discord.TextChannel
+        if curation_type == CurationType.FLASH_GAME and not is_in_flash_game_channel:
+            mentioned_channel = bot.get_channel(FLASH_GAMES_CHANNEL)
+            curation_errors.append(f"Curation is a flash game, please submit to {mentioned_channel.mention}")
+        if curation_type == CurationType.OTHER_GAME and not is_in_other_game_channel:
+            mentioned_channel = bot.get_channel(OTHER_GAMES_CHANNEL)
+            curation_errors.append(f"Curation is an other game, please submit to {mentioned_channel.mention}")
+        if curation_type == CurationType.ANIMATION and not is_in_animation_channel:
+            mentioned_channel = bot.get_channel(ANIMATIONS_CHANNEL)
+            curation_errors.append(f"Curation is an animation, please submit to {mentioned_channel.mention}")
 
     # format reply
     final_reply: str = ""
@@ -164,7 +174,7 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
         reply_channel: discord.TextChannel = bot.get_channel(BOT_ALERTS_CHANNEL)
         if is_extreme:
             reply_channel = bot.get_channel(NSFW_LOUNGE_CHANNEL)
-        elif is_flash_game or is_other_game or is_animation:
+        elif is_in_flash_game_channel or is_in_other_game_channel or is_in_animation_channel:
             reply_channel = bot.get_channel(BOT_ALERTS_CHANNEL)
         elif is_audition:
             reply_channel = bot.get_channel(AUDITION_CHAT_CHANNEL)
