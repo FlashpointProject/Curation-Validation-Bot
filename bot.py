@@ -8,6 +8,8 @@ from discord.ext import commands
 from pretty_help import PrettyHelp
 
 from dotenv import load_dotenv
+
+from get_all_curations_in_zip import get_all_curations_in_zip
 from logger import getLogger, set_global_logging_level
 from curation_validator import get_launch_commands_bluebot, validate_curation, CurationType
 
@@ -98,7 +100,93 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
     await attachment.save(archive_filename)
 
     try:
-        curation_errors, curation_warnings, is_extreme, curation_type = validate_curation(archive_filename)
+        _, archives = get_all_curations_in_zip(archive_filename)
+        for archive in archives:
+            curation_errors, curation_warnings, is_extreme, curation_type, title = validate_curation(archive)
+            if message.content == "":
+                curation_errors.append("Discord upload must include title of game.")
+            if not is_audition:
+                mentioned_channel: discord.TextChannel
+                if curation_type == CurationType.FLASH_GAME and not is_in_flash_game_channel:
+                    mentioned_channel = bot.get_channel(FLASH_GAMES_CHANNEL)
+                    curation_errors.append(f"Curation is a flash game, please submit to {mentioned_channel.mention}")
+                if curation_type == CurationType.OTHER_GAME and not is_in_other_game_channel:
+                    mentioned_channel = bot.get_channel(OTHER_GAMES_CHANNEL)
+                    curation_errors.append(f"Curation is an other game, please submit to {mentioned_channel.mention}")
+                if curation_type == CurationType.ANIMATION and not is_in_animation_channel:
+                    mentioned_channel = bot.get_channel(ANIMATIONS_CHANNEL)
+                    curation_errors.append(f"Curation is an animation, please submit to {mentioned_channel.mention}")
+
+            # format reply
+            final_reply: str = ""
+            if title is not None:
+                if len(curation_errors) > 0:
+                    final_reply += message.author.mention + f" Your curation `{title}` is invalid:\n" \
+                                                            f"🔗 {message.jump_url}\n"
+                if len(curation_errors) == 0 and len(curation_warnings) > 0:
+                    final_reply += message.author.mention + f" Your curation `{title}` might have some problems:\n" \
+                                                            f"🔗 {message.jump_url}\n"
+            else:
+                if len(curation_errors) > 0:
+                    final_reply += message.author.mention + f" Your curation is invalid:\n" \
+                                                            f"🔗 {message.jump_url}\n"
+                if len(curation_errors) == 0 and len(curation_warnings) > 0:
+                    final_reply += message.author.mention + f" Your curation might have some problems:\n" \
+                                                            f"🔗 {message.jump_url}\n"
+
+            has_errors = len(curation_errors) > 0
+            if has_errors:
+                if not dry_run:
+                    l.debug(f"adding 🚫 reaction to message '{message.id}'")
+                    await message.add_reaction('🚫')
+                for curation_error in curation_errors:
+                    final_reply += f"🚫 {curation_error}\n"
+
+            # TODO tag warnings changed to errors this way because i'm lazy for now
+            has_warnings = len(curation_warnings) > 0
+            if has_warnings:
+                if not dry_run:
+                    l.debug(f"adding 🚫 reaction to message '{message.id}'")
+                    await message.add_reaction('🚫')
+                for curation_warning in curation_warnings:
+                    final_reply += f"🚫 {curation_warning}\n"
+
+            is_audition_with_mistakes = is_audition and (has_warnings or has_errors)
+            if is_audition_with_mistakes and "duplicate" not in final_reply:
+                final_reply += "Please fix these errors and resubmit."
+            elif is_audition_with_mistakes:
+                final_reply += "Feel free to curate another game instead."
+
+            if is_extreme and not dry_run:
+                l.debug(f"adding :extreme: reaction to message '{message.id}'")
+                emoji = bot.get_emoji(EXTREME_EMOJI_ID)
+                await message.add_reaction(emoji)
+
+            if len(final_reply) > 0:
+                # TODO tag warnings changed to errors this way because i'm lazy for now
+                # if len(curation_errors) == 0 and len(curation_warnings) > 0:
+                #     final_reply += "⚠️ If the problems detected are valid and you're going to upload a fixed version, " \
+                #                    "please remove the original curation submission after you upload the new one."
+                reply_channel: discord.TextChannel = bot.get_channel(BOT_ALERTS_CHANNEL)
+                if is_extreme:
+                    reply_channel = bot.get_channel(NSFW_LOUNGE_CHANNEL)
+                elif is_in_flash_game_channel or is_in_other_game_channel or is_in_animation_channel:
+                    reply_channel = bot.get_channel(BOT_ALERTS_CHANNEL)
+                elif is_audition:
+                    reply_channel = bot.get_channel(AUDITION_CHAT_CHANNEL)
+                if not dry_run:
+                    l.info(f"sending reply to message '{message.id}' : '" + final_reply.replace('\n', ' ') + "'")
+                    await reply_channel.send(final_reply)
+                else:
+                    l.info(f"NOT SENDING reply to message '{message.id}' : '" + final_reply.replace('\n', ' ') + "'")
+            else:
+                if not dry_run:
+                    l.debug(f"adding 🤖 reaction to message '{message.id}'")
+                    await message.add_reaction('🤖')
+                l.info(f"curation in message '{message.id}' validated and is OK - {message.jump_url}")
+        # archive cleanup
+        l.debug(f"removing archive {archive_filename}...")
+        os.remove(archive_filename)
     except Exception as e:
         l.exception(e)
         l.debug(f"removing archive {archive_filename}...")
@@ -111,83 +199,6 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
                                  f"🔗 {message.jump_url}\n"
                                  f"```{traceback.format_exc()}```")
         return
-
-    # archive cleanup
-    l.debug(f"removing archive {archive_filename}...")
-    os.remove(archive_filename)
-    if message.content == "":
-        curation_errors.append("Discord upload must include title of game.")
-    if not is_audition:
-        mentioned_channel: discord.TextChannel
-        if curation_type == CurationType.FLASH_GAME and not is_in_flash_game_channel:
-            mentioned_channel = bot.get_channel(FLASH_GAMES_CHANNEL)
-            curation_errors.append(f"Curation is a flash game, please submit to {mentioned_channel.mention}")
-        if curation_type == CurationType.OTHER_GAME and not is_in_other_game_channel:
-            mentioned_channel = bot.get_channel(OTHER_GAMES_CHANNEL)
-            curation_errors.append(f"Curation is an other game, please submit to {mentioned_channel.mention}")
-        if curation_type == CurationType.ANIMATION and not is_in_animation_channel:
-            mentioned_channel = bot.get_channel(ANIMATIONS_CHANNEL)
-            curation_errors.append(f"Curation is an animation, please submit to {mentioned_channel.mention}")
-
-    # format reply
-    final_reply: str = ""
-    if len(curation_errors) > 0:
-        final_reply += message.author.mention + f" Your curation is invalid:\n" \
-                                                f"🔗 {message.jump_url}\n"
-    if len(curation_errors) == 0 and len(curation_warnings) > 0:
-        final_reply += message.author.mention + f" Your curation might have some problems:\n" \
-                                                f"🔗 {message.jump_url}\n"
-
-    has_errors = len(curation_errors) > 0
-    if has_errors:
-        if not dry_run:
-            l.debug(f"adding 🚫 reaction to message '{message.id}'")
-            await message.add_reaction('🚫')
-        for curation_error in curation_errors:
-            final_reply += f"🚫 {curation_error}\n"
-
-    # TODO tag warnings changed to errors this way because i'm lazy for now
-    has_warnings = len(curation_warnings) > 0
-    if has_warnings:
-        if not dry_run:
-            l.debug(f"adding 🚫 reaction to message '{message.id}'")
-            await message.add_reaction('🚫')
-        for curation_warning in curation_warnings:
-            final_reply += f"🚫 {curation_warning}\n"
-
-    is_audition_with_mistakes = is_audition and (has_warnings or has_errors)
-    if is_audition_with_mistakes and "duplicate" not in final_reply:
-        final_reply += "Please fix these errors and resubmit."
-    elif is_audition_with_mistakes:
-        final_reply += "Feel free to curate another game instead."
-
-    if is_extreme and not dry_run:
-        l.debug(f"adding :extreme: reaction to message '{message.id}'")
-        emoji = bot.get_emoji(EXTREME_EMOJI_ID)
-        await message.add_reaction(emoji)
-
-    if len(final_reply) > 0:
-        # TODO tag warnings changed to errors this way because i'm lazy for now
-        # if len(curation_errors) == 0 and len(curation_warnings) > 0:
-        #     final_reply += "⚠️ If the problems detected are valid and you're going to upload a fixed version, " \
-        #                    "please remove the original curation submission after you upload the new one."
-        reply_channel: discord.TextChannel = bot.get_channel(BOT_ALERTS_CHANNEL)
-        if is_extreme:
-            reply_channel = bot.get_channel(NSFW_LOUNGE_CHANNEL)
-        elif is_in_flash_game_channel or is_in_other_game_channel or is_in_animation_channel:
-            reply_channel = bot.get_channel(BOT_ALERTS_CHANNEL)
-        elif is_audition:
-            reply_channel = bot.get_channel(AUDITION_CHAT_CHANNEL)
-        if not dry_run:
-            l.info(f"sending reply to message '{message.id}' : '" + final_reply.replace('\n', ' ') + "'")
-            await reply_channel.send(final_reply)
-        else:
-            l.info(f"NOT SENDING reply to message '{message.id}' : '" + final_reply.replace('\n', ' ') + "'")
-    else:
-        if not dry_run:
-            l.debug(f"adding 🤖 reaction to message '{message.id}'")
-            await message.add_reaction('🤖')
-        l.info(f"curation in message '{message.id}' validated and is OK - {message.jump_url}")
 
 
 @bot.command(name="mood", brief="Mood.", hidden=True)
