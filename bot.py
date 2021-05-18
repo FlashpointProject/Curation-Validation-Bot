@@ -98,14 +98,16 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
         f"detected message '{message.id}' from user '{message.author}' in channel '{message.channel}' with attachment '{archive_filename}'")
     l.debug(f"downloading attachment '{attachment.id}' - '{archive_filename}'...")
     await attachment.save(archive_filename)
+    reply_channel: discord.TextChannel = bot.get_channel(BOT_ALERTS_CHANNEL)
 
     try:
-        _, archives = get_all_curations_in_zip(archive_filename)
+        batch_errors, archives = get_all_curations_in_zip(archive_filename)
+        is_batch = len(archives) != 1
         for archive in archives:
             curation_errors, curation_warnings, is_extreme, curation_type, title = validate_curation(archive)
-            if message.content == "":
+            if message.content == "" and not is_batch:
                 curation_errors.append("Discord upload must include title of game.")
-            if not is_audition:
+            if not is_audition and not is_batch:
                 mentioned_channel: discord.TextChannel
                 if curation_type == CurationType.FLASH_GAME and not is_in_flash_game_channel:
                     mentioned_channel = bot.get_channel(FLASH_GAMES_CHANNEL)
@@ -167,7 +169,6 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
                 # if len(curation_errors) == 0 and len(curation_warnings) > 0:
                 #     final_reply += "⚠️ If the problems detected are valid and you're going to upload a fixed version, " \
                 #                    "please remove the original curation submission after you upload the new one."
-                reply_channel: discord.TextChannel = bot.get_channel(BOT_ALERTS_CHANNEL)
                 if is_extreme:
                     reply_channel = bot.get_channel(NSFW_LOUNGE_CHANNEL)
                 elif is_in_flash_game_channel or is_in_other_game_channel or is_in_animation_channel:
