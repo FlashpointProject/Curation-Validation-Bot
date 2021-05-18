@@ -34,7 +34,7 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
         l.debug(
             f"whitescreen command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Launching games always shows a blank white screen:\n"
-                               "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#Troubleshooting>")
+                               "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#WhiteScreenAndNoImages>")
 
     @commands.command(name="win7", aliases=["windows7", "win7support"], brief="Troubleshooting Windows 7.",
                       description="Troubleshooting Windows 7.")
