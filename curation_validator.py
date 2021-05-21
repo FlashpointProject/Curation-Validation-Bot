@@ -31,7 +31,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
     # process archive
     filenames: list = []
 
-    max_uncompressed_size = 1000 * 1000 * 1000
+    max_uncompressed_size = 50 * 1000 * 1000 * 1000
 
     base_path = None
 
