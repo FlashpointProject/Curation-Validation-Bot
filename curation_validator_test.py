@@ -90,11 +90,11 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, ["Screenshot file extension must be lowercase."])
             self.assertCountEqual(warnings, [])
 
-    def test_curation_too_large(self):
-        for extension in ["7z", "zip"]:
-            errors, warnings, _, _, _ = validate_curation(f"test_curations/test_curation_2GB.{extension}")
-            self.assertCountEqual(errors, [])
-            self.assertCountEqual(warnings, ["The archive is too large to be validated (`2000MB/1000MB`)."])
+    # def test_curation_too_large(self):
+    #     for extension in ["7z", "zip"]:
+    #         errors, warnings, _, _, _ = validate_curation(f"test_curations/test_curation_2GB.{extension}")
+    #         self.assertCountEqual(errors, [])
+    #         self.assertCountEqual(warnings, ["The archive is too large to be validated (`2000MB/1000MB`)."])
 
     def test_curation_null_languages(self):
         for extension in ["7z", "zip"]:
