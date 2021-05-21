@@ -9,3 +9,7 @@ requests
 beautifulsoup4
 cachetools
 discord-pretty-help
+
+fastapi
+uvicorn
+python-multipart
