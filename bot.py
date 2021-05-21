@@ -98,7 +98,7 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
     await attachment.save(archive_filename)
 
     try:
-        curation_errors, curation_warnings, is_extreme, curation_type = validate_curation(archive_filename)
+        curation_errors, curation_warnings, is_extreme, curation_type, _ = validate_curation(archive_filename)
     except Exception as e:
         l.exception(e)
         l.debug(f"removing archive {archive_filename}...")

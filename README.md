@@ -9,3 +9,6 @@ A Discord bot that validates curations for [BlueMaxima's Flashpoint](https://blu
 
 ## Running tests
 - type `pytest` in the project root directory to run tests
+
+## Running the validator server
+`python -m uvicorn validator-server:app --host 127.0.0.1 --port 8000`
