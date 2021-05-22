@@ -280,7 +280,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
         is_extreme = False
         if extreme[1] and (props["Extreme"] == "Yes" or props["Extreme"] is True):
             is_extreme = True
-        if "theatre" in props.get("Library"):
+        if props.get("Library") is not None and "theatre" in props.get("Library"):
             curation_type = CurationType.ANIMATION
         else:
             platform: Optional[str] = props.get("Platform")
