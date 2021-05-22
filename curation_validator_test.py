@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from curation_validator import validate_curation
+from curation_validator import validate_curation, CurationType
 
 
 def mock_get_tag_list() -> list[str]:
@@ -250,6 +250,13 @@ class TestCurationValidator(unittest.TestCase):
             errors, warnings, _, _, _ = validate_curation(f"test_curations/test_curation_localflash_bad_name.{extension}")
             self.assertCountEqual(errors, ["Extremely common localflash containing folder name, please change."])
             self.assertCountEqual(warnings, [])
+
+    def test_no_library(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _, curation_type, _ = validate_curation(f"test_curations/test_curation_none_library.{extension}")
+            self.assertCountEqual(errors, [])
+            self.assertCountEqual(warnings, [])
+            self.assertEqual(curation_type, CurationType.FLASH_GAME)
 
 
 if __name__ == '__main__':
