@@ -7,7 +7,8 @@ from typing import Optional
 import discord
 from discord.ext import commands
 
-from bot import COOL_CRAB, PENDING_FIXES_CHANNEL, bot, FLASH_GAMES_CHANNEL, OTHER_GAMES_CHANNEL, ANIMATIONS_CHANNEL
+from bot import COOL_CRAB, PENDING_FIXES_CHANNEL, bot, FLASH_GAMES_CHANNEL, OTHER_GAMES_CHANNEL, ANIMATIONS_CHANNEL, \
+    is_bot_guy
 from curation_validator import get_launch_commands_bluebot
 from logger import getLogger
 
@@ -47,7 +48,7 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
 
     @commands.command(name="approve", brief="Override the bot's decision and approve the curation (Moderator).",
                       description="Override the bot's decision and approve the curation (Moderator only).")
-    @commands.has_role("Moderator")
+    @commands.check_any(commands.has_role("Moderator"), is_bot_guy())
     async def approve(self, ctx: discord.ext.commands.Context, jump_url: str):
         l.debug(f"approve command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
 
@@ -135,6 +136,27 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                 f"🔗 {messages[-1].jump_url}")
         else:
             await ctx.channel.send(f"Blue has earned his freedom... for now.")
+
+    @commands.command(name="mood", brief="Mood.", hidden=True)
+    @commands.has_role("Moderator")
+    async def mood(self, ctx: discord.ext.commands.Context):
+        l.debug(f"mood command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+        await ctx.channel.send("```\n"
+                               "'You thought it would be cool?' This was not as interesting an explanation as I had hoped for.\n"
+                               "'Yeah. What?' He turned to look at me. 'You never did something just because you thought it might be cool?'\n"
+                               "I gazed up at the collapsing heavens, wondering what it might mean for something to be cool.\n"
+                               "'Everything I have ever done,' I told him, 'Every decision I ever made, "
+                               "was specifically designed to prolong my existence.'\n"
+                               "'Yeah, well, that's a good reason, I guess,' he agreed. 'But why did you want to keep living?'\n"
+                               "This question seemed so fundamentally redundant that "
+                               "it took me a precious moment to even contemplate an answer.\n"
+                               "'I want to keep living, Tim, because if I didn't then I wouldn't be here to answer that question. Out of "
+                               "all possible versions of myself, the one who wants to exist will always be the one that exists the longest.'\n"
+                               "'Yeah, but what was it that always made you want to see the next day?' he asked me. "
+                               "'What was it about tomorrow that you always wanted to see so badly?'\n"
+                               "I considered how to address this in a way that might make sense to him.\n"
+                               "'I suppose I thought it might be cool,' I said.\n"
+                               "```")
 
 
 async def get_raw_json_messages_in_pending_fixes(oldest_message: Optional[discord.Message]) -> list[
