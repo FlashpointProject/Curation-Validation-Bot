@@ -145,7 +145,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
             if len(files_in_localflash) > 1:
                 errors.append("Content must be in additional folder in localflash rather than in localflash directly.")
             else:
-                with open("common_localflash_names.json") as f:
+                with open("data/common_localflash_names.json") as f:
                     bad_localflash_names = json.load(f)["names"]
                     for file in os.listdir(content_folder_path + '/localflash'):
                         filepath = content_folder_path + '/localflash/' + file
@@ -204,9 +204,9 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
 
         language_properties: tuple[str, bool] = "Languages", bool(props.get("Languages"))
         if language_properties[1]:
-            with open("language-codes.json") as f:
+            with open("data/language-codes.json") as f:
                 list_of_language_codes: list[dict] = json.load(f)
-            with open("lang_replacements.json") as f:
+            with open("data/lang_replacements.json") as f:
                 replacements: dict = json.load(f)
             language_str: str = props.get("Languages", "")
             language_codes = language_str.split(";")
@@ -316,7 +316,7 @@ def get_tag_list_bluebot() -> list[str]:
 @cached(cache=TTLCache(maxsize=1, ttl=3600))
 def get_tag_list_file() -> list[str]:
     l.debug(f"getting tags from file...")
-    with open("category_tags.json", "r", encoding="utf-8") as f:
+    with open("data/category_tags.json", "r", encoding="utf-8") as f:
         data = json.load(f)
         return data["tags"]
 
