@@ -285,7 +285,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
             curation_type = CurationType.ANIMATION
         else:
             platform: Optional[str] = props.get("Platform")
-            if "Flash" in platform or platform is None:
+            if platform is None or "Flash" in platform:
                 curation_type = CurationType.FLASH_GAME
             else:
                 curation_type = CurationType.OTHER_GAME
