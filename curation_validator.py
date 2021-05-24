@@ -80,6 +80,8 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
         return errors, warnings, None, None, None
     else:
         l.warn(f"file type of file '{filename}' not supported")
+        errors.append(f"file type of file '{filename}' not supported")
+        return errors, warnings, None, None, None
 
     # check files
     l.debug(f"validating archive data for '{filename}'...")
