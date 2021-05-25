@@ -17,9 +17,8 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
         l.debug(
             f"Launcher not opening command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.send(
-            "The first time you start Flashpoint Launcher, a bug may occur that prevents it from showing the window. "
-            "If this happens, open Windows Task Manager, click the Details tab, and look for `Flashpoint.exe`. "
-            "Then click `End Process`, and Flashpoint should start normally next time.")
+            "The first time you start Flashpoint Launcher, a bug may occur that prevents it from showing the window:\n"
+            "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#LauncherNotOpening>")
 
     @commands.command(name="antivirus", aliases=["av", "avg", "avast"], brief="Troubleshooting antivirus interference.",
                       description="Troubleshooting antivirus interference.")
