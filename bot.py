@@ -164,6 +164,9 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
     if is_extreme and not dry_run:
         l.debug(f"adding :extreme: reaction to message '{message.id}'")
         emoji = bot.get_emoji(EXTREME_EMOJI_ID)
+        # This is just for testing on my server so I don't get an error, though it's also useful if we lose emoji slots
+        if emoji is None:
+            emoji = "🔞"
         await message.add_reaction(emoji)
 
     if len(final_reply) > 0:

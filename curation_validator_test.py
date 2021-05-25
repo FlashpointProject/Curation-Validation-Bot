@@ -5,7 +5,7 @@ from curation_validator import validate_curation, CurationType
 
 
 def mock_get_tag_list() -> list[str]:
-    return ["A", "B"]
+    return ["A", "B", "E"]
 
 
 def mock_get_launch_commands_bluebot() -> list[str]:
@@ -32,6 +32,13 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
             self.assertFalse(is_extreme)
+
+    def test_invalid_yaml_meta_extreme(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, is_extreme, _, _ = validate_curation(f"test_curations/test_curation_invalid_extreme.{extension}")
+            self.assertCountEqual(errors, ["Curation is extreme but lacks extreme tags."])
+            self.assertCountEqual(warnings, [])
+            self.assertTrue(is_extreme)
 
     def test_valid_yaml_meta_extreme(self):
         for extension in ["7z", "zip"]:

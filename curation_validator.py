@@ -272,7 +272,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
 
         master_tag_list = get_tag_list()
 
-        if len(tags) == 0:
+        if not tags:
             errors.append("Missing tags. At least one tag must be specified.")
         else:
             for tag in tags:
@@ -280,9 +280,18 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
                     warnings.append(f"Tag `{tag}` is not a known tag, please verify (did you write it correctly?).")
 
         extreme: tuple[str, bool] = ("Extreme", bool(props.get("Extreme")))
+        extreme_tags = get_extreme_tag_list_file()
         is_extreme = False
         if extreme[1] and (props["Extreme"] == "Yes" or props["Extreme"] is True):
             is_extreme = True
+        if tags:
+            has_extreme_tags = bool([tag for tag in tags if tag in extreme_tags])
+            has_legacy_extreme = "LEGACY-Extreme" in tags
+            if has_extreme_tags or has_legacy_extreme:
+                is_extreme = True
+            if is_extreme and not has_extreme_tags:
+                errors.append("Curation is extreme but lacks extreme tags.")
+
         if props.get("Library") is not None and "theatre" in props.get("Library"):
             curation_type = CurationType.ANIMATION
         else:
@@ -319,6 +328,14 @@ def get_tag_list_bluebot() -> list[str]:
 def get_tag_list_file() -> list[str]:
     l.debug(f"getting tags from file...")
     with open("data/category_tags.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+        return data["tags"]
+
+
+@cached(cache=TTLCache(maxsize=1, ttl=3600))
+def get_extreme_tag_list_file() -> list[str]:
+    l.debug(f"getting tags from file...")
+    with open("data/extreme_tags.json", "r", encoding="utf-8") as f:
         data = json.load(f)
         return data["tags"]
 
