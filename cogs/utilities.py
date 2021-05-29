@@ -7,7 +7,7 @@ from typing import Optional
 import discord
 from discord.ext import commands
 
-from bot import COOL_CRAB, PENDING_FIXES_CHANNEL, bot, FLASH_GAMES_CHANNEL, OTHER_GAMES_CHANNEL, ANIMATIONS_CHANNEL, \
+from bot import COOL_CRAB, PENDING_FIXES_CHANNEL, FLASH_GAMES_CHANNEL, OTHER_GAMES_CHANNEL, ANIMATIONS_CHANNEL, \
     is_bot_guy
 from curation_validator import get_launch_commands_bluebot
 from logger import getLogger
@@ -158,92 +158,91 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                                "'I suppose I thought it might be cool,' I said.\n"
                                "```")
 
+    async def hell_counter(self, channel_id: int) -> list[discord.Message]:
+        BLUE_ID = 144019275210817536
+        message_counter = 0
+        oldest_message: Optional[discord.Message] = None
+        batch_size = 1000
+        messages: list[discord.Message] = []
 
-async def get_raw_json_messages_in_pending_fixes(oldest_message: Optional[discord.Message]) -> list[
-    discord.Message]:
-    message_counter = 0
-    batch_size = 1000
-    all_messages: list[discord.Message] = []
-    messages_with_valid_json: list[discord.Message] = []
+        channel = self.bot.get_channel(channel_id)
+        while True:
+            if oldest_message is None:
+                l.debug(f"getting {batch_size} messages...")
+                message_batch: list[discord.Message] = await channel.history(limit=batch_size).flatten()
+            else:
+                l.debug(f"getting {batch_size} messages from {oldest_message.jump_url} ...")
+                message_batch: list[discord.Message] = await channel.history(limit=batch_size,
+                                                                             before=oldest_message).flatten()
+            if len(message_batch) == 0:
+                l.warn(f"no messages found, weird.")
+                return messages
+            oldest_message = message_batch[-1]
+            messages.extend(message_batch)
 
-    channel: discord.TextChannel = bot.get_channel(PENDING_FIXES_CHANNEL)
-    pins = await channel.pins()
-    while True:
-        if oldest_message is None:
-            l.debug(f"getting {batch_size} messages...")
-            message_batch: list[discord.Message] = await channel.history(limit=batch_size).flatten()
-        else:
-            l.debug(f"getting {batch_size} messages from {oldest_message.jump_url} ...")
-            message_batch: list[discord.Message] = await channel.history(limit=batch_size,
-                                                                         before=oldest_message).flatten()
-        if len(message_batch) == 0:
-            l.warn(f"no messages found, weird.")
-            return all_messages
-        oldest_message = message_batch[-1]
-        all_messages.extend(message_batch)
+            l.debug("processing messages...")
+            for msg in message_batch:
+                message_counter += 1
+                reactions = msg.reactions
+                if len(reactions) > 0:
+                    l.debug(f"analyzing reactions for msg {msg.id} - message {message_counter}...")
+                for reaction in reactions:
+                    if reaction.emoji != "🛠️":
+                        continue
+                    l.debug(f"found hammer, getting reactions users for msg {msg.id} and reaction {reaction}...")
+                    users: list[discord.User] = await reaction.users().flatten()
+                    for user in users:
+                        if user.id == BLUE_ID:
+                            return messages[:message_counter]
 
-        l.debug("processing messages...")
-        for msg in message_batch:
-            l.debug(f"Processing message {msg.id}")
-            message_counter += 1
-            if len(msg.attachments) != 1:
-                continue
-            is_json = False
-            if msg.attachments[0].filename.endswith('.json'):
-                is_json = True
-            reactions = msg.reactions
-            if len(reactions) > 0:
-                l.debug(f"analyzing reactions for msg {msg.id} - message {message_counter}...")
-            should_be_manual = False
-            found_pin = False
-            for reaction in reactions:
-                if reaction.emoji == "⚠️":
-                    should_be_manual = True
-            if msg in pins:
-                found_pin = True
-            if not should_be_manual and is_json:
-                messages_with_valid_json.append(msg)
-            if found_pin:
-                l.debug(f"message filter searched {len(all_messages)} messages "
-                        f"and found {len(messages_with_valid_json)} which were usable jsons.")
-                return messages_with_valid_json
+    async def get_raw_json_messages_in_pending_fixes(self, oldest_message: Optional[discord.Message]) -> list[
+        discord.Message]:
+        message_counter = 0
+        batch_size = 1000
+        all_messages: list[discord.Message] = []
+        messages_with_valid_json: list[discord.Message] = []
 
+        channel: discord.TextChannel = self.bot.get_channel(PENDING_FIXES_CHANNEL)
+        pins = await channel.pins()
+        while True:
+            if oldest_message is None:
+                l.debug(f"getting {batch_size} messages...")
+                message_batch: list[discord.Message] = await channel.history(limit=batch_size).flatten()
+            else:
+                l.debug(f"getting {batch_size} messages from {oldest_message.jump_url} ...")
+                message_batch: list[discord.Message] = await channel.history(limit=batch_size,
+                                                                             before=oldest_message).flatten()
+            if len(message_batch) == 0:
+                l.warn(f"no messages found, weird.")
+                return all_messages
+            oldest_message = message_batch[-1]
+            all_messages.extend(message_batch)
 
-async def hell_counter(channel_id: int) -> list[discord.Message]:
-    BLUE_ID = 144019275210817536
-    message_counter = 0
-    oldest_message: Optional[discord.Message] = None
-    batch_size = 1000
-    messages: list[discord.Message] = []
-
-    channel = bot.get_channel(channel_id)
-    while True:
-        if oldest_message is None:
-            l.debug(f"getting {batch_size} messages...")
-            message_batch: list[discord.Message] = await channel.history(limit=batch_size).flatten()
-        else:
-            l.debug(f"getting {batch_size} messages from {oldest_message.jump_url} ...")
-            message_batch: list[discord.Message] = await channel.history(limit=batch_size, before=oldest_message).flatten()
-        if len(message_batch) == 0:
-            l.warn(f"no messages found, weird.")
-            return messages
-        oldest_message = message_batch[-1]
-        messages.extend(message_batch)
-
-        l.debug("processing messages...")
-        for msg in message_batch:
-            message_counter += 1
-            reactions = msg.reactions
-            if len(reactions) > 0:
-                l.debug(f"analyzing reactions for msg {msg.id} - message {message_counter}...")
-            for reaction in reactions:
-                if reaction.emoji != "🛠️":
+            l.debug("processing messages...")
+            for msg in message_batch:
+                l.debug(f"Processing message {msg.id}")
+                message_counter += 1
+                if len(msg.attachments) != 1:
                     continue
-                l.debug(f"found hammer, getting reactions users for msg {msg.id} and reaction {reaction}...")
-                users: list[discord.User] = await reaction.users().flatten()
-                for user in users:
-                    if user.id == BLUE_ID:
-                        return messages[:message_counter]
+                is_json = False
+                if msg.attachments[0].filename.endswith('.json'):
+                    is_json = True
+                reactions = msg.reactions
+                if len(reactions) > 0:
+                    l.debug(f"analyzing reactions for msg {msg.id} - message {message_counter}...")
+                should_be_manual = False
+                found_pin = False
+                for reaction in reactions:
+                    if reaction.emoji == "⚠️":
+                        should_be_manual = True
+                if msg in pins:
+                    found_pin = True
+                if not should_be_manual and is_json:
+                    messages_with_valid_json.append(msg)
+                if found_pin:
+                    l.debug(f"message filter searched {len(all_messages)} messages "
+                            f"and found {len(messages_with_valid_json)} which were usable jsons.")
+                    return messages_with_valid_json
 
 
 def setup(bot: commands.Bot):

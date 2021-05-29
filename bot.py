@@ -199,9 +199,10 @@ def is_bot_guy():
     return commands.check(predicate)
 
 
-bot.load_extension('troubleshooting')
-bot.load_extension('curation')
-bot.load_extension('info')
-bot.load_extension('utilities')
+bot.load_extension('cogs.batch_validate')
+bot.load_extension('cogs.troubleshooting')
+bot.load_extension('cogs.curation')
+bot.load_extension('cogs.info')
+bot.load_extension('cogs.utilities')
 l.info(f"starting the bot...")
 bot.run(TOKEN)
