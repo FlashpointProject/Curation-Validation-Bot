@@ -1,3 +1,4 @@
+import datetime
 import os
 import re
 import shutil
@@ -7,6 +8,7 @@ from typing import Optional
 import discord
 from discord.ext import commands
 
+import util
 from bot import COOL_CRAB, PENDING_FIXES_CHANNEL, FLASH_GAMES_CHANNEL, OTHER_GAMES_CHANNEL, ANIMATIONS_CHANNEL, \
     is_bot_guy
 from curation_validator import get_launch_commands_bluebot
@@ -72,13 +74,13 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                 await message.remove_reaction(reaction.emoji, self.bot.user)
         await message.add_reaction("🤖")
 
-    @commands.command(name="get-fixes", hidden=True)
-    @commands.has_role("Administrator")
+    @commands.command(name="get-fixes")
+    @commands.has_role("Moderator")
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
     async def automatic_get_jsons(self, ctx: discord.ext.commands.Context, last_message_url: Optional[str]):
         l.debug(
             f"pending fixes command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-        temp_folder = tempfile.mkdtemp(prefix='pending_fixes')
+
         if last_message_url is not None:
             await ctx.send(
                 f"Getting all jsons in #pending-fixes not marked with a ⚠️ before <{last_message_url}> and after the pin. "
@@ -96,19 +98,14 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
             l.debug(f"fetching message {message_id}")
             channel = self.bot.get_channel(channel_id)
             message = await channel.fetch_message(message_id)
-            all_json_messages = await get_raw_json_messages_in_pending_fixes(message)
+            final_folder, start_date, end_date = await self.get_raw_json_messages_in_pending_fixes(message)
         else:
-            await ctx.send(f"Getting all jsons in #pending-fixes not marked with a ⚠️since the pin. "
+            await ctx.send(f"Getting all jsons in #pending-fixes not marked with a ⚠ ️since the pin. "
                            f"Sit back and relax, this will take a while {COOL_CRAB}.")
-            all_json_messages = await get_raw_json_messages_in_pending_fixes(None)
-        for msg in all_json_messages:
-            l.debug(f"Downloading json {msg.attachments[0].filename} from message {msg.id}")
-            await msg.attachments[0].save(temp_folder + '/' + msg.attachments[0].filename)
-        last_date = all_json_messages[0].created_at.date().strftime('%Y-%m-%d')
-        first_date = all_json_messages[-1].created_at.date().strftime('%Y-%m-%d')
-        archive = shutil.make_archive(f'pending_fixes {first_date} to {last_date}', 'zip', temp_folder)
+            final_folder, start_date, end_date = await self.get_raw_json_messages_in_pending_fixes(None)
+        archive = shutil.make_archive(f'pending_fixes {start_date} to {end_date}', 'zip', final_folder)
         await ctx.send(file=discord.File(archive))
-        shutil.rmtree(temp_folder, True)
+        shutil.rmtree(final_folder, True)
         os.remove(archive)
 
     @commands.command(name="hell", hidden=True)
@@ -129,7 +126,7 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
         await ctx.channel.send(f"Measuring the length of Blue's curation journey through hell. "
                                f"Sit back and relax, this will take a while {COOL_CRAB}.")
 
-        messages = await hell_counter(channel_id)
+        messages = await self.hell_counter(channel_id)
         if len(messages) > 0:
             await ctx.channel.send(
                 f"Blue's curation journey in `{channel_alias}` channel is `{len(messages)}` messages long.\n"
@@ -195,27 +192,33 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                         if user.id == BLUE_ID:
                             return messages[:message_counter]
 
-    async def get_raw_json_messages_in_pending_fixes(self, oldest_message: Optional[discord.Message]) -> list[
-        discord.Message]:
+    async def get_raw_json_messages_in_pending_fixes(self, newest_message: Optional[discord.Message]) -> Optional[tuple[str, str, str]]:
         message_counter = 0
         batch_size = 1000
         all_messages: list[discord.Message] = []
-        messages_with_valid_json: list[discord.Message] = []
+        downloaded_attachments: list[str] = []
+        temp_folder = tempfile.mkdtemp(prefix='pending_fixes')
 
         channel: discord.TextChannel = self.bot.get_channel(PENDING_FIXES_CHANNEL)
-        pins = await channel.pins()
+        pins: list[discord.Message] = await channel.pins()
+        start_date = max([pin.created_at for pin in pins]).date().strftime('%Y-%m-%d')
+        if newest_message is None:
+            end_date = datetime.date.today().strftime('%Y-%m-%d')
+        else:
+            end_date = newest_message.created_at.date().strftime('%Y-%m-%d')
+        uuid_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}")
         while True:
-            if oldest_message is None:
+            if newest_message is None:
                 l.debug(f"getting {batch_size} messages...")
                 message_batch: list[discord.Message] = await channel.history(limit=batch_size).flatten()
             else:
-                l.debug(f"getting {batch_size} messages from {oldest_message.jump_url} ...")
+                l.debug(f"getting {batch_size} messages from {newest_message.jump_url} ...")
                 message_batch: list[discord.Message] = await channel.history(limit=batch_size,
-                                                                             before=oldest_message).flatten()
+                                                                             before=newest_message).flatten()
             if len(message_batch) == 0:
                 l.warn(f"no messages found, weird.")
-                return all_messages
-            oldest_message = message_batch[-1]
+                return None
+            newest_message = message_batch[-1]
             all_messages.extend(message_batch)
 
             l.debug("processing messages...")
@@ -224,25 +227,36 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                 message_counter += 1
                 if len(msg.attachments) != 1:
                     continue
-                is_json = False
-                if msg.attachments[0].filename.endswith('.json'):
-                    is_json = True
                 reactions = msg.reactions
                 if len(reactions) > 0:
                     l.debug(f"analyzing reactions for msg {msg.id} - message {message_counter}...")
                 should_be_manual = False
-                found_pin = False
                 for reaction in reactions:
                     if reaction.emoji == "⚠️":
                         should_be_manual = True
-                if msg in pins:
-                    found_pin = True
-                if not should_be_manual and is_json:
-                    messages_with_valid_json.append(msg)
+                attachment_filename = msg.attachments[0].filename
+                if attachment_filename.endswith('.json') and not should_be_manual:
+                    l.debug(f"Downloading json {attachment_filename} from message {msg.id}")
+                    num_duplicates = downloaded_attachments.count(attachment_filename)
+                    downloaded_attachments.append(attachment_filename)
+                    if num_duplicates == 0:
+                        await msg.attachments[0].save(temp_folder + '/' + attachment_filename)
+                    else:
+                        await msg.attachments[0].save(temp_folder + '/dupe' + str(num_duplicates) + "-" + attachment_filename)
+                elif attachment_filename.endswith('.zip') or attachment_filename.endswith('.7z') and not should_be_manual:
+                    l.debug(f"Downloading archive {attachment_filename} from message {msg.id}")
+                    num_duplicates = downloaded_attachments.count(attachment_filename)
+                    downloaded_attachments.append(attachment_filename)
+                    if num_duplicates == 0:
+                        save_location = temp_folder + '/' + attachment_filename
+                    else:
+                        save_location = temp_folder + '/dupe' + str(num_duplicates) + "-" + attachment_filename
+                    await msg.attachments[0].save(save_location)
+                    if not [x for x in util.get_archive_filenames(save_location) if uuid_regex.match(x)]:
+                        os.remove(save_location)
+                found_pin = msg in pins
                 if found_pin:
-                    l.debug(f"message filter searched {len(all_messages)} messages "
-                            f"and found {len(messages_with_valid_json)} which were usable jsons.")
-                    return messages_with_valid_json
+                    return temp_folder, start_date, end_date
 
 
 def setup(bot: commands.Bot):
