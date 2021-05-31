@@ -74,7 +74,9 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                 await message.remove_reaction(reaction.emoji, self.bot.user)
         await message.add_reaction("🤖")
 
-    @commands.command(name="get-fixes")
+    @commands.command(name="get-fixes", brief="Get json fixes in #pending-fixes (Moderator)",
+                      description="Get all jsons in #pending-fixes not marked with a ⚠️ either before a "
+                                  "certain message url if specified or since today and after the pin (Moderator Only)")
     @commands.has_role("Moderator")
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
     async def automatic_get_jsons(self, ctx: discord.ext.commands.Context, last_message_url: Optional[str]):
