@@ -86,6 +86,11 @@ class Info(commands.Cog, description="General information about Flashpoint."):
     async def faq(self, ctx: discord.ext.commands.Context):
         l.debug(f"FAQ command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("FAQ:\n 🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ>")
+        
+    @commands.command(name="fullscreen", aliases=["fs", "full-screen"], brief="Fullscreening games.", description="How to fullscreen games.")
+    async def faq(self, ctx: discord.ext.commands.Context):
+        l.debug(f"fullscreen command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+        await ctx.channel.send("There are multiple ways to fullscreen games:\n 🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#Fullscreen>")
 
 
 def setup(bot: commands.Bot):
