@@ -29,9 +29,7 @@ PENDING_FIXES_CHANNEL = int(os.getenv('PENDING_FIXES_CHANNEL'))
 NOTIFY_ME_CHANNEL = int(os.getenv('NOTIFY_ME_CHANNEL'))
 GOD_USER = int(os.getenv('GOD_USER'))
 
-intents = discord.Intents.default()
-intents.members = True
-bot = commands.Bot(command_prefix="-", help_command=PrettyHelp(color=discord.Color.red()), intents=intents)
+bot = commands.Bot(command_prefix="-", help_command=PrettyHelp(color=discord.Color.red()))
 COOL_CRAB = "<:cool_crab:587188729362513930>"
 EXTREME_EMOJI_ID = 778145279714918400
 NOTIFICATION_SQUAD_ID = 478369603622273024
@@ -60,12 +58,6 @@ async def on_command_error(ctx: discord.ext.commands.Context, error: Exception):
         await reply_channel.send(f"<@{GOD_USER}> the curation validator has thrown an exception:\n"
                                  f"🔗 {ctx.message.jump_url}\n"
                                  f"```{''.join(traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__))}```")
-
-
-@bot.event
-async def on_member_join(member: discord.Member):
-    if "h0nde" in member.display_name.lower():
-        await member.ban()
 
 
 async def forward_ping(message: discord.Message):
