@@ -208,7 +208,7 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
             end_date = newest_message.created_at.date().strftime('%Y-%m-%d')
         uuid_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}")
         l.debug("processing messages...")
-        async for msg in channel.history(before=newest_message, after=pins[-1]):
+        async for msg in channel.history(before=newest_message, after=pins[-1], limit=None):
             l.debug(f"Processing message {msg.id}")
             message_counter += 1
             if len(msg.attachments) != 1:
