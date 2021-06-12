@@ -6,6 +6,7 @@ import tempfile
 from typing import Optional
 
 import discord
+from discord import HTTPException
 from discord.ext import commands
 
 import util
@@ -76,37 +77,35 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
 
     @commands.command(name="get-fixes", brief="Get json fixes in #pending-fixes (Moderator)",
                       description="Get all jsons in #pending-fixes not marked with a ⚠️ either before a "
-                                  "certain message url if specified or since today and after the pin (Moderator Only)")
+                                  "last_message_url if specified or since today and after the pin (Moderator Only)")
     @commands.has_role("Moderator")
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
     async def automatic_get_jsons(self, ctx: discord.ext.commands.Context, last_message_url: Optional[str]):
         l.debug(
             f"pending fixes command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+        async with ctx.typing():
+            if last_message_url is not None:
+                await ctx.send(
+                    f"Getting all jsons in #pending-fixes not marked with a ⚠️ before <{last_message_url}> and after the pin. "
+                    f"Sit back and relax, this will take a while {COOL_CRAB}.")
+                try:
+                    message = await self.fetch_message_by_url(last_message_url)
+                except BadURLException:
+                    await ctx.send("Invalid jump url provided.")
+                    return
 
-        if last_message_url is not None:
-            await ctx.send(
-                f"Getting all jsons in #pending-fixes not marked with a ⚠️ before <{last_message_url}> and after the pin. "
-                f"Sit back and relax, this will take a while {COOL_CRAB}.")
-            jump_url_regex = re.compile(r"https://discord\.com/channels/(\d+)/(\d+)/(\d+)")
-            url_match = jump_url_regex.match(last_message_url)
-            if url_match is None or ctx.guild != self.bot.get_guild(int(url_match.group(1))):
-                ctx.channel.send("Invalid jump URL provided\n")
-                return
+                final_folder, start_date, end_date = await self.get_raw_json_messages_in_pending_fixes(message)
+            else:
+                await ctx.send(f"Getting all jsons in #pending-fixes not marked with a ⚠️since the pin. "
+                               f"Sit back and relax, this will take a while {COOL_CRAB}.")
+                final_folder, start_date, end_date = await self.get_raw_json_messages_in_pending_fixes(None)
 
-            # guild_id = int(url_match.group(1))
-            channel_id = int(url_match.group(2))
-            message_id = int(url_match.group(3))
-
-            l.debug(f"fetching message {message_id}")
-            channel = self.bot.get_channel(channel_id)
-            message = await channel.fetch_message(message_id)
-            final_folder, start_date, end_date = await self.get_raw_json_messages_in_pending_fixes(message)
-        else:
-            await ctx.send(f"Getting all jsons in #pending-fixes not marked with a ⚠ ️since the pin. "
-                           f"Sit back and relax, this will take a while {COOL_CRAB}.")
-            final_folder, start_date, end_date = await self.get_raw_json_messages_in_pending_fixes(None)
-        archive = shutil.make_archive(f'pending_fixes {start_date} to {end_date}', 'zip', final_folder)
-        await ctx.send(file=discord.File(archive))
+            archive = shutil.make_archive(f'pending_fixes {start_date} to {end_date}', 'zip', final_folder)
+            l.debug(f"Sending fetched pending fixes to channel {ctx.channel.id}")
+            try:
+                await ctx.send(file=discord.File(archive))
+            except HTTPException:
+                await ctx.send("Resulting file too large.")
         shutil.rmtree(final_folder, True)
         os.remove(archive)
 
@@ -196,69 +195,69 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
 
     async def get_raw_json_messages_in_pending_fixes(self, newest_message: Optional[discord.Message]) -> Optional[tuple[str, str, str]]:
         message_counter = 0
-        batch_size = 1000
-        all_messages: list[discord.Message] = []
         downloaded_attachments: list[str] = []
         temp_folder = tempfile.mkdtemp(prefix='pending_fixes')
-
         channel: discord.TextChannel = self.bot.get_channel(PENDING_FIXES_CHANNEL)
         pins: list[discord.Message] = await channel.pins()
-        start_date = max([pin.created_at for pin in pins]).date().strftime('%Y-%m-%d')
+        pins.sort(key=lambda pin: pin.created_at)
+        created_at = pins[-1].created_at
+        start_date = pins[-1].created_at.date().strftime('%Y-%m-%d')
         if newest_message is None:
             end_date = datetime.date.today().strftime('%Y-%m-%d')
         else:
             end_date = newest_message.created_at.date().strftime('%Y-%m-%d')
         uuid_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}")
-        while True:
-            if newest_message is None:
-                l.debug(f"getting {batch_size} messages...")
-                message_batch: list[discord.Message] = await channel.history(limit=batch_size).flatten()
-            else:
-                l.debug(f"getting {batch_size} messages from {newest_message.jump_url} ...")
-                message_batch: list[discord.Message] = await channel.history(limit=batch_size,
-                                                                             before=newest_message).flatten()
-            if len(message_batch) == 0:
-                l.warn(f"no messages found, weird.")
-                return None
-            newest_message = message_batch[-1]
-            all_messages.extend(message_batch)
+        l.debug("processing messages...")
+        async for msg in channel.history(before=newest_message, after=pins[-1]):
+            l.debug(f"Processing message {msg.id}")
+            message_counter += 1
+            if len(msg.attachments) != 1:
+                continue
+            reactions = msg.reactions
+            if len(reactions) > 0:
+                l.debug(f"analyzing reactions for msg {msg.id} - message {message_counter}...")
+            should_be_manual = False
+            for reaction in reactions:
+                if reaction.emoji == "⚠️":
+                    should_be_manual = True
+            attachment_filename = msg.attachments[0].filename
+            if attachment_filename.endswith('.json') and not should_be_manual:
+                l.debug(f"Downloading json {attachment_filename} from message {msg.id}")
+                num_duplicates = downloaded_attachments.count(attachment_filename)
+                downloaded_attachments.append(attachment_filename)
+                if num_duplicates == 0:
+                    await msg.attachments[0].save(temp_folder + '/' + attachment_filename)
+                else:
+                    await msg.attachments[0].save(temp_folder + '/dupe' + str(num_duplicates) + "-" + attachment_filename)
+            elif attachment_filename.endswith('.zip') or attachment_filename.endswith('.7z') and not should_be_manual and msg.attachments[0].size < 3_000_000:
+                l.debug(f"Downloading archive {attachment_filename} from message {msg.id}")
+                num_duplicates = downloaded_attachments.count(attachment_filename)
+                downloaded_attachments.append(attachment_filename)
+                if num_duplicates == 0:
+                    save_location = temp_folder + '/' + attachment_filename
+                else:
+                    save_location = temp_folder + '/dupe' + str(num_duplicates) + "-" + attachment_filename
+                await msg.attachments[0].save(save_location)
+                if not [x for x in util.get_archive_filenames(save_location) if uuid_regex.match(x)]:
+                    os.remove(save_location)
+        return temp_folder, start_date, end_date
 
-            l.debug("processing messages...")
-            for msg in message_batch:
-                l.debug(f"Processing message {msg.id}")
-                message_counter += 1
-                if len(msg.attachments) != 1:
-                    continue
-                reactions = msg.reactions
-                if len(reactions) > 0:
-                    l.debug(f"analyzing reactions for msg {msg.id} - message {message_counter}...")
-                should_be_manual = False
-                for reaction in reactions:
-                    if reaction.emoji == "⚠️":
-                        should_be_manual = True
-                attachment_filename = msg.attachments[0].filename
-                if attachment_filename.endswith('.json') and not should_be_manual:
-                    l.debug(f"Downloading json {attachment_filename} from message {msg.id}")
-                    num_duplicates = downloaded_attachments.count(attachment_filename)
-                    downloaded_attachments.append(attachment_filename)
-                    if num_duplicates == 0:
-                        await msg.attachments[0].save(temp_folder + '/' + attachment_filename)
-                    else:
-                        await msg.attachments[0].save(temp_folder + '/dupe' + str(num_duplicates) + "-" + attachment_filename)
-                elif attachment_filename.endswith('.zip') or attachment_filename.endswith('.7z') and not should_be_manual:
-                    l.debug(f"Downloading archive {attachment_filename} from message {msg.id}")
-                    num_duplicates = downloaded_attachments.count(attachment_filename)
-                    downloaded_attachments.append(attachment_filename)
-                    if num_duplicates == 0:
-                        save_location = temp_folder + '/' + attachment_filename
-                    else:
-                        save_location = temp_folder + '/dupe' + str(num_duplicates) + "-" + attachment_filename
-                    await msg.attachments[0].save(save_location)
-                    if not [x for x in util.get_archive_filenames(save_location) if uuid_regex.match(x)]:
-                        os.remove(save_location)
-                found_pin = msg in pins
-                if found_pin:
-                    return temp_folder, start_date, end_date
+    async def fetch_message_by_url(self, url: str):
+        jump_url_regex = re.compile(r"https://discord\.com/channels/(\d+)/(\d+)/(\d+)")
+        url_match = jump_url_regex.match(url)
+        self.bot: discord.ext.commands.Bot
+        if url_match is None or self.bot.get_guild(int(url_match.group(1)) not in self.bot.guilds):
+            raise BadURLException
+        # guild_id = int(url_match.group(1))
+        channel_id = int(url_match.group(2))
+        message_id = int(url_match.group(3))
+
+        l.debug(f"fetching message {message_id}")
+        channel = self.bot.get_channel(channel_id)
+        return await channel.fetch_message(message_id)
+
+class BadURLException(Exception):
+    pass
 
 
 def setup(bot: commands.Bot):
