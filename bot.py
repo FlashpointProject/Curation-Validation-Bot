@@ -53,11 +53,14 @@ async def on_command_error(ctx: discord.ext.commands.Context, error: Exception):
     if isinstance(error, commands.MaxConcurrencyReached):
         await ctx.channel.send('Bot is busy! Try again later.')
         return
+    elif isinstance(error, commands.CheckFailure):
+        await ctx.channel.send("Insufficient permissions.")
     else:
         reply_channel: discord.TextChannel = bot.get_channel(BOT_TESTING_CHANNEL)
         await reply_channel.send(f"<@{GOD_USER}> the curation validator has thrown an exception:\n"
                                  f"🔗 {ctx.message.jump_url}\n"
                                  f"```{''.join(traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__))}```")
+        return
 
 
 async def forward_ping(message: discord.Message):
