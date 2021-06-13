@@ -12,12 +12,12 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
         self.bot = bot
 
     @commands.command(name="notopening", aliases=["launchernotopening", "lno"], brief="Launcher not opening fix.",
-                      description="A fix for the issue where the launcher may not open the first time.")
+                      description="A fix for the issue where the launcher may not open on occasion.")
     async def launcher_not_opening(self, ctx: discord.ext.commands.Context):
         l.debug(
             f"Launcher not opening command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.send(
-            "The first time you start Flashpoint Launcher, a bug may occur that prevents it from showing the window:\n"
+            "When you start Flashpoint Launcher, a bug may occur that prevents it from showing the window:\n"
             "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#LauncherNotOpening>")
 
     @commands.command(name="antivirus", aliases=["av", "avg", "avast"], brief="Troubleshooting antivirus interference.",
