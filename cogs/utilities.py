@@ -238,7 +238,7 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                 else:
                     save_location = temp_folder + '/dupe' + str(num_duplicates) + "-" + attachment_filename
                 await msg.attachments[0].save(save_location)
-                if not [x for x in util.get_archive_filenames(save_location) if uuid_regex.match(x)]:
+                if not all(uuid_regex.match(x) for x in util.get_archive_filenames(save_location)):
                     os.remove(save_location)
         return temp_folder, start_date, end_date
 
