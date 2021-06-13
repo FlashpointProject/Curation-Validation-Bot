@@ -75,7 +75,7 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                 await message.remove_reaction(reaction.emoji, self.bot.user)
         await message.add_reaction("🤖")
 
-    @commands.command(name="get-fixes", brief="Get json fixes in #pending-fixes (Moderator)",
+    @commands.command(name="get-fixes", brief="Get json fixes in #pending-fixes (Moderator).",
                       description="Get all jsons in #pending-fixes not marked with a ⚠️ either before a "
                                   "last_message_url if specified or since today and after the pin (Moderator Only)")
     @commands.has_role("Moderator")
@@ -86,7 +86,7 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
         async with ctx.typing():
             if last_message_url is not None:
                 await ctx.send(
-                    f"Getting all jsons in #pending-fixes not marked with a ⚠️ before <{last_message_url}> and after the pin. "
+                    f"Getting all jsons in #pending-fixes not marked with a ⚠️  before <{last_message_url}> and after the pin. "
                     f"Sit back and relax, this will take a while {COOL_CRAB}.")
                 try:
                     message = await self.fetch_message_by_url(last_message_url)
@@ -96,7 +96,7 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
 
                 final_folder, start_date, end_date = await self.get_raw_json_messages_in_pending_fixes(message)
             else:
-                await ctx.send(f"Getting all jsons in #pending-fixes not marked with a ⚠️since the pin. "
+                await ctx.send(f"Getting all jsons in #pending-fixes not marked with a ⚠️ since the pin. "
                                f"Sit back and relax, this will take a while {COOL_CRAB}.")
                 final_folder, start_date, end_date = await self.get_raw_json_messages_in_pending_fixes(None)
 
