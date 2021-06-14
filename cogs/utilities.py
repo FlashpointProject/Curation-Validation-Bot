@@ -200,7 +200,6 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
         channel: discord.TextChannel = self.bot.get_channel(PENDING_FIXES_CHANNEL)
         pins: list[discord.Message] = await channel.pins()
         pins.sort(key=lambda pin: pin.created_at)
-        created_at = pins[-1].created_at
         start_date = pins[-1].created_at.date().strftime('%Y-%m-%d')
         if newest_message is None:
             end_date = datetime.date.today().strftime('%Y-%m-%d')
@@ -238,7 +237,11 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                 else:
                     save_location = temp_folder + '/dupe' + str(num_duplicates) + "-" + attachment_filename
                 await msg.attachments[0].save(save_location)
-                if not all(uuid_regex.match(x) for x in util.get_archive_filenames(save_location)):
+                try:
+                    if not all(uuid_regex.match(x) for x in util.get_archive_filenames(save_location)):
+                        os.remove(save_location)
+                except Exception as e:
+                    l.info(f"Error {e} when opening {save_location}, removing archive.")
                     os.remove(save_location)
         return temp_folder, start_date, end_date
 
@@ -255,6 +258,7 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
         l.debug(f"fetching message {message_id}")
         channel = self.bot.get_channel(channel_id)
         return await channel.fetch_message(message_id)
+
 
 class BadURLException(Exception):
     pass
