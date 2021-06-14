@@ -28,6 +28,7 @@ BOT_ALERTS_CHANNEL = int(os.getenv('BOT_ALERTS_CHANNEL'))
 PENDING_FIXES_CHANNEL = int(os.getenv('PENDING_FIXES_CHANNEL'))
 NOTIFY_ME_CHANNEL = int(os.getenv('NOTIFY_ME_CHANNEL'))
 GOD_USER = int(os.getenv('GOD_USER'))
+BOT_GUY = int(os.getenv('BOT_GUY'))
 
 bot = commands.Bot(command_prefix="-", help_command=PrettyHelp(color=discord.Color.red()))
 COOL_CRAB = "<:cool_crab:587188729362513930>"
@@ -57,7 +58,7 @@ async def on_command_error(ctx: discord.ext.commands.Context, error: Exception):
         await ctx.channel.send("Insufficient permissions.")
     else:
         reply_channel: discord.TextChannel = bot.get_channel(BOT_TESTING_CHANNEL)
-        await reply_channel.send(f"<@{GOD_USER}> the curation validator has thrown an exception:\n"
+        await reply_channel.send(f"<@{BOT_GUY}> the curation validator has thrown an exception:\n"
                                  f"🔗 {ctx.message.jump_url}\n"
                                  f"```{''.join(traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__))}```")
         return
@@ -203,7 +204,7 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
 
 def is_bot_guy():
     async def predicate(ctx):
-        return ctx.author.id == 272069320153104395
+        return ctx.author.id == BOT_GUY
     return commands.check(predicate)
 
 
