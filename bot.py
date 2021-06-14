@@ -56,6 +56,9 @@ async def on_command_error(ctx: discord.ext.commands.Context, error: Exception):
         return
     elif isinstance(error, commands.CheckFailure):
         await ctx.channel.send("Insufficient permissions.")
+        return
+    elif isinstance(error, commands.CommandNotFound):
+        return
     else:
         reply_channel: discord.TextChannel = bot.get_channel(BOT_TESTING_CHANNEL)
         await reply_channel.send(f"<@{BOT_GUY}> the curation validator has thrown an exception:\n"
