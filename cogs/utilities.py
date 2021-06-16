@@ -3,9 +3,11 @@ import os
 import re
 import shutil
 import tempfile
+import zipfile
 from typing import Optional
 
 import discord
+import py7zr
 from discord import HTTPException
 from discord.ext import commands
 
@@ -205,7 +207,7 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
             end_date = datetime.date.today().strftime('%Y-%m-%d')
         else:
             end_date = newest_message.created_at.date().strftime('%Y-%m-%d')
-        uuid_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}")
+        uuid_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}")
         l.debug("processing messages...")
         async for msg in channel.history(before=newest_message, after=pins[-1], limit=None):
             l.debug(f"Processing message {msg.id}")
@@ -238,9 +240,9 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                     save_location = temp_folder + '/dupe' + str(num_duplicates) + "-" + attachment_filename
                 await msg.attachments[0].save(save_location)
                 try:
-                    if not all(uuid_regex.match(x) for x in util.get_archive_filenames(save_location)):
+                    if not all(uuid_regex.search(x) for x in util.get_archive_filenames(save_location)):
                         os.remove(save_location)
-                except Exception as e:
+                except (util.NotArchiveType, util.ArchiveTooLargeException, zipfile.BadZipfile, py7zr.Bad7zFile) as e:
                     l.info(f"Error {e} when opening {save_location}, removing archive.")
                     os.remove(save_location)
         return temp_folder, start_date, end_date
