@@ -1,3 +1,4 @@
+import base64
 import shutil
 import json
 import re
@@ -24,7 +25,12 @@ class CurationType(Enum):
     ANIMATION = auto()
 
 
-def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Optional[CurationType], Optional[dict]]:
+def validate_curation(filename: str) -> tuple[list,
+                                              list,
+                                              Optional[bool],
+                                              Optional[CurationType],
+                                              Optional[dict],
+                                              Optional[list[dict]]]:
     errors: list = []
     warnings: list = []
 
@@ -45,7 +51,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
                 warnings.append(
                     f"The archive is too large to be validated (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
                 archive.close()
-                return errors, warnings, None, None, None
+                return errors, warnings, None, None, None, None
 
             filenames = archive.getnames()
             base_path = tempfile.mkdtemp(prefix="curation_validator_") + "/"
@@ -54,7 +60,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
         except Exception as e:
             l.error(f"there was an error while reading file '{filename}': {e}")
             errors.append("There seems to a problem with your 7z file.")
-            return errors, warnings, None, None, None
+            return errors, warnings, None, None, None, None
     elif filename.endswith(".zip"):
         try:
             l.debug(f"reading archive '{filename}'...")
@@ -65,7 +71,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
                 warnings.append(
                     f"The archive is too large to be validated (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
                 archive.close()
-                return errors, warnings, None, None, None
+                return errors, warnings, None, None, None, None
 
             filenames = archive.namelist()
             base_path = tempfile.mkdtemp(prefix="curation_validator_") + "/"
@@ -74,19 +80,22 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
         except Exception as e:
             l.error(f"there was an error while reading file '{filename}': {e}")
             errors.append("There seems to a problem with your zip file.")
-            return errors, warnings, None, None, None
+            return errors, warnings, None, None, None, None
     elif filename.endswith(".rar"):
         errors.append("Curations must be either .zip or .7z, not .rar.")
-        return errors, warnings, None, None, None
+        return errors, warnings, None, None, None, None
     else:
         l.warn(f"file type of file '{filename}' not supported")
         errors.append(f"file type of file '{filename}' not supported")
-        return errors, warnings, None, None, None
+        return errors, warnings, None, None, None, None
 
     # check files
     l.debug(f"validating archive data for '{filename}'...")
     uuid_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/?$")
     uuid_folder = [match for match in filenames if uuid_folder_regex.match(match) is not None]
+
+    logo = []
+    ss = []
 
     if len(uuid_folder) == 0:  # legacy or broken curation
         content_folder_regex = re.compile(r"^[^/]+/content/?$")
@@ -102,12 +111,16 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
         ss = [match for match in filenames if ss_regex.match(match) is not None]
         ss_case = [match for match in filenames if ss_regex_case.match(match) is not None]
     else:  # core curation
-        content_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/content/?$")
-        meta_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/meta\.(yaml|yml|txt)$")
+        content_folder_regex = re.compile(
+            r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/content/?$")
+        meta_regex = re.compile(
+            r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/meta\.(yaml|yml|txt)$")
         logo_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.png$")
-        logo_regex_case = re.compile(r"(?i)^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.(png)$")
+        logo_regex_case = re.compile(
+            r"(?i)^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.(png)$")
         ss_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.png$")
-        ss_regex_case = re.compile(r"(?i)^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(png)$")
+        ss_regex_case = re.compile(
+            r"(?i)^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(png)$")
 
         content_folder = [match for match in filenames if content_folder_regex.match(match) is not None]
         meta = [match for match in filenames if meta_regex.match(match) is not None]
@@ -119,7 +132,7 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
     if len(logo) == 0 and len(ss) == 0 and len(content_folder) == 0 and len(meta) == 0:
         errors.append("Logo, screenshot, content folder and meta not found. Is your curation structured properly?")
         archive_cleanup(filename, base_path)
-        return errors, warnings, None, None, None
+        return errors, warnings, None, None, None, None
 
     if set(logo) != set(logo_case):
         errors.append("Logo file extension must be lowercase.")
@@ -152,7 +165,8 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
                     for file in os.listdir(content_folder_path + '/localflash'):
                         filepath = content_folder_path + '/localflash/' + file
                         if os.path.isfile(filepath):
-                            errors.append("Content must be in additional folder in localflash rather than in localflash directly.")
+                            errors.append(
+                                "Content must be in additional folder in localflash rather than in localflash directly.")
                             break
                         elif file in bad_localflash_names:
                             errors.append("Extremely common localflash containing folder name, please change.")
@@ -161,7 +175,8 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
     curation_type = None
     props: dict = {}
     if len(meta) == 0:
-        errors.append("Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
+        errors.append(
+            "Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
     else:
         meta_filename = meta[0]
         with open(base_path + meta_filename, mode='r', encoding='utf8') as meta_file:
@@ -172,15 +187,15 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
                     if props is None:
                         errors.append("The meta file seems to be empty.")
                         archive_cleanup(filename, base_path)
-                        return errors, warnings, None, None, None
+                        return errors, warnings, None, None, None, None
                 except YAMLError:
                     errors.append("Unable to load meta YAML file")
                     archive_cleanup(filename, base_path)
-                    return errors, warnings, None, None, None
+                    return errors, warnings, None, None, None, None
                 except ValueError:
                     errors.append("Invalid release date. Ensure entered date is valid.")
                     archive_cleanup(filename, base_path)
-                    return errors, warnings, None, None, None
+                    return errors, warnings, None, None, None, None
             elif meta_filename.endswith(".txt"):
                 break_index: int = 0
                 while break_index != -1:
@@ -190,9 +205,10 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
                     if props.get("Genre") is not None:
                         props["Tags"] = props["Genre"]
             else:
-                errors.append("Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
+                errors.append(
+                    "Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
                 archive_cleanup(filename, base_path)
-                return errors, warnings, None, None, None
+                return errors, warnings, None, None, None, None
 
         title: tuple[str, bool] = ("Title", bool(props.get("Title")))
         # developer: tuple[str, bool] = ("Developer", bool(props["Developer"]))
@@ -202,7 +218,8 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
             if len(date_string) > 0:
                 date_regex = re.compile(r"^\d{4}(-\d{2}){0,2}$")
                 if not date_regex.match(date_string):
-                    errors.append(f"Release date {date_string} is incorrect. Release dates should always be in `YYYY-MM-DD` format.")
+                    errors.append(
+                        f"Release date {date_string} is incorrect. Release dates should always be in `YYYY-MM-DD` format.")
 
         language_properties: tuple[str, bool] = "Languages", bool(props.get("Languages"))
         if language_properties[1]:
@@ -233,7 +250,8 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
                         for x in list_of_language_codes:
                             if replacement_code == x["alpha2"]:
                                 language_name = x["English"]
-                        errors.append(f"The correct ISO 639-1 language code for {language_name} is `{replacement_code}`, not `{language_code}`.")
+                        errors.append(
+                            f"The correct ISO 639-1 language code for {language_name} is `{replacement_code}`, not `{language_code}`.")
                     else:
                         errors.append(f"Code `{language_code}` is not a valid ISO 639-1 language code.")
 
@@ -249,7 +267,8 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
         #         bool(props["Curation Notes"]) or bool(props["Game Notes"])):
         #     reply += "Make sure you didn't put your description in the notes section.\n"
 
-        simple_mandatory_props: list[tuple[str, bool]] = [title, language_properties, source, launch_command, status, application_path]
+        simple_mandatory_props: list[tuple[str, bool]] = [title, language_properties, source, launch_command, status,
+                                                          application_path]
         if not all([x[1] for x in simple_mandatory_props]):
             for prop in simple_mandatory_props:
                 if prop[1] is False:
@@ -259,7 +278,8 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
             errors.append("Found `https` in launch command. All launch commands must use `http` instead of `https`.")
 
         if launch_command[1] and props["Launch Command"] in get_launch_commands_bluebot():
-            errors.append("Identical launch command already present in the master database. Is your curation a duplicate?")
+            errors.append(
+                "Identical launch command already present in the master database. Is your curation a duplicate?")
 
         # TODO check optional props?
         # optional_props: list[tuple[str, bool]] = [developer, release_date, tag, description]
@@ -301,8 +321,25 @@ def validate_curation(filename: str) -> tuple[list, list, Optional[bool], Option
             else:
                 curation_type = CurationType.OTHER_GAME
 
+    images = []
+
+    if len(logo) == 1:
+        logo = logo[0]
+        image_path = f"{base_path}{logo}"
+        images.append({"type": "logo", "data": encode_image(image_path)})
+
+    for screenshot in ss:
+        image_path = f"{base_path}{screenshot}"
+        images.append({"type": f"screenshot", "data": encode_image(image_path)})
+
     archive_cleanup(filename, base_path)
-    return errors, warnings, is_extreme, curation_type, props
+    return errors, warnings, is_extreme, curation_type, props, images
+
+
+def encode_image(image_path):
+    l.debug(f"encoding file '{image_path}' into base64")
+    with open(image_path, "rb") as f:
+        return base64.b64encode(f.read())
 
 
 def archive_cleanup(filename, base_path):
