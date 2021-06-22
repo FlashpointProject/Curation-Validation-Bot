@@ -65,6 +65,12 @@ class Info(commands.Cog, description="General information about Flashpoint."):
         await ctx.channel.send("Flashpoint on Linux:\n"
                                "🔗 <https://bluemaxima.org/flashpoint/datahub/Linux_Support>")
 
+    @commands.command(name="mac", brief="Mac compatibility.", description="Mac compatibility.")
+    async def mac(self, ctx: discord.ext.commands.Context):
+        l.debug(f"mac command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+        await ctx.channel.send("Flashpoint on Mac:\n"
+                               "🔗 <https://bluemaxima.org/flashpoint/datahub/Mac_Support>")
+
     @commands.command(name="multiplayer", aliases=["fb", "mp", "facebook"], brief="Flashpoint multiplayer support.",
                       description="A description of Flashpoint's multiplayer support.")
     async def facebook(self, ctx: discord.ext.commands.Context):
@@ -88,7 +94,7 @@ class Info(commands.Cog, description="General information about Flashpoint."):
         await ctx.channel.send("FAQ:\n 🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ>")
         
     @commands.command(name="fullscreen", aliases=["fs", "full-screen"], brief="Fullscreening games.", description="How to fullscreen games.")
-    async def faq(self, ctx: discord.ext.commands.Context):
+    async def fullscreen(self, ctx: discord.ext.commands.Context):
         l.debug(f"fullscreen command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("There are multiple ways to fullscreen games:\n 🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#Fullscreen>")
 
