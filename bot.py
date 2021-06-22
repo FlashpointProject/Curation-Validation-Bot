@@ -29,7 +29,7 @@ PENDING_FIXES_CHANNEL = int(os.getenv('PENDING_FIXES_CHANNEL'))
 NOTIFY_ME_CHANNEL = int(os.getenv('NOTIFY_ME_CHANNEL'))
 GOD_USER = int(os.getenv('GOD_USER'))
 NOTIFICATION_SQUAD_ID = int(os.getenv('NOTIFICATION_SQUAD_ID'))
-
+BOT_GUY = int(os.getenv('BOT_GUY'))
 
 bot = commands.Bot(command_prefix="-", help_command=PrettyHelp(color=discord.Color.red()))
 COOL_CRAB = "<:cool_crab:587188729362513930>"
@@ -56,9 +56,12 @@ async def on_command_error(ctx: discord.ext.commands.Context, error: Exception):
         return
     elif isinstance(error, commands.CheckFailure):
         await ctx.channel.send("Insufficient permissions.")
+        return
+    elif isinstance(error, commands.CommandNotFound):
+        return
     else:
         reply_channel: discord.TextChannel = bot.get_channel(BOT_TESTING_CHANNEL)
-        await reply_channel.send(f"<@{GOD_USER}> the curation validator has thrown an exception:\n"
+        await reply_channel.send(f"<@{BOT_GUY}> the curation validator has thrown an exception:\n"
                                  f"🔗 {ctx.message.jump_url}\n"
                                  f"```{''.join(traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__))}```")
         return
@@ -107,7 +110,7 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
     await attachment.save(archive_filename)
 
     try:
-        curation_errors, curation_warnings, is_extreme, curation_type, _ = validate_curation(archive_filename)
+        curation_errors, curation_warnings, is_extreme, curation_type, _, _ = validate_curation(archive_filename)
     except Exception as e:
         l.exception(e)
         l.debug(f"removing archive {archive_filename}...")
@@ -204,7 +207,7 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
 
 def is_bot_guy():
     async def predicate(ctx):
-        return ctx.author.id == 272069320153104395
+        return ctx.author.id == BOT_GUY
     return commands.check(predicate)
 
 

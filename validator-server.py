@@ -20,7 +20,8 @@ async def create_upload_file(file: UploadFile = File(...)):
     with open(new_filepath, "wb") as dest:
         l.debug(f"copying file '{file.filename}' into '{dest}'.")
         shutil.copyfileobj(file.file, dest)
-    curation_errors, curation_warnings, is_extreme, curation_type, meta = validate_curation(new_filepath)
+    curation_errors, curation_warnings, is_extreme, curation_type, meta, image_dict = validate_curation(new_filepath)
+
     l.debug(f"removing '{new_filepath}'.")
     shutil.rmtree(base_path)
     return {
@@ -30,5 +31,6 @@ async def create_upload_file(file: UploadFile = File(...)):
         "curation_warnings": curation_warnings,
         "is_extreme": is_extreme,
         "curation_type": curation_type,
-        "meta": meta
+        "meta": meta,
+        "images": image_dict
     }
