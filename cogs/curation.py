@@ -46,6 +46,13 @@ class Curation(commands.Cog, description="Information about curating games for F
         await ctx.channel.send("List of Language Codes:\n"
                                "🔗 <https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes>")
 
+    @commands.command(name="edits", aliases=["pending", "fixes", "pendies"], brief="Pending fixes.",
+                      description="Information about making metadata fixes.")
+    async def edits(self, ctx: discord.ext.commands.Context):
+        l.debug(f"edits command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+        await ctx.channel.send("Making metadata edits:\n"
+                               "🔗 <https://bluemaxima.org/flashpoint/datahub/Metadata_Edits>")
+
 
 def setup(bot: commands.Bot):
     bot.add_cog(Curation(bot))
