@@ -28,11 +28,12 @@ BOT_ALERTS_CHANNEL = int(os.getenv('BOT_ALERTS_CHANNEL'))
 PENDING_FIXES_CHANNEL = int(os.getenv('PENDING_FIXES_CHANNEL'))
 NOTIFY_ME_CHANNEL = int(os.getenv('NOTIFY_ME_CHANNEL'))
 GOD_USER = int(os.getenv('GOD_USER'))
+NOTIFICATION_SQUAD_ID = int(os.getenv('NOTIFICATION_SQUAD_ID'))
+
 
 bot = commands.Bot(command_prefix="-", help_command=PrettyHelp(color=discord.Color.red()))
 COOL_CRAB = "<:cool_crab:587188729362513930>"
 EXTREME_EMOJI_ID = 778145279714918400
-NOTIFICATION_SQUAD_ID = 478369603622273024
 
 
 @bot.event
@@ -72,13 +73,13 @@ async def forward_ping(message: discord.Message):
 
 async def notify_me(message: discord.Message):
     notification_squad = message.guild.get_role(NOTIFICATION_SQUAD_ID)
-    if message.channel is bot.get_channel(PENDING_FIXES_CHANNEL):
-        if "notify me" in message.content.lower():
-            l.debug(f"Gave role to {message.author.id}")
-            await message.author.add_roles(notification_squad)
-        elif "unnotify me" in message.content.lower():
+    if message.channel is bot.get_channel(NOTIFY_ME_CHANNEL):
+        if "unnotify me" in message.content.lower():
             l.debug(f"Removed role from {message.author.id}")
             await message.author.remove_roles(notification_squad)
+        elif "notify me" in message.content.lower():
+            l.debug(f"Gave role to {message.author.id}")
+            await message.author.add_roles(notification_squad)
 
 
 async def check_curation_in_message(message: discord.Message, dry_run: bool = True):
