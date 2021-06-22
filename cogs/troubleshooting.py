@@ -43,7 +43,7 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
         await ctx.send(
             "For Flashpoint to work on Windows 7, Service Pack 1, the Visual C++ Redistributable and .NET framework are required."
             " The C++ Redistributable and .NET framework can be found at <https://www.microsoft.com/en-us/download/details.aspx?id=48145> and "
-            "<https://www.microsoft.com/en-us/download/details.aspx?id=55170> respectively, while you can get Service Pack 1 from Windows Update."
+            "<https://dotnet.microsoft.com/download/dotnet-framework/net47> respectively, while you can get Service Pack 1 from Windows Update."
             " When you install the Visual C++ Redistributable, make sure to install the x86 version,"
             " even if you're on a 64-bit machine!")
 
