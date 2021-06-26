@@ -28,8 +28,9 @@ BOT_ALERTS_CHANNEL = int(os.getenv('BOT_ALERTS_CHANNEL'))
 PENDING_FIXES_CHANNEL = int(os.getenv('PENDING_FIXES_CHANNEL'))
 NOTIFY_ME_CHANNEL = int(os.getenv('NOTIFY_ME_CHANNEL'))
 GOD_USER = int(os.getenv('GOD_USER'))
-NOTIFICATION_SQUAD_ID = int(os.getenv('NOTIFICATION_SQUAD_ID'))
 BOT_GUY = int(os.getenv('BOT_GUY'))
+NOTIFICATION_SQUAD_ID = int(os.getenv('NOTIFICATION_SQUAD_ID'))
+TIMEOUT_ID = int(os.getenv('TIMEOUT_ID'))
 
 bot = commands.Bot(command_prefix="-", help_command=PrettyHelp(color=discord.Color.red()))
 COOL_CRAB = "<:cool_crab:587188729362513930>"
