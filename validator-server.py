@@ -1,7 +1,8 @@
 import pathlib
 import tempfile
+import traceback
 
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Response, status
 import shutil
 
 from curation_validator import validate_curation
@@ -13,14 +14,24 @@ app = FastAPI()
 
 
 @app.post("/upload/")
-async def create_upload_file(file: UploadFile = File(...)):
+async def create_upload_file(response: Response, file: UploadFile = File(...)):
     l.debug(f"received file '{file.filename}'")
     base_path = tempfile.mkdtemp(prefix="curation_validator_")
     new_filepath = base_path + "/file" + pathlib.Path(file.filename).suffix
     with open(new_filepath, "wb") as dest:
-        l.debug(f"copying file '{file.filename}' into '{dest}'.")
+        l.debug(f"copying file '{file.filename}' into '{new_filepath}'.")
         shutil.copyfileobj(file.file, dest)
-    curation_errors, curation_warnings, is_extreme, curation_type, meta, image_dict = validate_curation(new_filepath)
+    try:
+        curation_errors, curation_warnings, is_extreme, curation_type, meta, image_dict = validate_curation(new_filepath)
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return {
+            "exception": "".join(
+                traceback.format_exception(
+                    etype=type(e), value=e, tb=e.__traceback__
+                )
+            )
+        }
 
     l.debug(f"removing '{new_filepath}'.")
     shutil.rmtree(base_path)
