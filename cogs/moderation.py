@@ -47,8 +47,7 @@ async def timeout(member: discord.Member, duration: datetime.timedelta, reason: 
     log_tempban("Timeout", member, duration, reason)
     if not dry_run:
         await try_dm(member, f"You have been put in timeout from the Flashpoint discord server for {duration}."
-                             f"You will not be able to interact any channels. Leaving and rejoining to avoid this will"
-                             f"result in a ban.\n"
+                             f"You will not be able to interact any channels.\n"
                              f"Reason: {reason}")
         await member.add_roles(timeout_role)
 
