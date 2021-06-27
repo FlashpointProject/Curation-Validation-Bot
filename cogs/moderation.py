@@ -156,19 +156,29 @@ class Moderation(commands.Cog, description="Moderation tools."):
                       description="Gives a log of all moderator actions done."
                                   "May need full username/mention.")
     @commands.has_role("Moderator")
-    async def log(self, ctx: discord.ext.commands.Context, user: Union[discord.User, discord.Member]):
-        l.debug(f"log command issued by {ctx.author.id} on user {user.id}")
+    async def log(self, ctx: discord.ext.commands.Context, user: Optional[Union[discord.User, discord.Member]]):
+        if user is not None:
+            l.debug(f"log command issued by {ctx.author.id} on user {user.id}")
+        else:
+            l.debug(f"log command issued by {ctx.author.id}")
         # We're parsing timestamps, so we need the detect-types part
         connection = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
         c = connection.cursor()
-        try:
-            c.execute("SELECT action, reason, action_date FROM log WHERE user_id = ? AND guild_id = ?",
-                      (user.id, ctx.guild.id))
-            events: list[tuple[str, str, datetime]] = c.fetchall()
-            c.close()
-        finally:
-            connection.close()
-
+        if user is not None:
+            try:
+                c.execute("SELECT action, reason, action_date FROM log WHERE user_id = ? AND guild_id = ?",
+                          (user.id, ctx.guild.id))
+                events: list[tuple[str, str, datetime]] = c.fetchall()
+                c.close()
+            finally:
+                connection.close()
+        else:
+            try:
+                c.execute("SELECT action, reason, action_date, user_id FROM log")
+                events: list[tuple[str, str, datetime, int]] = c.fetchall()
+                c.close()
+            finally:
+                connection.close()
         if any(x[0] == "Ban" for x in events):
             embed_color = discord.Color.red()
         elif any(x[0] == "Kick" for x in events):
@@ -211,8 +221,12 @@ class Moderation(commands.Cog, description="Moderation tools."):
                                           f"Reason: {event[1]}",
                                     inline=False)
                 else:
-
-
+                    temp_user = await self.bot.fetch_user(event[3])
+                    embed.add_field(name=event_prefix + '  ' + event[0],
+                                    value=f"User: {temp_user.name}\n"
+                                          f"Date: {time_str}\n"
+                                          f"Reason: {event[1]}",
+                                    inline=False)
         else:
             embed.title = "No events found."
 
