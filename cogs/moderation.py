@@ -42,7 +42,18 @@ async def warn(member: discord.Member, reason: str, dry_run=False):
                              f"Reason: {reason}")
 
 
-async def tempban(duration: datetime.timedelta, member: discord.Member, reason: str, dry_run=False):
+async def timeout(member: discord.Member, duration: datetime.timedelta, reason: str, dry_run=False):
+    timeout_role = member.guild.get_role(TIMEOUT_ID)
+    log_tempban("Timeout", member, duration, reason)
+    if not dry_run:
+        await try_dm(member, f"You have been put in timeout from the Flashpoint discord server for {duration}."
+                             f"You will not be able to interact any channels. Leaving and rejoining to avoid this will"
+                             f"result in a ban.\n"
+                             f"Reason: {reason}")
+        await member.add_roles(timeout_role)
+
+
+async def tempban(member: discord.Member, duration: datetime.timedelta, reason: str, dry_run=False):
     # The type checker doesn't understand how converters work, so I suppressed the warning here.
     # noinspection PyTypeChecker
     log_tempban("Ban", member, duration, reason)
@@ -54,11 +65,20 @@ async def tempban(duration: datetime.timedelta, member: discord.Member, reason: 
 
 async def unban(user: Union[discord.User, discord.Member], guild: discord.Guild, reason: str, dry_run=False):
     log_user_event("Unban", user, guild, reason)
-    log_unban(user, guild)
+    log_unban(user.id, guild)
     if not dry_run:
         await try_dm(user, "You have been unbanned from the Flashpoint discord server.\n"
                            f"Reason: {reason}")
         await guild.unban(user, reason=reason)
+
+
+async def untimeout(member: discord.Member, reason: str, dry_run=False):
+    timeout_role = member.guild.get_role(TIMEOUT_ID)
+    log_user_event("Untimeout", member, member.guild, reason)
+    if not dry_run:
+        await try_dm(member, f"Your timeout is over, you can now interact with all channels freely.\n"
+                             f"Reason: {reason}")
+        await member.remove_roles(timeout_role)
 
 
 class Moderation(commands.Cog, description="Moderation tools."):
@@ -101,12 +121,35 @@ class Moderation(commands.Cog, description="Moderation tools."):
         l.debug(f"tempban command issued by {ctx.author.id} on user {member.id}")
         # The type checker can't understand converters, so we have to do this.
         # noinspection PyTypeChecker
-        await tempban(duration, member, reason)
+        await tempban(member, duration, reason)
         await ctx.send(f"{member.display_name} was banned for {duration}.")
+
+    @commands.command(name="timeout", brief="Timeout a user.",
+                      description="Timeout a user, and optionally give a reason. "
+                                  "Dates should be formatted as [minutes]m[hours]h[days]d[weeks]w, "
+                                  "for example 1m3h or 3h1m for an hour and 3 minutes.")
+    @commands.has_role("Moderator")
+    async def timeout_command(self, ctx: discord.ext.commands.Context, member: discord.Member,
+                              duration: TimeDeltaConverter, *, reason: Optional[str]):
+        l.debug(f"timeout command issued by {ctx.author.id} on user {member.id}")
+        # The type checker can't understand converters, so we have to do this.
+        # noinspection PyTypeChecker
+        await timeout(member, duration, reason)
+        await ctx.send(f"{member.display_name} was given the timeout role for {duration}.")
+
+    @commands.command(name="untimeout", aliases=["remove-timeout", "undo-timeout"], brief="Unban a user.",
+                      description="Unban a user, and optionally give a reason.")
+    @commands.has_role("Moderator")
+    async def untimeout_command(self, ctx: discord.ext.commands.Context, member: discord.Member, *,
+                                reason: Optional[str]):
+        l.debug(f"untimeout command issued by {ctx.author.id} on user {member.id}")
+        await untimeout(member, reason)
+        await ctx.send(f"{member.display_name} had their timeout removed.")
 
     @commands.command(name="unban", brief="Unban a user.", description="Unban a user, and optionally give a reason.")
     @commands.has_role("Moderator")
-    async def unban_command(self, ctx: discord.ext.commands.Context, member: discord.Member, *, reason: Optional[str]):
+    async def unban_command(self, ctx: discord.ext.commands.Context, member: Union[discord.User, discord.Member], *,
+                            reason: Optional[str]):
         l.debug(f"unban command issued by {ctx.author.id} on user {member.id}")
         await unban(member, member.guild, reason)
         await ctx.send(f"{member.display_name} was unbanned.")
@@ -124,7 +167,6 @@ class Moderation(commands.Cog, description="Moderation tools."):
                       (user.id, ctx.guild.id))
             events: list[tuple[str, str, datetime]] = c.fetchall()
             c.close()
-            connection.commit()
         finally:
             connection.close()
         embed = discord.Embed()
@@ -152,12 +194,30 @@ class Moderation(commands.Cog, description="Moderation tools."):
         c = connection.cursor()
         try:
             c.execute(
-                "SELECT user_id, guild_id, action_date FROM log WHERE undone = '0' and unban_date < datetime('now')")
-            expired_tempbans: list[tuple[int, int, datetime]] = c.fetchall()
+                "SELECT user_id, guild_id, action "
+                "FROM log "
+                "WHERE undone = '0' "
+                "AND unban_date < datetime('now')")
+            expired_tempbans: list[tuple[int, int, str]] = c.fetchall()
             for expired_tempban in expired_tempbans:
-                user: discord.User = await self.bot.fetch_user(expired_tempban[0])
                 guild: discord.Guild = self.bot.get_guild(expired_tempban[1])
-                await unban(user, guild, "Tempban expired.")
+                action = expired_tempban[2]
+                user_id = expired_tempban[0]
+                if action == "Ban":
+                    try:
+                        user: discord.User = await self.bot.fetch_user(user_id)
+                        await unban(user, guild, "Tempban expired")
+                    except NotFound:
+                        log_unban(user_id, guild)
+                    except HTTPException:
+                        pass
+                elif action == "Timeout":
+                    member: discord.Member = guild.get_member(user_id)
+                    if member is not None:
+                        await untimeout(member, "Timeout expired")
+                    else:
+                        log_unban(user_id, guild)
+
         finally:
             c.close()
             connection.close()
@@ -173,7 +233,8 @@ def log_tempban(action: str, member: discord.Member, duration: datetime.timedelt
     try:
         utc_now: datetime.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
         c.execute(
-            "INSERT INTO log (user_id, guild_id, action, reason, action_date, unban_date, undone) VALUES (?, ?, ?, ?, ?, ? , 0)",
+            "INSERT INTO log (user_id, guild_id, action, reason, action_date, unban_date, undone) "
+            "VALUES (?, ?, ?, ?, ?, ? , 0)",
             (member.id, member.guild.id, action, reason, utc_now, utc_now + duration))
         connection.commit()
     finally:
@@ -186,7 +247,8 @@ def log_user_event(action: str, user: Union[discord.User, discord.Member], guild
     c = connection.cursor()
     try:
         utc_now: datetime.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
-        c.execute("INSERT INTO log (user_id, guild_id, action, reason, action_date) VALUES (?, ?, ?, ?, ?)",
+        c.execute("INSERT INTO log (user_id, guild_id, action, reason, action_date)"
+                  "VALUES (?, ?, ?, ?, ?)",
                   (user.id, guild.id, action, reason, utc_now))
         connection.commit()
     finally:
@@ -197,11 +259,16 @@ def log_user_event(action: str, user: Union[discord.User, discord.Member], guild
 # In theory this has a problem in that it undoes all the actions on a person, but the only actions that
 # can be undone are timeout and unban, and they're mutually exclusive. It'd be pretty easy to change if
 # this is ever not the case though.
-def log_unban(user: Union[discord.User, discord.Member], guild: discord.Guild):
+def log_unban(user_id: int, guild: discord.Guild):
     connection = sqlite3.connect(db_path)
     c = connection.cursor()
     try:
-        c.execute("UPDATE log SET undone = 1 WHERE user_id = ? and guild_id = ?", (user.id, guild.id))
+        c.execute("UPDATE log "
+                  "SET undone = 1 "
+                  "WHERE undone = 0 "
+                  "AND user_id = ? "
+                  "AND guild_id = ?",
+                  (user_id, guild.id))
         connection.commit()
     finally:
         c.close()
