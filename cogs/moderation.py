@@ -5,10 +5,12 @@ from sqlite3 import Error, Connection
 from typing import Optional, Union
 
 import discord
+from discord import Forbidden, HTTPException, NotFound
 from discord.ext import commands, tasks
 
 from pygicord import Paginator
 
+from bot import TIMEOUT_ID
 from logger import getLogger
 from util import TimeDeltaConverter
 
@@ -19,25 +21,25 @@ l = getLogger("main")
 async def ban(member: discord.Member, reason: str, dry_run=False):
     log_user_event("Ban", member, member.guild, reason)
     if not dry_run:
-        await member.send("You have been permanently banned from the flashpoint discord server.\n"
-                          f"Reason: {reason}")
+        await try_dm(member, "You have been permanently banned from the flashpoint discord server.\n"
+                             f"Reason: {reason}")
         await member.ban(reason=reason)
 
 
 async def kick(member: discord.Member, reason: str, dry_run=False):
     log_user_event("Kick", member, member.guild, reason)
     if not dry_run:
-        await member.send("You have been kicked from the flashpoint discord server.\n"
-                          f"Reason: {reason}")
+        await try_dm(member, "You have been kicked from the flashpoint discord server.\n"
+                             f"Reason: {reason}")
         await member.kick(reason=reason)
 
 
 async def warn(member: discord.Member, reason: str, dry_run=False):
     log_user_event("Warn", member, member.guild, reason)
     if not dry_run:
-        await member.send("You have been formally warned from the Flashpoint discord server."
-                          "Another infraction will have steeper consequences.\n"
-                          f"Reason: {reason}")
+        await try_dm(member, "You have been formally warned by the moderators of the Flashpoint discord server."
+                             "Another infraction will have steeper consequences.\n"
+                             f"Reason: {reason}")
 
 
 async def tempban(duration: datetime.timedelta, member: discord.Member, reason: str, dry_run=False):
@@ -45,8 +47,8 @@ async def tempban(duration: datetime.timedelta, member: discord.Member, reason: 
     # noinspection PyTypeChecker
     log_tempban("Ban", member, duration, reason)
     if not dry_run:
-        await member.send(f"You have been banned from the Flashpoint discord server for {duration}.\n"
-                          f"Reason: {reason}")
+        await try_dm(member, f"You have been banned from the Flashpoint discord server for {duration}.\n"
+                             f"Reason: {reason}")
         await member.ban(reason=reason)
 
 
@@ -54,8 +56,8 @@ async def unban(user: Union[discord.User, discord.Member], guild: discord.Guild,
     log_user_event("Unban", user, guild, reason)
     log_unban(user, guild)
     if not dry_run:
-        await user.send("You have been unbanned from the Flashpoint discord server.\n"
-                        f"Reason: {reason}")
+        await try_dm(user, "You have been unbanned from the Flashpoint discord server.\n"
+                           f"Reason: {reason}")
         await guild.unban(user, reason=reason)
 
 
@@ -222,6 +224,15 @@ def create_moderation_log() -> None:
         c.close()
         connection.close()
     return
+
+
+async def try_dm(user: Union[discord.User, discord.Member], message):
+    try:
+        await user.send(message)
+    except Forbidden:
+        l.debug(f"Not allowed to send message to {user.id}")
+    except HTTPException:
+        l.debug(f"Failed to send message to {user.id}")
 
 
 def setup(bot: commands.Bot):
