@@ -21,7 +21,7 @@ l = getLogger("main")
 async def ban(member: discord.Member, reason: str, dry_run=False):
     log_user_event("Ban", member, member.guild, reason)
     if not dry_run:
-        await try_dm(member, "You have been permanently banned from the flashpoint discord server.\n"
+        await try_dm(member, "You have been permanently banned from the Flashpoint discord server.\n"
                              f"Reason: {reason}")
         await member.ban(reason=reason)
 
@@ -29,7 +29,7 @@ async def ban(member: discord.Member, reason: str, dry_run=False):
 async def kick(member: discord.Member, reason: str, dry_run=False):
     log_user_event("Kick", member, member.guild, reason)
     if not dry_run:
-        await try_dm(member, "You have been kicked from the flashpoint discord server.\n"
+        await try_dm(member, "You have been kicked from the Flashpoint discord server.\n"
                              f"Reason: {reason}")
         await member.kick(reason=reason)
 
