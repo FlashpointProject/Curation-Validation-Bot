@@ -42,18 +42,21 @@ def validate_curation(filename: str) -> tuple[list,
     base_path = None
 
     if filename.endswith(".7z"):
-        l.debug(f"reading archive '{filename}'...")
         try:
-            with py7zr.SevenZipFile(filename, mode='r') as archive:
-                uncompressed_size = archive.archiveinfo().uncompressed
-                if uncompressed_size > max_uncompressed_size:
-                    warnings.append(
-                        f"The archive is too large to be validated (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
-                    archive.close()
-                    return errors, warnings, None, None, None, None
-                filenames = archive.getnames()
-                base_path = tempfile.mkdtemp(prefix="curation_validator_") + "/"
-                archive.extractall(path=base_path)
+            l.debug(f"reading archive '{filename}'...")
+            archive = py7zr.SevenZipFile(filename, mode='r')
+
+            uncompressed_size = archive.archiveinfo().uncompressed
+            if uncompressed_size > max_uncompressed_size:
+                warnings.append(
+                    f"The archive is too large to be validated (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
+                archive.close()
+                return errors, warnings, None, None, None, None
+
+            filenames = archive.getnames()
+            base_path = tempfile.mkdtemp(prefix="curation_validator_") + "/"
+            archive.extractall(path=base_path)
+            archive.close()
         except Exception as e:
             l.error(f"there was an error while reading file '{filename}': {e}")
             errors.append("There seems to a problem with your 7z file.")
@@ -82,7 +85,7 @@ def validate_curation(filename: str) -> tuple[list,
         errors.append("Curations must be either .zip or .7z, not .rar.")
         return errors, warnings, None, None, None, None
     else:
-        warn(f"file type of file '{filename}' not supported")
+        l.warn(f"file type of file '{filename}' not supported")
         errors.append(f"file type of file '{filename}' not supported")
         return errors, warnings, None, None, None, None
 
