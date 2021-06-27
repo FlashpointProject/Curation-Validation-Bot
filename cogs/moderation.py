@@ -160,31 +160,49 @@ class Moderation(commands.Cog, description="Moderation tools."):
     @commands.has_role("Moderator")
     async def log(self, ctx: discord.ext.commands.Context, user: Union[discord.User, discord.Member]):
         l.debug(f"log command issued by {ctx.author.id} on user {user.id}")
+        # We're parsing timestamps, so we need the detect-types part
         connection = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
         c = connection.cursor()
         try:
-            c.execute("SELECT action, reason, action_date FROM log WHERE user_id = ? and guild_id = ?",
+            c.execute("SELECT action, reason, action_date FROM log WHERE user_id = ? AND guild_id = ?",
                       (user.id, ctx.guild.id))
             events: list[tuple[str, str, datetime]] = c.fetchall()
             c.close()
         finally:
             connection.close()
-        embed = discord.Embed()
+
         if any(x[0] == "Ban" for x in events):
-            embed.colour = discord.Colour.red()
+            embed_color = discord.Color.red()
         elif any(x[0] == "Kick" for x in events):
-            embed.colour = discord.Colour.orange()
+            embed_color = discord.Color.orange()
         elif any(x[0] == "Warn" for x in events):
-            embed.colour = discord.Colour.gold()
+            embed_color = discord.Color.gold()
+        elif any(x[0] == "Timeout" for x in events):
+            embed_color = discord.Color.blue()
         else:
-            embed.colour = discord.Colour.green()
-            embed.title = "No actions to display."
+            embed_color = discord.Color.green()
+        pages: list[discord.Embed]
+
+        pages = []
+        embed = discord.Embed(color=embed_color)
         embed.set_author(name=user.name, icon_url=user.avatar_url)
         for event in events:
-            embed.add_field(name="Action", value=event[0])
-            embed.add_field(name="Reason", value=event[1])
-            embed.add_field(name="Date", value=event[2].strftime("%Y-%m-%d %H:%M:%S"))
-        await ctx.send(embed=embed)
+            if len(embed.fields) >= 25:
+                pages.append(embed)
+                embed = discord.Embed(color=embed_color)
+                embed.set_author(name=user.name, icon_url=user.avatar_url)
+            time_str = event[2].strftime("%Y-%m-%d %H:%M:%S")
+            embed.add_field(name=event[0],
+                            value=f"Date: {time_str}\n"
+                                  f"Reason: {event[1]}",
+                            inline=False)
+            # embed.add_field(name="Action", value=event[0])
+            # embed.add_field(name="Reason", value=event[1])
+            # embed.add_field(name="Date", value=event[2].strftime("%Y-%m-%d %H:%M:%S"))
+
+        pages.append(embed)
+        paginator = Paginator(pages=pages)
+        await paginator.start(ctx)
 
     # for each tempban in the database, if it's before now, unban by id.
     @tasks.loop(seconds=30.0)
