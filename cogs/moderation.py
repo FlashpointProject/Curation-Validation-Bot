@@ -102,9 +102,7 @@ class Moderation(commands.Cog, description="Moderation tools."):
         await ctx.send(f"{member.display_name} was kicked.")
 
     @commands.command(name="warn", brief="Warn a user.",
-                      description="Warn a user and give a reason, "
-                                  "kicks if user has already been warned once "
-                                  "and bans if they've been warned twice.")
+                      description="Warn a user and give a reason.")
     @commands.has_role("Moderator")
     async def warn_command(self, ctx: discord.ext.commands.Context, member: discord.Member, *, reason: Optional[str]):
         l.debug(f"warn command issued by {ctx.author.id} on user {member.id}")
