@@ -183,20 +183,38 @@ class Moderation(commands.Cog, description="Moderation tools."):
 
         pages = []
         embed = discord.Embed(color=embed_color)
-        embed.set_author(name=user.name, icon_url=user.avatar_url)
-        for event in events:
-            if len(embed.fields) >= 25:
-                pages.append(embed)
-                embed = discord.Embed(color=embed_color)
-                embed.set_author(name=user.name, icon_url=user.avatar_url)
-            time_str = event[2].strftime("%Y-%m-%d %H:%M:%S")
-            embed.add_field(name=event[0],
-                            value=f"Date: {time_str}\n"
-                                  f"Reason: {event[1]}",
-                            inline=False)
-            # embed.add_field(name="Action", value=event[0])
-            # embed.add_field(name="Reason", value=event[1])
-            # embed.add_field(name="Date", value=event[2].strftime("%Y-%m-%d %H:%M:%S"))
+        if user is not None:
+            embed.set_author(name=user.name, icon_url=user.avatar_url)
+        if events:
+            for event in events:
+                if event[0] == "Ban":
+                    event_prefix = '🚫'
+                elif event[0] == "Unban" or event[0] == "Untimeout":
+                    event_prefix = '↩'
+                elif event[0] == "Kick":
+                    event_prefix = '👢'
+                elif event[0] == "Warn":
+                    event_prefix = '⚠️'
+                elif event[0] == "Timeout":
+                    event_prefix = '🕒'
+                else:
+                    event_prefix = ''
+                if len(embed.fields) >= 8:
+                    pages.append(embed)
+                    embed = discord.Embed(color=embed_color)
+                    if user is not None:
+                        embed.set_author(name=user.name, icon_url=user.avatar_url)
+                time_str = event[2].strftime("%Y-%m-%d %H:%M:%S")
+                if user is not None:
+                    embed.add_field(name=event_prefix + '  ' + event[0],
+                                    value=f"Date: {time_str}\n"
+                                          f"Reason: {event[1]}",
+                                    inline=False)
+                else:
+
+
+        else:
+            embed.title = "No events found."
 
         pages.append(embed)
         paginator = Paginator(pages=pages)
@@ -241,6 +259,37 @@ class Moderation(commands.Cog, description="Moderation tools."):
     @do_temp_unbans.before_loop
     async def before_start_unbans(self):
         await self.bot.wait_until_ready()
+
+    # This detects if a member rejoins while a timeout would still be applied to them.
+    @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+        connection = sqlite3.connect(db_path)
+        c = connection.cursor()
+        try:
+            c.execute("SELECT EXISTS(SELECT 1 "
+                      "FROM log "
+                      "WHERE user_id = ? "
+                      "AND guild_id = ? "
+                      "AND action = 'Timeout' "
+                      "AND undone = 0)",
+                      (member.id, member.guild.id))
+            record = c.fetchone()
+            if record[0] == 1:
+                timeout_role = member.guild.get_role(TIMEOUT_ID)
+                await member.add_roles(timeout_role)
+            c.close()
+        finally:
+            connection.close()
+
+    async def cog_command_error(self, ctx, error):
+        if isinstance(error, commands.BadUnionArgument):
+            await ctx.send("Could not get user.")
+        elif isinstance(error, commands.UserNotFound):
+            await ctx.send("Could not get user.")
+        elif isinstance(error, commands.MemberNotFound):
+            await ctx.send("Could not get member.")
+        elif isinstance(error, commands.BadArgument):
+            await ctx.send("Invalid argument.")
 
 
 def log_tempban(action: str, member: discord.Member, duration: datetime.timedelta, reason: str):

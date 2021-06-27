@@ -32,7 +32,12 @@ BOT_GUY = int(os.getenv('BOT_GUY'))
 NOTIFICATION_SQUAD_ID = int(os.getenv('NOTIFICATION_SQUAD_ID'))
 TIMEOUT_ID = int(os.getenv('TIMEOUT_ID'))
 
-bot = commands.Bot(command_prefix="-", help_command=PrettyHelp(color=discord.Color.red()), case_insensitive=False)
+intents = discord.Intents.default()
+intents.members = True
+bot = commands.Bot(command_prefix="-",
+                   help_command=PrettyHelp(color=discord.Color.red()),
+                   case_insensitive=False,
+                   intents=intents)
 COOL_CRAB = "<:cool_crab:587188729362513930>"
 EXTREME_EMOJI_ID = 778145279714918400
 
@@ -52,13 +57,24 @@ async def on_message(message: discord.Message):
 
 @bot.event
 async def on_command_error(ctx: discord.ext.commands.Context, error: Exception):
-    if isinstance(error, commands.MaxConcurrencyReached):
+    if ctx.cog.cog_command_error:
+        return
+    elif isinstance(error, commands.MaxConcurrencyReached):
         await ctx.channel.send('Bot is busy! Try again later.')
         return
     elif isinstance(error, commands.CheckFailure):
         await ctx.channel.send("Insufficient permissions.")
         return
     elif isinstance(error, commands.CommandNotFound):
+        return
+    elif isinstance(error, commands.UserInputError):
+        await ctx.send("Invalid input.")
+        return
+    elif isinstance(error, commands.NoPrivateMessage):
+        try:
+            await ctx.author.send('This command cannot be used in direct messages.')
+        except discord.Forbidden:
+            pass
         return
     else:
         reply_channel: discord.TextChannel = bot.get_channel(BOT_TESTING_CHANNEL)
@@ -76,14 +92,15 @@ async def forward_ping(message: discord.Message):
 
 
 async def notify_me(message: discord.Message):
-    notification_squad = message.guild.get_role(NOTIFICATION_SQUAD_ID)
-    if message.channel is bot.get_channel(NOTIFY_ME_CHANNEL):
-        if "unnotify me" in message.content.lower():
-            l.debug(f"Removed role from {message.author.id}")
-            await message.author.remove_roles(notification_squad)
-        elif "notify me" in message.content.lower():
-            l.debug(f"Gave role to {message.author.id}")
-            await message.author.add_roles(notification_squad)
+    if message.guild is not None:
+        notification_squad = message.guild.get_role(NOTIFICATION_SQUAD_ID)
+        if message.channel is bot.get_channel(NOTIFY_ME_CHANNEL):
+            if "unnotify me" in message.content.lower():
+                l.debug(f"Removed role from {message.author.id}")
+                await message.author.remove_roles(notification_squad)
+            elif "notify me" in message.content.lower():
+                l.debug(f"Gave role to {message.author.id}")
+                await message.author.add_roles(notification_squad)
 
 
 async def check_curation_in_message(message: discord.Message, dry_run: bool = True):
