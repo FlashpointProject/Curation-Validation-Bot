@@ -32,7 +32,7 @@ BOT_GUY = int(os.getenv('BOT_GUY'))
 NOTIFICATION_SQUAD_ID = int(os.getenv('NOTIFICATION_SQUAD_ID'))
 TIMEOUT_ID = int(os.getenv('TIMEOUT_ID'))
 
-bot = commands.Bot(command_prefix="-", help_command=PrettyHelp(color=discord.Color.red()))
+bot = commands.Bot(command_prefix="-", help_command=PrettyHelp(color=discord.Color.red()), case_insensitive=False)
 COOL_CRAB = "<:cool_crab:587188729362513930>"
 EXTREME_EMOJI_ID = 778145279714918400
 
