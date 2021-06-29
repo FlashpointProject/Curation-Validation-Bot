@@ -1,7 +1,5 @@
 import datetime
-import re
 import sqlite3
-from sqlite3 import Error, Connection
 from typing import Optional, Union
 
 import discord
@@ -196,7 +194,7 @@ class Moderation(commands.Cog, description="Moderation tools."):
                         user: discord.User = await self.bot.fetch_user(user_id)
                         await self.unban(user, guild, "Tempban expired")
                     except NotFound:
-                        self.log_unban(user_id, guild)
+                        self.log_unban(user_id, guild, "Ban")
                     except HTTPException:
                         pass
                 elif action == "Timeout":
@@ -204,7 +202,7 @@ class Moderation(commands.Cog, description="Moderation tools."):
                     if member is not None:
                         await self.untimeout(member, "Timeout expired")
                     else:
-                        self.log_unban(user_id, guild)
+                        self.log_unban(user_id, guild, "Timeout")
 
         finally:
             c.close()
@@ -286,7 +284,7 @@ class Moderation(commands.Cog, description="Moderation tools."):
 
     async def unban(self, user: Union[discord.User, discord.Member], guild: discord.Guild, reason: str, dry_run=False):
         self.log_user_event("Unban", user, guild, reason)
-        self.log_unban(user.id, guild)
+        self.log_unban(user.id, guild, "Ban")
         if not dry_run:
             await try_dm(user, "You have been unbanned from the Flashpoint discord server.\n"
                                f"Reason: {reason}")
@@ -327,10 +325,7 @@ class Moderation(commands.Cog, description="Moderation tools."):
             c.close()
             connection.close()
 
-    # In theory this has a problem in that it undoes all the actions on a person, but the only actions that
-    # can be undone are timeout and unban, and they're mutually exclusive. It'd be pretty easy to change if
-    # this is ever not the case though.
-    def log_unban(self, user_id: int, guild: discord.Guild):
+    def log_unban(self, user_id: int, guild: discord.Guild, action: str):
         connection = sqlite3.connect(self.db_path)
         c = connection.cursor()
         try:
@@ -338,8 +333,9 @@ class Moderation(commands.Cog, description="Moderation tools."):
                       "SET undone = 1 "
                       "WHERE undone = 0 "
                       "AND user_id = ? "
-                      "AND guild_id = ?",
-                      (user_id, guild.id))
+                      "AND guild_id = ?"
+                      "AND action = ?",
+                      (user_id, guild.id, action))
             connection.commit()
         finally:
             c.close()
