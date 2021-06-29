@@ -293,6 +293,7 @@ class Moderation(commands.Cog, description="Moderation tools."):
     async def untimeout(self, member: discord.Member, reason: str, dry_run=False):
         timeout_role = member.guild.get_role(TIMEOUT_ID)
         self.log_user_event("Untimeout", member, member.guild, reason)
+        self.log_unban(member.id, member.guild, "Timeout")
         if not dry_run:
             await try_dm(member, f"Your timeout is over, you can now interact with all channels freely.\n"
                                  f"Reason: {reason}")
