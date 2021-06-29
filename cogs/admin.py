@@ -8,7 +8,7 @@ import subprocess
 
 from discord.utils import get
 
-from bot import BOT_GUY
+from bot import BOT_GUY, l
 
 """This code is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -58,6 +58,7 @@ class Admin(commands.Cog):
 
     @commands.group(name='reload', hidden=True, invoke_without_command=True)
     async def _reload(self, ctx, *, module):
+        l.debug("reload command issued")
         """Reloads a module."""
         try:
             self.bot.reload_extension(module)
@@ -102,7 +103,7 @@ class Admin(commands.Cog):
         # however, things like "fast forward" and files
         # along with the text "already up-to-date" are in stdout
 
-        if stdout.startswith('Already up-to-date.'):
+        if stdout.startswith('Already up to date.'):
             return await ctx.send(stdout)
 
         modules = self.find_modules_from_git(stdout)

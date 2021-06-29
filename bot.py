@@ -8,6 +8,8 @@ from discord.ext import commands
 from pretty_help import PrettyHelp
 
 from dotenv import load_dotenv
+
+from cogs.utils import context
 from logger import getLogger, set_global_logging_level
 from curation_validator import get_launch_commands_bluebot, validate_curation, CurationType
 
@@ -49,23 +51,26 @@ async def on_ready():
 
 @bot.event
 async def on_message(message: discord.Message):
-    await bot.process_commands(message)
+    await process_commands(message)
     await forward_ping(message)
     await notify_me(message)
     await check_curation_in_message(message, dry_run=False)
 
 
+async def process_commands(message):
+    ctx = await bot.get_context(message, cls=context.Context)
+    await bot.invoke(ctx)
+
 @bot.event
 async def on_command_error(ctx: discord.ext.commands.Context, error: Exception):
-    if ctx.cog.cog_command_error:
-        return
-    elif isinstance(error, commands.MaxConcurrencyReached):
+    if isinstance(error, commands.MaxConcurrencyReached):
         await ctx.channel.send('Bot is busy! Try again later.')
         return
     elif isinstance(error, commands.CheckFailure):
         await ctx.channel.send("Insufficient permissions.")
         return
     elif isinstance(error, commands.CommandNotFound):
+        await ctx.channel.send(f"Command {ctx.invoked_with} not found.")
         return
     elif isinstance(error, commands.UserInputError):
         await ctx.send("Invalid input.")
@@ -235,5 +240,7 @@ bot.load_extension('cogs.curation')
 bot.load_extension('cogs.info')
 bot.load_extension('cogs.utilities')
 bot.load_extension('cogs.moderation')
+bot.load_extension('cogs.admin')
+
 l.info(f"starting the bot...")
 bot.run(TOKEN)

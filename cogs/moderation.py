@@ -372,6 +372,6 @@ def setup(bot: commands.Bot):
     cog = Moderation(bot)
     try:
         Moderation.create_moderation_log(cog)
+        bot.add_cog(cog)
     except Exception as e:
         l.error(f"Error {e} when trying to set up moderation, will not be initialized.")
-    bot.add_cog(cog)
