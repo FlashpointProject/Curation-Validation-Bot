@@ -378,7 +378,7 @@ def get_extreme_tag_list_file() -> list[str]:
 
 
 @cached(cache=TTLCache(maxsize=1, ttl=60))
-def get_tag_list_wiki() -> list[str]:
+def get_tag_list_wiki() -> list[dict[str, str]]:
     l.debug(f"getting tags from wiki...")
     tags = []
     resp = requests.get(url="https://bluemaxima.org/flashpoint/datahub/Tags")
@@ -389,19 +389,24 @@ def get_tag_list_wiki() -> list[str]:
         for row in rows:
             cols = row.find_all('td')
             if len(cols) > 0:
+                tag = {}
                 col = cols[0]
                 links = row.find_all('a')
                 if len(links) > 0:
-                    tags.append(links[0].contents[0].strip())
+                    tag["name"] = links[0].contents[0].strip()
                 else:
-                    tags.append(col.contents[0].strip())
+                    tag["name"] = col.contents[0].strip()
+
+                desc = cols[1]
+                tag["description"] = desc.contents[0].strip()
+                tags.append(tag)
     return tags
 
 
 def get_tag_list() -> list[str]:
     bluebot_tags = get_tag_list_bluebot()
     file_tags = get_tag_list_file()
-    wiki_tags = get_tag_list_wiki()
+    wiki_tags = [tag["name"] for tag in get_tag_list_wiki()]
     return list(set(file_tags + wiki_tags + bluebot_tags))
 
 
