@@ -362,7 +362,7 @@ def get_tag_list_bluebot() -> list[str]:
 
 
 @cached(cache=TTLCache(maxsize=1, ttl=3600))
-def get_tag_list_file() -> list[str]:
+def get_tag_list_file() -> list[dict[str, str]]:
     l.debug(f"getting tags from file...")
     with open("data/category_tags.json", "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -405,7 +405,7 @@ def get_tag_list_wiki() -> list[dict[str, str]]:
 
 def get_tag_list() -> list[str]:
     bluebot_tags = get_tag_list_bluebot()
-    file_tags = get_tag_list_file()
+    file_tags = [tag["name"] for tag in get_tag_list_file()]
     wiki_tags = [tag["name"] for tag in get_tag_list_wiki()]
     return list(set(file_tags + wiki_tags + bluebot_tags))
 

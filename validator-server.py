@@ -5,7 +5,7 @@ import traceback
 from fastapi import FastAPI, File, UploadFile, Response, status
 import shutil
 
-from curation_validator import validate_curation, get_tag_list_wiki
+from curation_validator import validate_curation, get_tag_list_wiki, get_tag_list_file
 from logger import getLogger
 
 l = getLogger("api")
@@ -51,4 +51,4 @@ async def create_upload_file(response: Response, file: UploadFile = File(...)):
 # TODO this does not return all valid tags because the wiki page sucks
 @app.get("/tags")
 async def get_wiki_tags():
-    return get_tag_list_wiki()
+    return {"tags": get_tag_list_wiki() + get_tag_list_file()}
