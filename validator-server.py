@@ -13,7 +13,7 @@ l = getLogger("api")
 app = FastAPI()
 
 
-@app.post("/upload/")
+@app.post("/upload")
 async def create_upload_file(response: Response, file: UploadFile = File(...)):
     l.debug(f"received file '{file.filename}'")
     base_path = tempfile.mkdtemp(prefix="curation_validator_")
