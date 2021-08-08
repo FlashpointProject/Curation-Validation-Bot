@@ -54,28 +54,29 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
     @commands.command(name="approve", brief="Override the bot's decision and approve the curation (Moderator).",
                       description="Override the bot's decision and approve the curation (Moderator only).")
     @commands.check_any(commands.has_role("Moderator"), is_bot_guy())
-    async def approve(self, ctx: discord.ext.commands.Context, jump_url: str):
+    async def approve(self, ctx: discord.ext.commands.Context, message: discord.Message):
         l.debug(f"approve command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-
-        jump_url_regex = re.compile(r"https://discord\.com/channels/(\d+)/(\d+)/(\d+)")
-        url_match = jump_url_regex.match(jump_url)
-        if url_match is None or ctx.guild != self.bot.get_guild(int(url_match.group(1))):
-            ctx.channel.send("Invalid jump URL provided\n")
-            return
-
-        # guild_id = int(url_match.group(1))
-        channel_id = int(url_match.group(2))
-        message_id = int(url_match.group(3))
-
-        l.debug(f"fetching message {message_id}")
-        channel = self.bot.get_channel(channel_id)
-        message = await channel.fetch_message(message_id)
         reactions: list[discord.Reaction] = message.reactions
         for reaction in reactions:
             if reaction.me:
                 l.debug(f"removing bot's reaction {reaction} from message {message.id}")
                 await message.remove_reaction(reaction.emoji, self.bot.user)
         await message.add_reaction("🤖")
+
+    @commands.command(name="pin", brief="Pin a message (Staff).",
+                      description="Pin a message by url (Staff only).")
+    @commands.has_any_role("Mechanic", "Developer", "Curator", "Archivist", "Hacker", "Hunter", "Administrator")
+    async def pin(self, ctx: discord.ext.commands.Context, message: discord.Message):
+        l.debug(f"pin command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+        await message.pin()
+
+    @commands.command(name="unpin", brief="Unpin a message (Staff).",
+                      description="Unpin a message by url (Staff only).")
+    @commands.has_any_role("Mechanic", "Developer", "Curator", "Archivist", "Hacker", "Hunter", "Administrator")
+    async def unpin(self, ctx: discord.ext.commands.Context, message: discord.Message):
+        l.debug(f"unpin command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+        await message.unpin()
+        await ctx.send("Unpinned!")
 
     @commands.command(name="get-fixes", brief="Get json fixes in #pending-fixes (Moderator).",
                       description="Get all jsons in #pending-fixes not marked with a ⚠️ either before a "
