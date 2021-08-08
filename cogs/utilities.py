@@ -82,21 +82,16 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                                   "last_message_url if specified or since today and after the pin (Moderator Only)")
     @commands.has_role("Moderator")
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
-    async def automatic_get_jsons(self, ctx: discord.ext.commands.Context, last_message_url: Optional[str]):
+    async def automatic_get_jsons(self, ctx: discord.ext.commands.Context, last_message: Optional[discord.Message]):
         l.debug(
             f"pending fixes command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         async with ctx.typing():
-            if last_message_url is not None:
+            if last_message is not None:
                 await ctx.send(
-                    f"Getting all jsons in #pending-fixes not marked with a ⚠️  before <{last_message_url}> and after the pin. "
+                    f"Getting all jsons in #pending-fixes not marked with a ⚠️  before <{last_message.jump_url}> and after the pin. "
                     f"Sit back and relax, this will take a while {COOL_CRAB}.")
-                try:
-                    message = await self.fetch_message_by_url(last_message_url)
-                except BadURLException:
-                    await ctx.send("Invalid jump url provided.")
-                    return
 
-                final_folder, start_date, end_date = await self.get_raw_json_messages_in_pending_fixes(message)
+                final_folder, start_date, end_date = await self.get_raw_json_messages_in_pending_fixes(last_message)
             else:
                 await ctx.send(f"Getting all jsons in #pending-fixes not marked with a ⚠️ since the pin. "
                                f"Sit back and relax, this will take a while {COOL_CRAB}.")
@@ -240,28 +235,12 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                     save_location = temp_folder + '/dupe' + str(num_duplicates) + "-" + attachment_filename
                 await msg.attachments[0].save(save_location)
                 try:
-                    filenames = util.get_archive_filenames(save_location)
-                    debug = list(uuid_regex.search(x) for x in filenames)
                     if not all(uuid_regex.search(x) for x in util.get_archive_filenames(save_location)):
                         os.remove(save_location)
                 except (util.NotArchiveType, util.ArchiveTooLargeException, zipfile.BadZipfile, py7zr.Bad7zFile) as e:
                     l.info(f"Error {e} when opening {save_location}, removing archive.")
                     os.remove(save_location)
         return temp_folder, start_date, end_date
-
-    async def fetch_message_by_url(self, url: str):
-        jump_url_regex = re.compile(r"https://discord\.com/channels/(\d+)/(\d+)/(\d+)")
-        url_match = jump_url_regex.match(url)
-        self.bot: discord.ext.commands.Bot
-        if url_match is None or self.bot.get_guild(int(url_match.group(1)) not in self.bot.guilds):
-            raise BadURLException
-        # guild_id = int(url_match.group(1))
-        channel_id = int(url_match.group(2))
-        message_id = int(url_match.group(3))
-
-        l.debug(f"fetching message {message_id}")
-        channel = self.bot.get_channel(channel_id)
-        return await channel.fetch_message(message_id)
 
 
 class BadURLException(Exception):
