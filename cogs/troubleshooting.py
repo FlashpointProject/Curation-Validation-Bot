@@ -53,7 +53,7 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
         l.debug(f"extreme command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send(
             "Toggling extreme games:\n"
-            "https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#ShowExtreme")
+            "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#ShowExtreme>")
 
     @commands.command(name="partial-downloads",
                       aliases=["infinitypartialdownload", "ipd", "partial", "partialdownload",
