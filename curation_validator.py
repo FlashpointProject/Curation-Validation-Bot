@@ -170,6 +170,13 @@ def validate_curation(filename: str) -> tuple[list,
                             break
                         elif file in bad_localflash_names:
                             errors.append("Extremely common localflash containing folder name, please change.")
+
+    with open("data/bad_system_files.json") as f:
+        bad_system_files = json.load(f)["names"]
+        for name in bad_system_files:
+            if any(name in s for s in filenames):
+                errors.append(f"{name} file found in curation, please remove.")
+
     # process meta
     is_extreme = False
     curation_type = None
