@@ -265,6 +265,12 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(warnings, [])
             self.assertEqual(curation_type, CurationType.FLASH_GAME)
 
+    def test_desktop_ini(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _, _, _, _ = validate_curation(f"test_curations/test_curation_desktop_ini.{extension}")
+            self.assertCountEqual(errors, ["desktop.ini file found in curation, please remove."])
+            self.assertCountEqual(warnings, [])
+
 
 if __name__ == '__main__':
     unittest.main()
