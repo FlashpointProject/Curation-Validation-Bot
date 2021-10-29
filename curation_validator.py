@@ -156,13 +156,13 @@ def validate_curation(filename: str) -> tuple[list,
             errors.append("No files found in content folder.")
         # localflash checking
         if 'localflash' in os.listdir(content_folder_path):
-            files_in_localflash = list(file for file in os.listdir(content_folder_path + '/localflash'))
+            files_in_localflash = os.listdir(content_folder_path + '/localflash')
             if len(files_in_localflash) > 1:
                 errors.append("Content must be in additional folder in localflash rather than in localflash directly.")
             else:
                 with open("data/common_localflash_names.json") as f:
                     bad_localflash_names = json.load(f)["names"]
-                    for file in os.listdir(content_folder_path + '/localflash'):
+                    for file in files_in_localflash:
                         filepath = content_folder_path + '/localflash/' + file
                         if os.path.isfile(filepath):
                             errors.append(
