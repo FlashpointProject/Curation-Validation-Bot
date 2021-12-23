@@ -9,7 +9,6 @@ requests
 beautifulsoup4
 cachetools
 discord-pretty-help
-humanize
 
 fastapi
 uvicorn
