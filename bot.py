@@ -8,6 +8,8 @@ from discord.ext import commands
 from pretty_help import PrettyHelp
 
 from dotenv import load_dotenv
+
+from cogs.utils import context
 from logger import getLogger, set_global_logging_level
 from curation_validator import get_launch_commands_bluebot, validate_curation, CurationType
 
@@ -28,10 +30,16 @@ BOT_ALERTS_CHANNEL = int(os.getenv('BOT_ALERTS_CHANNEL'))
 PENDING_FIXES_CHANNEL = int(os.getenv('PENDING_FIXES_CHANNEL'))
 NOTIFY_ME_CHANNEL = int(os.getenv('NOTIFY_ME_CHANNEL'))
 GOD_USER = int(os.getenv('GOD_USER'))
-NOTIFICATION_SQUAD_ID = int(os.getenv('NOTIFICATION_SQUAD_ID'))
 BOT_GUY = int(os.getenv('BOT_GUY'))
+NOTIFICATION_SQUAD_ID = int(os.getenv('NOTIFICATION_SQUAD_ID'))
+TIMEOUT_ID = int(os.getenv('TIMEOUT_ID'))
 
-bot = commands.Bot(command_prefix="-", help_command=PrettyHelp(color=discord.Color.red()))
+intents = discord.Intents.default()
+intents.members = True
+bot = commands.Bot(command_prefix="-",
+                   help_command=PrettyHelp(color=discord.Color.red()),
+                   case_insensitive=False,
+                   intents=intents)
 COOL_CRAB = "<:cool_crab:587188729362513930>"
 EXTREME_EMOJI_ID = 778145279714918400
 
@@ -43,11 +51,15 @@ async def on_ready():
 
 @bot.event
 async def on_message(message: discord.Message):
-    await bot.process_commands(message)
+    await process_commands(message)
     await forward_ping(message)
     await notify_me(message)
     await check_curation_in_message(message, dry_run=False)
 
+
+async def process_commands(message):
+    ctx = await bot.get_context(message, cls=context.Context)
+    await bot.invoke(ctx)
 
 @bot.event
 async def on_command_error(ctx: discord.ext.commands.Context, error: Exception):
@@ -58,6 +70,16 @@ async def on_command_error(ctx: discord.ext.commands.Context, error: Exception):
         await ctx.channel.send("Insufficient permissions.")
         return
     elif isinstance(error, commands.CommandNotFound):
+        await ctx.channel.send(f"Command {ctx.invoked_with} not found.")
+        return
+    elif isinstance(error, commands.UserInputError):
+        await ctx.send("Invalid input.")
+        return
+    elif isinstance(error, commands.NoPrivateMessage):
+        try:
+            await ctx.author.send('This command cannot be used in direct messages.')
+        except discord.Forbidden:
+            pass
         return
     elif isinstance(error, commands.MessageNotFound):
         await ctx.channel.send("Message not found.")
@@ -79,14 +101,15 @@ async def forward_ping(message: discord.Message):
 
 
 async def notify_me(message: discord.Message):
-    notification_squad = message.guild.get_role(NOTIFICATION_SQUAD_ID)
-    if message.channel is bot.get_channel(NOTIFY_ME_CHANNEL):
-        if "unnotify me" in message.content.lower():
-            l.debug(f"Removed role from {message.author.id}")
-            await message.author.remove_roles(notification_squad)
-        elif "notify me" in message.content.lower():
-            l.debug(f"Gave role to {message.author.id}")
-            await message.author.add_roles(notification_squad)
+    if message.guild is not None:
+        notification_squad = message.guild.get_role(NOTIFICATION_SQUAD_ID)
+        if message.channel is bot.get_channel(NOTIFY_ME_CHANNEL):
+            if "unnotify me" in message.content.lower():
+                l.debug(f"Removed role from {message.author.id}")
+                await message.author.remove_roles(notification_squad)
+            elif "notify me" in message.content.lower():
+                l.debug(f"Gave role to {message.author.id}")
+                await message.author.add_roles(notification_squad)
 
 
 async def check_curation_in_message(message: discord.Message, dry_run: bool = True):
@@ -220,5 +243,8 @@ bot.load_extension('cogs.troubleshooting')
 bot.load_extension('cogs.curation')
 bot.load_extension('cogs.info')
 bot.load_extension('cogs.utilities')
+bot.load_extension('cogs.moderation')
+bot.load_extension('cogs.admin')
+
 l.info(f"starting the bot...")
 bot.run(TOKEN)
