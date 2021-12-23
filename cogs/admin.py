@@ -87,6 +87,7 @@ class Admin(commands.Cog):
         except commands.ExtensionNotLoaded:
             self.bot.load_extension(module)
 
+    @commands.has_any_role('Admin', 'Moderator', 'Developer')
     @_reload.command(name='all', hidden=True)
     async def _reload_all(self, ctx):
         """Reloads all modules, while pulling from git."""
