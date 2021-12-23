@@ -100,7 +100,7 @@ class Admin(commands.Cog):
 
         modules = self.find_modules_from_git(stdout)
         mods_text = '\n'.join(f'{index}. `{module}`' for index, (_, module) in enumerate(modules, start=1))
-        ctx.send(f'Updating modules:\n{mods_text}')
+        await ctx.send(f'Updating modules:\n{mods_text}')
 
         statuses = []
         for is_submodule, module in modules:
@@ -108,21 +108,21 @@ class Admin(commands.Cog):
                 try:
                     actual_module = sys.modules[module]
                 except KeyError:
-                    statuses.append(('<:greyTick:563231201280917524>', module))
+                    statuses.append(('✔️', module))
                 else:
                     try:
                         importlib.reload(actual_module)
                     except Exception as e:
-                        statuses.append(('<:redTick:330090723011592193>', module))
+                        statuses.append(('❌', module))
                     else:
-                        statuses.append(('<:greenTick:330090705336664065>', module))
+                        statuses.append(('✅', module))
             else:
                 try:
                     self.reload_or_load_extension(module)
                 except commands.ExtensionError:
-                    statuses.append(('<:redTick:330090723011592193>', module))
+                    statuses.append(('❌', module))
                 else:
-                    statuses.append(('<:greenTick:330090705336664065>', module))
+                    statuses.append(('✅', module))
 
         await ctx.send('\n'.join(f'{status}: `{module}`' for status, module in statuses))
 
