@@ -21,7 +21,7 @@ class Info(commands.Cog, description="General information about Flashpoint."):
         if search_query is None:
             l.debug(
                 f"masterlist command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-            await ctx.channel.send("Browse Flashpoint Catalog:\n"
+            await ctx.channel.send("Browse the Flashpoint Catalog:\n"
                                    "🔗 <https://nul.sh/misc/flashpoint/>")
         else:
             l.debug(
