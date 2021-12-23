@@ -29,6 +29,7 @@ class Admin(commands.Cog):
 
         return [output.decode() for output in result]
 
+    @commands.has_any_role('Admin', 'Moderator', 'Developer')
     @commands.command(hidden=True)
     async def load(self, ctx, *, module):
         """Loads a module."""
@@ -39,6 +40,7 @@ class Admin(commands.Cog):
         else:
             await ctx.send('\N{OK HAND SIGN}')
 
+    @commands.has_any_role('Admin', 'Moderator', 'Developer')
     @commands.command(hidden=True)
     async def unload(self, ctx, *, module):
         """Unloads a module."""
@@ -49,6 +51,7 @@ class Admin(commands.Cog):
         else:
             await ctx.send('\N{OK HAND SIGN}')
 
+    @commands.has_any_role('Admin', 'Moderator', 'Developer')
     @commands.group(name='reload', hidden=True, invoke_without_command=True)
     async def _reload(self, ctx, *, module):
         """Reloads a module."""
@@ -124,7 +127,9 @@ class Admin(commands.Cog):
                 else:
                     statuses.append(('✅', module))
 
-        await ctx.send('\n'.join(f'{status}: `{module}`' for status, module in statuses))
+        status_text = '\n'.join(f'{status}: `{module}`' for status, module in statuses)
+        await ctx.send(status_text if status_text else 'No modules updated.')
+
 
 def setup(bot):
     bot.add_cog(Admin(bot))
