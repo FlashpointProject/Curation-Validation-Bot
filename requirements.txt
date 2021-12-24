@@ -13,3 +13,4 @@ discord-pretty-help
 fastapi
 uvicorn
 python-multipart
+humanize
