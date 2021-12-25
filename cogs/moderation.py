@@ -36,6 +36,26 @@ class Moderation(commands.Cog, description="Moderation tools."):
         await member.remove_roles(trial_curator_role)
         await ctx.send("Done!")
 
+    @commands.command(name="make-donator", aliases=["make-don", "add-donator", "add-don"],
+                      brief="Give a user the donator role(Staff).",
+                      description="Give the donator role to a user (Staff only).")
+    @commands.has_any_role("Mechanic", "Developer", "Curator", "Archivist", "Hacker", "Hunter", "Administrator")
+    async def make_donator(self, ctx: discord.ext.commands.Context, member: discord.Member):
+        l.debug(f"make donator command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+        donator_role = discord.utils.get(ctx.guild.roles, name="Donator")
+        await member.add_roles(donator_role)
+        await ctx.send("Done!")
+
+    @commands.command(name="remove-donator", aliases=["unmake-don", "unmake-donator", "remove-don"],
+                      brief="Remove the donator role from a user (Staff).",
+                      description="Remove the donator role from a user (Staff only).")
+    @commands.has_any_role("Mechanic", "Developer", "Curator", "Archivist", "Hacker", "Hunter", "Administrator")
+    async def unmake_donator(self, ctx: discord.ext.commands.Context, member: discord.Member):
+        l.debug(f"unmake donator command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+        donator_role = discord.utils.get(ctx.guild.roles, name="Donator")
+        await member.remove_roles(donator_role)
+        await ctx.send("Done!")
+
 
 def setup(bot: commands.Bot):
     bot.add_cog(Moderation(bot))
