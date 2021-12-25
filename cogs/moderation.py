@@ -31,7 +31,7 @@ class Moderation(commands.Cog, description="Moderation tools."):
                       description="Remove the trial curator role from a user (Staff only).")
     @commands.has_any_role("Mechanic", "Developer", "Curator", "Archivist", "Hacker", "Hunter", "Administrator")
     async def unmake_trial(self, ctx: discord.ext.commands.Context, member: discord.Member):
-        l.debug(f"untrial curator command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+        l.debug(f"unmake trial curator command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         trial_curator_role = discord.utils.get(ctx.guild.roles, name="Trial Curator")
         await member.remove_roles(trial_curator_role)
         await ctx.send("Done!")
