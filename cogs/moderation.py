@@ -16,7 +16,7 @@ class Moderation(commands.Cog, description="Moderation tools."):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="trial", aliases=["make-trial", "make-trial-curator", "make-curator"],
+    @commands.command(name="trial", aliases=["make-trial", "make-trial-curator", "make-curator", "add-trial"],
                       brief="Make a user a trial curator (Staff).",
                       description="Make a user a trial curator (Staff only).")
     @commands.has_any_role("Mechanic", "Developer", "Curator", "Archivist", "Hacker", "Hunter", "Administrator")
@@ -26,7 +26,7 @@ class Moderation(commands.Cog, description="Moderation tools."):
         await member.add_roles(trial_curator_role)
         await ctx.send("Done!")
 
-    @commands.command(name="untrial", aliases=["unmake-trial", "unmake-trial-curator", "unmake-curator"],
+    @commands.command(name="untrial", aliases=["unmake-trial", "unmake-trial-curator", "unmake-curator", "remove-trial"],
                       brief="Remove the trial curator role from a user (Staff).",
                       description="Remove the trial curator role from a user (Staff only).")
     @commands.has_any_role("Mechanic", "Developer", "Curator", "Archivist", "Hacker", "Hunter", "Administrator")
