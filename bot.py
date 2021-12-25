@@ -63,6 +63,12 @@ async def on_command_error(ctx: discord.ext.commands.Context, error: Exception):
         await ctx.channel.send("Message not found.")
     elif isinstance(error, commands.ChannelNotFound):
         await ctx.channel.send("Channel not found.")
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing required argument.")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.channel.send("Bad argument.")
+    elif isinstance(error, commands.MemberNotFound):
+        await ctx.channel.send("Member not found.")
     else:
         reply_channel: discord.TextChannel = bot.get_channel(BOT_TESTING_CHANNEL)
         await reply_channel.send(f"<@{BOT_GUY}> the curation validator has thrown an exception:\n"
