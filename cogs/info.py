@@ -111,7 +111,7 @@ class Info(commands.Cog, description="General information about Flashpoint."):
     async def update(self, ctx: discord.ext.commands.Context):
         l.debug(f"update command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Updating Flashpoint:\n 🔗 "
-                               "<https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#UpdateFlashpoints>")
+                               "<https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#UpdateFlashpoint>")
 
 
 def setup(bot: commands.Bot):
