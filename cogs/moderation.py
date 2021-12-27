@@ -6,6 +6,7 @@ import discord
 from discord.ext import commands
 import humanize
 
+from bot import AUDITION_CHAT_CHANNEL
 from logger import getLogger
 
 l = getLogger("main")
@@ -24,7 +25,9 @@ class Moderation(commands.Cog, description="Moderation tools."):
         l.debug(f"make trial curator command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         trial_curator_role = discord.utils.get(ctx.guild.roles, name="Trial Curator")
         await member.add_roles(trial_curator_role)
-        await ctx.send("Done!")
+        audition_chat_channel = self.bot.get_channel(AUDITION_CHAT_CHANNEL)
+        await audition_chat_channel.send(f"Congratulations {member.mention}, you are now a Trial Curator!"
+                       f" Please log out and log back in of the submission site to update your permissions.")
 
     @commands.command(name="untrial", aliases=["unmake-trial", "unmake-trial-curator", "unmake-curator", "remove-trial"],
                       brief="Remove the trial curator role from a user (Staff).",
