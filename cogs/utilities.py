@@ -82,7 +82,7 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
     @commands.command(name="get-fixes", brief="Get json fixes in #pending-fixes (Moderator).",
                       description="Get all jsons in #pending-fixes not marked with a ⚠️ either before a "
                                   "last_message_url if specified or since today and after the pin (Moderator Only)")
-    @commands.has_role("Moderator")
+    @commands.check_any(commands.has_role("Moderator"), is_bot_guy())
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
     async def automatic_get_jsons(self, ctx: discord.ext.commands.Context, last_message: Optional[discord.Message],
                                   channel: Optional[discord.TextChannel] = None,
