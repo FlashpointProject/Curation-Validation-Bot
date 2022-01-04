@@ -7,6 +7,7 @@ import zipfile
 from typing import Optional
 
 import discord
+import aiohttp
 import py7zr
 from discord import HTTPException
 from discord.ext import commands
@@ -83,29 +84,46 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                                   "last_message_url if specified or since today and after the pin (Moderator Only)")
     @commands.has_role("Moderator")
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
-    async def automatic_get_jsons(self, ctx: discord.ext.commands.Context, last_message: Optional[discord.Message]):
+    async def automatic_get_jsons(self, ctx: discord.ext.commands.Context, last_message: Optional[discord.Message],
+                                  channel: Optional[discord.TextChannel] = None,
+                                  use_flashfreze: Optional[bool] = False):
         l.debug(
             f"pending fixes command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+        if not channel:
+            channel = self.bot.get_channel(PENDING_FIXES_CHANNEL)
         async with ctx.typing():
             if last_message is not None:
                 await ctx.send(
-                    f"Getting all jsons in #pending-fixes not marked with a ⚠️  before <{last_message.jump_url}> and after the pin. "
+                    f"Getting all jsons in {channel.mention} not marked with a ⚠️  before <{last_message.jump_url}> and after the pin. "
                     f"Sit back and relax, this will take a while {COOL_CRAB}.")
 
-                final_folder, start_date, end_date = await self.get_raw_json_messages_in_pending_fixes(last_message)
+                final_folder, start_date, end_date = await self.get_raw_json_messages_in_pending_fixes(last_message, channel)
             else:
-                await ctx.send(f"Getting all jsons in #pending-fixes not marked with a ⚠️ since the pin. "
+                await ctx.send(f"Getting all jsons in {channel.mention} not marked with a ⚠️ since the pin. "
                                f"Sit back and relax, this will take a while {COOL_CRAB}.")
-                final_folder, start_date, end_date = await self.get_raw_json_messages_in_pending_fixes(None)
+                final_folder, start_date, end_date = await self.get_raw_json_messages_in_pending_fixes(None, channel)
 
             archive = shutil.make_archive(f'pending_fixes {start_date} to {end_date}', 'zip', final_folder)
-            l.debug(f"Sending fetched pending fixes to channel {ctx.channel.id}")
+            l.debug(f"Sending fetched pending fixes")
             try:
-                await ctx.send(file=discord.File(archive))
+                if not use_flashfreze:
+                    await ctx.send(file=discord.File(archive))
+                else:
+                    await self.send_with_flashfreeze(ctx, archive)
             except HTTPException:
-                await ctx.send("Resulting file too large.")
+                await ctx.send("Resulting file too large, sending as to flashfreeze instead.")
+                await self.send_with_flashfreeze(ctx, archive)
+
         shutil.rmtree(final_folder, True)
         os.remove(archive)
+
+    async def send_with_flashfreeze(self, ctx, archive):
+        l.debug("Sending with flashfreeze")
+        async with aiohttp.ClientSession() as session:
+            with open(archive, 'rb') as f:
+                async with session.put('https://bluepload.unstable.life/upload/', data=f) as response:
+                    await ctx.send(f"uploaded to {await response.text()}")
+
 
     @commands.command(name="hell", hidden=True)
     @commands.has_role("Administrator")
@@ -191,21 +209,25 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                         if user.id == BLUE_ID:
                             return messages[:message_counter]
 
-    async def get_raw_json_messages_in_pending_fixes(self, newest_message: Optional[discord.Message]) -> Optional[tuple[str, str, str]]:
+    async def get_raw_json_messages_in_pending_fixes(self, newest_message: Optional[discord.Message], channel: discord.TextChannel) -> Optional[tuple[str, str, str]]:
         message_counter = 0
         downloaded_attachments: list[str] = []
         temp_folder = tempfile.mkdtemp(prefix='pending_fixes')
-        channel: discord.TextChannel = self.bot.get_channel(PENDING_FIXES_CHANNEL)
         pins: list[discord.Message] = await channel.pins()
         pins.sort(key=lambda pin: pin.created_at)
-        start_date = pins[-1].created_at.date().strftime('%Y-%m-%d')
+        if pins:
+            start_date = pins[-1].created_at.date().strftime('%Y-%m-%d')
+            oldest_message = pins[-1]
+        else:
+            start_date = None
+            oldest_message = None
         if newest_message is None:
             end_date = datetime.date.today().strftime('%Y-%m-%d')
         else:
             end_date = newest_message.created_at.date().strftime('%Y-%m-%d')
         uuid_regex = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
         l.debug("processing messages...")
-        async for msg in channel.history(before=newest_message, after=pins[-1], limit=None):
+        async for msg in channel.history(before=newest_message, after=oldest_message, limit=None):
             l.debug(f"Processing message {msg.id}")
             message_counter += 1
             if len(msg.attachments) != 1:
