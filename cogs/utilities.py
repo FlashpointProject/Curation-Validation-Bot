@@ -240,29 +240,28 @@ class Utilities(commands.Cog, description="Utilities, primarily for moderators."
                 if reaction.emoji == "⚠️":
                     should_be_manual = True
             attachment_filename = msg.attachments[0].filename
-            if attachment_filename.endswith('.json') and not should_be_manual:
-                l.debug(f"Downloading json {attachment_filename} from message {msg.id}")
+            if \
+                    attachment_filename.endswith('.json') or \
+                    attachment_filename.endswith('.zip') or attachment_filename.endswith('.7z') and \
+                    not should_be_manual and msg.attachments[0].size < 3_000_000:
+                l.debug(f"Downloading file {attachment_filename} from message {msg.id}")
                 num_duplicates = downloaded_attachments.count(attachment_filename)
+                folder_number = int(len(downloaded_attachments)/100)
                 downloaded_attachments.append(attachment_filename)
+                if not os.path.exists(f"{temp_folder}/{folder_number}"):
+                    os.makedirs(f"{temp_folder}/{folder_number}")
                 if num_duplicates == 0:
-                    await msg.attachments[0].save(temp_folder + '/' + attachment_filename)
+                    save_location = f'{temp_folder}/{folder_number}/{attachment_filename}'
                 else:
-                    await msg.attachments[0].save(temp_folder + '/dupe' + str(num_duplicates) + "-" + attachment_filename)
-            elif attachment_filename.endswith('.zip') or attachment_filename.endswith('.7z') and not should_be_manual and msg.attachments[0].size < 3_000_000:
-                l.debug(f"Downloading archive {attachment_filename} from message {msg.id}")
-                num_duplicates = downloaded_attachments.count(attachment_filename)
-                downloaded_attachments.append(attachment_filename)
-                if num_duplicates == 0:
-                    save_location = temp_folder + '/' + attachment_filename
-                else:
-                    save_location = temp_folder + '/dupe' + str(num_duplicates) + "-" + attachment_filename
+                    save_location = f'{temp_folder}/{folder_number}/dupe{num_duplicates}-{attachment_filename}'
                 await msg.attachments[0].save(save_location)
-                try:
-                    if not all(uuid_regex.search(x) for x in util.get_archive_filenames(save_location)):
+                if attachment_filename.endswith('.7z') or attachment_filename.endswith('.zip'):
+                    try:
+                        if not all(uuid_regex.search(x) for x in util.get_archive_filenames(save_location)):
+                            os.remove(save_location)
+                    except (util.NotArchiveType, util.ArchiveTooLargeException, zipfile.BadZipfile, py7zr.Bad7zFile) as e:
+                        l.info(f"Error {e} when opening {save_location}, removing archive.")
                         os.remove(save_location)
-                except (util.NotArchiveType, util.ArchiveTooLargeException, zipfile.BadZipfile, py7zr.Bad7zFile) as e:
-                    l.info(f"Error {e} when opening {save_location}, removing archive.")
-                    os.remove(save_location)
         return temp_folder, start_date, end_date
 
 
