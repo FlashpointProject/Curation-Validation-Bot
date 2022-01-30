@@ -131,6 +131,13 @@ class Admin(commands.Cog):
         status_text = '\n'.join(f'{status}: `{module}`' for status, module in statuses)
         await ctx.send(status_text if status_text else 'No modules updated.')
 
+    @commands.has_any_role('Admin', 'Moderator', 'Developer')
+    @commands.command(name='version', hidden=True)
+    async def version(self, ctx):
+        """Shows the current version of the bot."""
+        stdout, stderr = await self.run_process('git log -n 1')
+        await ctx.send(f'```\n{stdout}\n```')
+
 
 def setup(bot):
     bot.add_cog(Admin(bot))
