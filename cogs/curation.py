@@ -40,7 +40,7 @@ class Curation(commands.Cog, description="Information about curating games for F
                                "🔗 <https://bluemaxima.org/flashpoint/datahub/Tags>")
 
     @commands.command(name="lang", aliases=["langs", "languages"], brief="Language codes.",
-                      description="A list of ISO631-1 codes from Wikipedia.")
+                      description="A list of ISO 639-1 codes from Wikipedia.")
     async def lang(self, ctx: discord.ext.commands.Context):
         l.debug(f"lang command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("List of Language Codes:\n"
