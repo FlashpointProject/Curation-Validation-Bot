@@ -14,7 +14,8 @@ class Info(commands.Cog, description="General information about Flashpoint."):
         self.bot = bot
 
     @commands.command(name="masterlist",
-                      aliases=["ml", "master-list", "list", "games", "animations", "gamelist", "game-list", "search", "gl"],
+                      aliases=["ml", "master-list", "list", "games", "animations", "gamelist", "game-list", "search",
+                               "gl"],
                       brief="Link or search master list", description="Search the master list for a title, "
                                                                       "or link to a place to search if none is provided.")
     async def master_list(self, ctx: discord.ext.commands.Context, search_query: Optional[str] = None):
@@ -92,8 +93,9 @@ class Info(commands.Cog, description="General information about Flashpoint."):
     async def faq(self, ctx: discord.ext.commands.Context):
         l.debug(f"FAQ command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("FAQ:\n 🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ>")
-        
-    @commands.command(name="fullscreen", aliases=["fs", "full-screen"], brief="Fullscreening games.", description="How to fullscreen games.")
+
+    @commands.command(name="fullscreen", aliases=["fs", "full-screen"], brief="Fullscreening games.",
+                      description="How to fullscreen games.")
     async def fullscreen(self, ctx: discord.ext.commands.Context):
         l.debug(f"fullscreen command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("There are multiple ways to fullscreen games:\n 🔗 "
@@ -102,7 +104,8 @@ class Info(commands.Cog, description="General information about Flashpoint."):
     @commands.command(name="flashfreeze", aliases=["ff", "archived-websites"], brief="Flashfreeze info.",
                       description="How to find what flashpoint has archived.")
     async def flashfreeze(self, ctx: discord.ext.commands.Context):
-        l.debug(f"flashfreeze command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+        l.debug(
+            f"flashfreeze command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("How to see what we've archived:\n 🔗 "
                                "<https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#ArchivedWebsites>")
 
@@ -112,6 +115,13 @@ class Info(commands.Cog, description="General information about Flashpoint."):
         l.debug(f"update command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Updating Flashpoint:\n 🔗 "
                                "<https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#UpdateFlashpoint>")
+
+    @commands.command(name="savedata", aliases=["saves", "savedatalocation", "sd"], brief="Flashpoint save data.",
+                      description="Where to find Flashpoint save data.")
+    async def savedata(self, ctx: discord.ext.commands.Context):
+        l.debug(f"savedata command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+        await ctx.channel.send("Save data locations:\n 🔗 "
+                               "<https://bluemaxima.org/flashpoint/datahub/Save_Data_Locations>")
 
 
 def setup(bot: commands.Bot):
