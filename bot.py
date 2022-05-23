@@ -48,7 +48,7 @@ async def on_message(message: discord.Message):
 	if link_re.search(msg.content):
 		link = '[{1}](https://bluemaxima.org/flashpoint/datahub/' \
 		       'Special:Search?search={0})'
-		emb = discord.Embed(title='Page links in this message')
+		emb = discord.Embed(title='See the Flashpoint Wiki')
 		for m in link_re.finditer(msg.content):
 			if m.group(2):
 				text = m.group(2)
