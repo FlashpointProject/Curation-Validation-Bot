@@ -2,6 +2,7 @@ import os
 import re
 import traceback
 from typing import Optional
+from urllib.parse import quote as quote_url
 
 import discord
 from discord.ext import commands
@@ -43,6 +44,19 @@ async def on_ready():
 
 @bot.event
 async def on_message(message: discord.Message):
+	link_re = re.compile(r'\[\[([^\]|]+)\|?([^\]]*)\]\]')
+	if link_re.search(msg.content):
+		link = '[{1}](https://bluemaxima.org/flashpoint/datahub/' \
+		       'Special:Search?search={0})'
+		emb = discord.Embed(title='See the Flashpoint Wiki')
+		for m in link_re.finditer(msg.content):
+			if m.group(2):
+				text = m.group(2)
+			else:
+				text = m.group(1)
+			emb.add_field(name=f'`{m.group(0)}`',
+                          value=link.format(quote_url(m.group(1).replace(' ', '_')), text),inline=True)
+		await msg.reply(embed=emb, mention_author=False)
     await bot.process_commands(message)
     await forward_ping(message)
     await notify_me(message)
