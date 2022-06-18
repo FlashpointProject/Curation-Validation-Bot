@@ -44,19 +44,19 @@ async def on_ready():
 
 @bot.event
 async def on_message(message: discord.Message):
-	link_re = re.compile(r'\[\[([^\]|]+)\|?([^\]]*)\]\]')
-	if link_re.search(msg.content):
-		link = '[{1}](https://bluemaxima.org/flashpoint/datahub/' \
-		       'Special:Search?search={0})'
-		emb = discord.Embed(title='See the Flashpoint Wiki')
-		for m in link_re.finditer(msg.content):
-			if m.group(2):
-				text = m.group(2)
-			else:
-				text = m.group(1)
-			emb.add_field(name=f'`{m.group(0)}`',
-                          value=link.format(quote_url(m.group(1).replace(' ', '_')), text),inline=True)
-		await msg.reply(embed=emb, mention_author=False)
+    link_re = re.compile(r'\[\[([^\]|]+)\|?([^\]]*)\]\]')
+    if link_re.search(message.content):
+        link = '[{1}](https://bluemaxima.org/flashpoint/datahub/' \
+               'Special:Search?search={0})'
+        emb = discord.Embed(title='See the Flashpoint Wiki')
+        for m in link_re.finditer(message.content):
+            if m.group(2):
+                text = m.group(2)
+            else:
+                text = m.group(1)
+            emb.add_field(name=f'`{m.group(0)}`',
+                          value=link.format(quote_url(m.group(1).replace(' ', '_')), text), inline=True)
+        await message.reply(embed=emb, mention_author=False)
     await bot.process_commands(message)
     await forward_ping(message)
     await notify_me(message)
@@ -120,7 +120,8 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
     # TODO disable
     # is_curator_lounge = message.channel.id == CURATOR_LOUNGE_CHANNEL
 
-    if not (is_in_flash_game_channel or is_in_other_game_channel or is_in_animation_channel or is_audition):  # or is_curator_lounge):
+    if not (
+            is_in_flash_game_channel or is_in_other_game_channel or is_in_animation_channel or is_audition):  # or is_curator_lounge):
         return
 
     attachment = message.attachments[0]
@@ -232,6 +233,7 @@ async def check_curation_in_message(message: discord.Message, dry_run: bool = Tr
 def is_bot_guy():
     async def predicate(ctx):
         return ctx.author.id == BOT_GUY
+
     return commands.check(predicate)
 
 
