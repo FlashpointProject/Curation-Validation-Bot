@@ -106,7 +106,7 @@ class Info(commands.Cog, description="General information about Flashpoint."):
     async def flashfreeze(self, ctx: discord.ext.commands.Context):
         l.debug(
             f"flashfreeze command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-        await ctx.channel.send("How to see what we've archived:\n 🔗 "
+        await ctx.channel.send("Seeing what we've archived:\n 🔗 "
                                "<https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#ArchivedWebsites>")
 
     @commands.command(name="update", aliases=["updates"], brief="Updating Flashpoint.",
