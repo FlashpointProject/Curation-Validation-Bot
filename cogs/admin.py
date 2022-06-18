@@ -128,7 +128,8 @@ class Admin(commands.Cog):
                 else:
                     statuses.append((ctx.tick(True), module))
 
-        await ctx.send('\n'.join(f'{status}: `{module}`' for status, module in statuses))
+        status_text = '\n'.join(f'{status}: `{module}`' for status, module in statuses)
+        await ctx.send(status_text if status_text else 'No modules updated.')
 
     @commands.has_any_role('Admin', 'Moderator', 'Developer')
     @commands.command(name='version', hidden=True)
