@@ -96,37 +96,31 @@ class Admin(commands.Cog):
         # however, things like "fast forward" and files
         # along with the text "already up-to-date" are in stdout
 
-        if stdout.startswith('Already up-to-date.'):
+        if stdout.startswith('Already up to date.'):
             return await ctx.send(stdout)
 
         modules = self.find_modules_from_git(stdout)
-        mods_text = '\n'.join(f'{index}. `{module}`' for index, (_, module) in enumerate(modules, start=1))
-        prompt_text = f'This will update the following modules, are you sure?\n{mods_text}'
-        confirm = await ctx.prompt(prompt_text, reacquire=False)
-        if not confirm:
-            return await ctx.send('Aborting.')
-
         statuses = []
         for is_submodule, module in modules:
             if is_submodule:
                 try:
                     actual_module = sys.modules[module]
                 except KeyError:
-                    statuses.append((ctx.tick(None), module))
+                    statuses.append(('✔️', module))
                 else:
                     try:
                         importlib.reload(actual_module)
                     except Exception as e:
-                        statuses.append((ctx.tick(False), module))
+                        statuses.append(('❌', module))
                     else:
-                        statuses.append((ctx.tick(True), module))
+                        statuses.append(('✅', module))
             else:
                 try:
                     await self.reload_or_load_extension(module)
                 except commands.ExtensionError:
-                    statuses.append((ctx.tick(False), module))
+                    statuses.append(('❌', module))
                 else:
-                    statuses.append((ctx.tick(True), module))
+                    statuses.append(('✅', module))
 
         status_text = '\n'.join(f'{status}: `{module}`' for status, module in statuses)
         await ctx.send(status_text if status_text else 'No modules updated.')
