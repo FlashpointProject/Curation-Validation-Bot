@@ -231,30 +231,36 @@ def validate_curation(filename: str) -> tuple[list,
         language_properties: tuple[str, bool] = "Languages", bool(props.get("Languages"))
         if language_properties[1]:
             with open("data/language-codes.json") as f:
-                list_of_language_codes: list[dict] = json.load(f)
+                list_of_languages_and_codes: list[dict] = json.load(f)
             with open("data/lang_replacements.json") as f:
                 replacements: dict = json.load(f)
             language_str: str = props.get("Languages", "")
             language_codes = language_str.split(";")
             language_codes = [x.strip() for x in language_codes]
-            valid_language_codes = []
-            for x in list_of_language_codes:
-                valid_language_codes.append(x["alpha2"])
+            valid_language_codes = [language["alpha2"] for language in list_of_languages_and_codes]
             for language_code in language_codes:
                 replacement_code = replacements.get(language_code)
                 if language_code not in valid_language_codes:
                     if language_code == "":
                         pass
-                    elif ',' in language_code:
-                        errors.append("Languages should be separated with semicolons, not commas.")
-                    elif language_code in [x["English"] for x in list_of_language_codes]:
-                        for x in list_of_language_codes:
+                    # if the language code is a valid alpha3 code and there's no valid alpha2 code for it, we allow that
+                    elif language_code in [language["alpha3-b"] for language in list_of_languages_and_codes if not language["alpha2"]]:
+                        pass
+                    elif language_code in [language["alpha3-b"] for language in list_of_languages_and_codes]:
+                        for x in list_of_languages_and_codes:
+                            if language_code in x["alpha3-b"]:
+                                errors.append(
+                                    f"Languages must be in ISO 639-1 format, so please use `{x['alpha2']}` instead of `{language_code}`")
+                    elif language_code in [language["English"] for language in list_of_languages_and_codes]:
+                        for x in list_of_languages_and_codes:
                             if language_code in x["English"]:
                                 errors.append(
                                     f"Languages must be in ISO 639-1 format, so please use `{x['alpha2']}` instead of `{language_code}`")
+                    elif ',' in language_code:
+                        errors.append("Languages should be separated with semicolons, not commas.")
                     elif replacement_code is not None:
                         language_name = ""
-                        for x in list_of_language_codes:
+                        for x in list_of_languages_and_codes:
                             if replacement_code == x["alpha2"]:
                                 language_name = x["English"]
                         errors.append(

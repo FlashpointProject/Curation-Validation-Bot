@@ -271,6 +271,19 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, ["desktop.ini file found in curation, please remove."])
             self.assertCountEqual(warnings, [])
 
+    def test_three_letter_invalid_language(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _, _, _, _ = validate_curation(f"test_curations/test_curation_three_letter_lang_invalid.{extension}")
+            self.assertCountEqual(errors, ["Languages must be in ISO 639-1 format, so please use `en` instead of `eng`"])
+            self.assertCountEqual(warnings, [])
+
+    def test_three_letter_valid_language(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _, _, _, _ = validate_curation(f"test_curations/test_curation_three_letter_lang_valid.{extension}")
+            self.assertCountEqual(errors, [])
+            self.assertCountEqual(warnings, [])
+
+
 
 if __name__ == '__main__':
     unittest.main()
