@@ -2,8 +2,9 @@
 A Discord bot that validates curations for [BlueMaxima's Flashpoint](https://bluemaxima.org/flashpoint/). Also does other things.
 
 ## Setup and run
-- prepare your discord bot shenanigans
+- prepare your discord bot shenanigans, it requires the Server Members intent
 - copy `example.env` into `.env` and set the variables
+- copy `data/example_rolereaction.json` into `data/rolereaction.json` and set the variables
 - `pip install -r requirements.txt`
 - `python bot.py`
 

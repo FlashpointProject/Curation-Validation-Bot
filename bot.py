@@ -32,7 +32,10 @@ GOD_USER = int(os.getenv('GOD_USER'))
 NOTIFICATION_SQUAD_ID = int(os.getenv('NOTIFICATION_SQUAD_ID'))
 BOT_GUY = int(os.getenv('BOT_GUY'))
 
-bot = commands.Bot(command_prefix="-", help_command=PrettyHelp(color=discord.Color.red()))
+intents = discord.Intents.default()
+intents.members = True
+
+bot = commands.Bot(command_prefix="-", help_command=PrettyHelp(color=discord.Color.red()), intents=intents)
 COOL_CRAB = "<:cool_crab:587188729362513930>"
 EXTREME_EMOJI_ID = 778145279714918400
 
@@ -244,5 +247,6 @@ bot.load_extension('cogs.info')
 bot.load_extension('cogs.utilities')
 bot.load_extension('cogs.moderation')
 bot.load_extension('cogs.admin')
+bot.load_extension('cogs.reaction_roles')
 l.info(f"starting the bot...")
 bot.run(TOKEN)

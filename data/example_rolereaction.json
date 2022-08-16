@@ -1,0 +1,18 @@
+{
+    "messageId": 0,
+    "channelId": 0,
+    "emojiRoleMap": {
+        "\ud83c\uddf1": [
+            0,
+            "Role1"
+        ],
+        "\ud83c\uddf2": [
+            1008904433456922684,
+            "Role2"
+        ],
+        "\ud83d\udd14": [
+            478369603622273024,
+            "Role3"
+        ]
+    }
+}
