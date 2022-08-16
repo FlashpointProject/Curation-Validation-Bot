@@ -20,7 +20,7 @@ class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def run_process(self, command):
+    async def run_process(self, command: str) -> list[str]:
         try:
             process = await asyncio.create_subprocess_shell(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             result = await process.communicate()
@@ -34,7 +34,7 @@ class Admin(commands.Cog):
     async def load(self, ctx: Context, *, module: str):
         """Loads a module."""
         try:
-            await self.bot.load_extension(module)
+            self.bot.load_extension(module)
         except commands.ExtensionError as e:
             await ctx.send(f'{e.__class__.__name__}: {e}')
         else:
@@ -44,7 +44,7 @@ class Admin(commands.Cog):
     async def unload(self, ctx: Context, *, module: str):
         """Unloads a module."""
         try:
-            await self.bot.unload_extension(module)
+            self.bot.unload_extension(module)
         except commands.ExtensionError as e:
             await ctx.send(f'{e.__class__.__name__}: {e}')
         else:
@@ -54,7 +54,7 @@ class Admin(commands.Cog):
     async def _reload(self, ctx: Context, *, module: str):
         """Reloads a module."""
         try:
-            await self.bot.reload_extension(module)
+            self.bot.reload_extension(module)
         except commands.ExtensionError as e:
             await ctx.send(f'{e.__class__.__name__}: {e}')
         else:
@@ -81,9 +81,9 @@ class Admin(commands.Cog):
 
     async def reload_or_load_extension(self, module: str) -> None:
         try:
-            await self.bot.reload_extension(module)
+            self.bot.reload_extension(module)
         except commands.ExtensionNotLoaded:
-            await self.bot.load_extension(module)
+            self.bot.load_extension(module)
 
     @_reload.command(name='all', hidden=True)
     async def _reload_all(self, ctx: Context):
