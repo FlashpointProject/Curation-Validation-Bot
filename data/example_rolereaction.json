@@ -1,0 +1,19 @@
+{
+    "messageId": 0,
+    "channelId": 0,
+    "messageTitle": "React with an emoji to add a role!",
+    "emojiRoleMap": {
+        "\ud83c\uddf1": [
+            0,
+            "Role1"
+        ],
+        "\ud83c\uddf2": [
+            0,
+            "Role2"
+        ],
+        "\ud83d\udd14": [
+            0,
+            "Role3"
+        ]
+    }
+}
