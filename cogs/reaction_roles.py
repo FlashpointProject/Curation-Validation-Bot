@@ -20,7 +20,7 @@ class ReactionRoles(commands.Cog, description="Reaction Roles"):
         l.debug(f"Role reaction message created by {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         with open('data/rolereaction.json', 'r', encoding='utf8') as f:
             rolereaction = json.load(f)
-        embed=discord.Embed(title="React with an emoji to add a role!", color=discord.Color.red(), description="")
+        embed=discord.Embed(title=rolereaction['messageTitle'], color=discord.Color.red(), description="")
         for emoji in rolereaction['emojiRoleMap'].keys():
             embed.description += emoji + " " + rolereaction['emojiRoleMap'][emoji][1] + "\n"
         msg = await self.bot.get_channel(rolereaction['channelId']).send(embed=embed)
