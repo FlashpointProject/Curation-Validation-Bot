@@ -90,7 +90,7 @@ async def on_command_error(ctx: discord.ext.commands.Context, error: Exception):
         reply_channel: discord.TextChannel = bot.get_channel(BOT_TESTING_CHANNEL)
         await reply_channel.send(f"<@{BOT_GUY}> the curation validator has thrown an exception:\n"
                                  f"🔗 {ctx.message.jump_url}\n"
-                                 f"```{''.join(traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__))}```")
+                                 f"```{''.join(traceback.format_exception(type(error), value=error, tb=error.__traceback__))}```")
         return
 
 
@@ -240,13 +240,9 @@ def is_bot_guy():
     return commands.check(predicate)
 
 
-bot.load_extension('cogs.batch_validate')
-bot.load_extension('cogs.troubleshooting')
-bot.load_extension('cogs.curation')
-bot.load_extension('cogs.info')
-bot.load_extension('cogs.utilities')
-bot.load_extension('cogs.moderation')
-bot.load_extension('cogs.admin')
-bot.load_extension('cogs.reaction_roles')
+for filename in os.listdir("./cogs"):
+    if filename.endswith(".py"):
+        bot.load_extension(f"cogs.{filename[:-3]}")
+    print(f"Cog \"{filename[:-3]}\" has been loaded.")
 l.info(f"starting the bot...")
 bot.run(TOKEN)
