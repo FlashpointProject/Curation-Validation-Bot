@@ -64,6 +64,15 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
         l.debug(f"partial_downloads command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Games in Flashpoint Infinity may fail to download properly:\n"
                                "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#InfinityPartialDownloads>")
+        
+    @commands.command(name="250",
+                      aliases=["limitedsearch", "250search", "250-search", "unlimitedsearch"],
+                      brief="250 search limit troubleshooting.",
+                      description="250 search limit troubleshooting.")
+    async def partial_downloads(self, ctx: discord.ext.commands.Context):
+        l.debug(f"250 command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+        await ctx.channel.send("Currently, searched are limited to 250 results:\n"
+                               "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#250SearchResults>")
 
 
 def setup(bot: commands.Bot):
