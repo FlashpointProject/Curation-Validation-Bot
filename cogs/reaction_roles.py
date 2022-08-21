@@ -32,7 +32,7 @@ class ReactionRoles(commands.Cog, description="Reaction Roles"):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        f = open('data/rolereaction.json', 'r', encoding='utf8') 
+        f = open('data/rolereaction.json', 'r+', encoding='utf8') 
         rolereaction = json.load(f)
         reactionmessage = rolereaction['messageId']
         if reaction.message.id != reactionmessage:
@@ -48,7 +48,7 @@ class ReactionRoles(commands.Cog, description="Reaction Roles"):
     
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
-        f = open('data/rolereaction.json', 'rb', encoding='utf8') 
+        f = open('data/rolereaction.json', 'r', encoding='utf8') 
         rolereaction = json.load(f)
         reactionmessage = rolereaction['messageId']
         if reaction.message.id != reactionmessage:
