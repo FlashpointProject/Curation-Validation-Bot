@@ -16,9 +16,9 @@ class ReactionRoles(commands.Cog, description="Reaction Roles"):
         self.bot = bot
     @commands.command(name="rolereactionmessage", hidden=True)
     @commands.has_role("Administrator")
-    async def rolereactionmessage(self, ctx: discord.ext.commands.Context):
+    async def rolereactionmessage(self, ctx: discor d.ext.commands.Context):
         l.debug(f"Role reaction message created by {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-        with open('data/rolereaction.json', 'r', encoding='utf8') as f:
+        with open('data/rolereaction.json', 'r+', encoding='utf8') as f:
             rolereaction = json.load(f)
         embed=discord.Embed(title=rolereaction['messageTitle'], color=discord.Color.red(), description="")
         for emoji in rolereaction['emojiRoleMap'].keys():
@@ -32,10 +32,11 @@ class ReactionRoles(commands.Cog, description="Reaction Roles"):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        f = open('data/rolereaction.json', 'r+', encoding='utf8') 
+        f = open('data/rolereaction.json', 'r', encoding='utf8') 
         rolereaction = json.load(f)
         reactionmessage = rolereaction['messageId']
         if reaction.message.id != reactionmessage:
+            l.debug(f"Message id is {reaction.message.id}, needed message id is {reactionmessage}; role not added")
             f.close()
             return
         l.debug(f"Role reaction messages reacted to by {user.id} with {reaction.emoji}")
@@ -47,10 +48,11 @@ class ReactionRoles(commands.Cog, description="Reaction Roles"):
     
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
-        f = open('data/rolereaction.json', 'r+', encoding='utf8') 
+        f = open('data/rolereaction.json', 'rb', encoding='utf8') 
         rolereaction = json.load(f)
         reactionmessage = rolereaction['messageId']
         if reaction.message.id != reactionmessage:
+            l.debug(f"Message id is {reaction.message.id}, needed message id is {reactionmessage}; role not removed")
             f.close()
             return
         l.debug(f"Role reaction removed by {user.id} with {reaction.emoji}")
