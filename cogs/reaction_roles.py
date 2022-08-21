@@ -16,7 +16,7 @@ class ReactionRoles(commands.Cog, description="Reaction Roles"):
         self.bot = bot
     @commands.command(name="rolereactionmessage", hidden=True)
     @commands.has_role("Administrator")
-    async def rolereactionmessage(self, ctx: discor d.ext.commands.Context):
+    async def rolereactionmessage(self, ctx: discord.ext.commands.Context):
         l.debug(f"Role reaction message created by {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         with open('data/rolereaction.json', 'r+', encoding='utf8') as f:
             rolereaction = json.load(f)
