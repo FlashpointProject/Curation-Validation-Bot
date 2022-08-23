@@ -69,7 +69,7 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
                       aliases=["limitedsearch", "250search", "250-search", "unlimitedsearch"],
                       brief="250 search limit troubleshooting.",
                       description="250 search limit troubleshooting.")
-    async def partial_downloads(self, ctx: discord.ext.commands.Context):
+    async def limitedsearch(self, ctx: discord.ext.commands.Context):
         l.debug(f"250 command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Currently, searches are limited to 250 results:\n"
                                "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#250SearchResults>")
