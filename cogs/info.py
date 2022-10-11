@@ -23,12 +23,12 @@ class Info(commands.Cog, description="General information about Flashpoint."):
             l.debug(
                 f"masterlist command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
             await ctx.channel.send("Browse Flashpoint Catalog:\n"
-                                   "🔗 <https://nul.sh/misc/flashpoint/>")
+                                   "🔗 <https://flashpoint-search.unstable.life/>")
         else:
             l.debug(
                 f"masterlist with query command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-            await ctx.channel.send("Direct search not implemented yet.\n"
-                                   "🔗 <https://nul.sh/misc/flashpoint/>")
+            await ctx.channel.send("Direct search from Discord not implemented yet. You can use the Flashpoint Search Tool:\n"
+                                   "🔗 <https://flashpoint-search.unstable.life/>")
 
     @commands.command(name="downloads", aliases=["dl"], brief="Where to download Flashpoint.",
                       description="A link to the place to to download Flashpoint.")
