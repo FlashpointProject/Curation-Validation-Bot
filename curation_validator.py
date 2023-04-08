@@ -210,6 +210,10 @@ def validate_curation(filename: str) -> tuple[list,
                 archive_cleanup(filename, base_path)
                 return errors, warnings, None, None, None, None
 
+        # translate legacy fields
+        if props.get("Platform") is not None:
+            props["Platforms"] = props["Platform"]
+
         title: tuple[str, bool] = ("Title", bool(props.get("Title")))
         # developer: tuple[str, bool] = ("Developer", bool(props["Developer"]))
         release_date: tuple[str, bool] = ("Release Date", bool(props.get("Release Date")))
@@ -315,8 +319,8 @@ def validate_curation(filename: str) -> tuple[list,
         if props.get("Library") is not None and "theatre" in props.get("Library"):
             curation_type = CurationType.ANIMATION
         else:
-            platform: Optional[str] = props.get("Platform")
-            if platform is None or "Flash" in platform:
+            platforms: Optional[str] = props.get("Platforms")
+            if platforms is None or "Flash" in platforms:
                 curation_type = CurationType.FLASH_GAME
             else:
                 curation_type = CurationType.OTHER_GAME

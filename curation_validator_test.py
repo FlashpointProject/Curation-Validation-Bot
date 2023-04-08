@@ -265,6 +265,12 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(warnings, [])
             self.assertEqual(curation_type, CurationType.FLASH_GAME)
 
+    def test_convert_platform_field(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, is_extreme, _, meta, _ = validate_curation(f"test_curations/test_curation_valid.{extension}")
+            self.assertCountEqual(errors, [])
+            self.assertCountEqual(warnings, [])
+            self.assertEqual(meta["Platforms"], "Flash")
 
 if __name__ == '__main__':
     unittest.main()
