@@ -1,0 +1,3 @@
+[submodule "bluezip"]
+	path = bluezip
+	url = https://github.com/FlashpointProject/bluezip.git

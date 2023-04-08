@@ -1,6 +1,7 @@
 import pathlib
 import tempfile
 import traceback
+from repack import repack
 
 from fastapi import FastAPI, File, UploadFile, Response, status
 import shutil
@@ -83,3 +84,40 @@ async def provide_file(response: Response, path: str):
 @app.get("/tags")
 async def get_wiki_tags():
     return {"tags": get_tag_list_wiki() + get_tag_list_file()}
+
+@app.post("/pack-path")
+async def pack_path(response: Response, path: str):
+    try:
+        l.debug(f"validating provided file before import '{path}'")
+        curation_errors, curation_warnings, is_extreme, curation_type, meta, image_dict = validate_curation(path)
+
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return {
+            "exception": "".join(
+                traceback.format_exception(
+                    etype=type(e), value=e, tb=e.__traceback__
+                )
+            )
+        }
+
+    try:
+        l.debug(f"packing '{path}'")
+        errors, output_file = repack(path)
+        if len(errors) > 0:
+            return {
+                "error": "error repacking curation"
+            }
+        else:
+            return {
+                "path": output_file
+            }
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return {
+            "exception": "".join(
+                traceback.format_exception(
+                    etype=type(e), value=e, tb=e.__traceback__
+                )
+            )
+        }

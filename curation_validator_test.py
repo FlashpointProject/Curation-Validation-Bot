@@ -1,5 +1,7 @@
+import os
 import unittest
 from unittest.mock import patch
+import repack
 
 from curation_validator import validate_curation, CurationType
 
@@ -271,6 +273,12 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
             self.assertEqual(meta["Platforms"], "Flash")
+
+    def test_valid_bluezip(self):
+        for extension in ["7z", "zip"]:
+            errors, output = repack.repack(f"test_curations/test_curation_valid.{extension}")
+            self.assertCountEqual(errors, [])
+            self.assertTrue(os.path.exists(output))
 
 if __name__ == '__main__':
     unittest.main()
