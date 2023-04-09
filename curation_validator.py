@@ -336,6 +336,25 @@ def validate_curation(filename: str) -> tuple[list,
         image_path = f"{base_path}{screenshot}"
         images.append({"type": f"screenshot", "data": encode_image(image_path)})
 
+    # map add apps to more 'Extras', 'Message' props and an 'Add Apps' array
+    addApps = props.get("Additional Applications")
+    addAppsArr = []
+    if addApps is not None:
+        keys = list(addApps)
+        for key in keys:
+            if key == "Extras":
+                props["Extras"] = addApps["Extras"]
+            elif key == "Message":
+                props["Message"] = addApps["Message"]
+            else:
+                addAppsArr.append({
+                    "Heading": key,
+                    "Application Path": addApps[key]["Application Path"],
+                    "Launch Command": addApps[key]["Launch Command"]
+                })
+    props["Additional Applications"] = addAppsArr
+    print(props["Additional Applications"])
+
     archive_cleanup(filename, base_path)
     return errors, warnings, is_extreme, curation_type, props, images
 

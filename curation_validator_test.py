@@ -1,7 +1,7 @@
 import os
 import unittest
 from unittest.mock import patch
-import repack
+from repack import repack
 
 from curation_validator import validate_curation, CurationType
 
@@ -269,16 +269,27 @@ class TestCurationValidator(unittest.TestCase):
 
     def test_convert_platform_field(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, is_extreme, _, meta, _ = validate_curation(f"test_curations/test_curation_valid.{extension}")
+            errors, warnings, _, _, meta, _ = validate_curation(f"test_curations/test_curation_valid.{extension}")
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
             self.assertEqual(meta["Platforms"], "Flash")
 
-    def test_valid_bluezip(self):
+    def test_bluezip(self):
         for extension in ["7z", "zip"]:
-            errors, output = repack.repack(f"test_curations/test_curation_valid.{extension}")
+            errors, output = repack(f"test_curations/test_curation_valid.{extension}")
             self.assertCountEqual(errors, [])
             self.assertTrue(os.path.exists(output))
+
+    def test_addapps(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _, _, meta, _ = validate_curation(f"test_curations/test_curation_valid_addapps.{extension}")
+            self.assertCountEqual(errors, [])
+            self.assertEqual(meta["Extras"], "test")
+            self.assertEqual(meta["Message"], "test")
+            self.assertEqual(len(meta["Additional Applications"]), 1)
+            self.assertEqual(meta["Additional Applications"][0]["Heading"], "Test")
+            self.assertEqual(meta["Additional Applications"][0]["Application Path"], "test")
+            self.assertEqual(meta["Additional Applications"][0]["Launch Command"], "test")
 
 if __name__ == '__main__':
     unittest.main()

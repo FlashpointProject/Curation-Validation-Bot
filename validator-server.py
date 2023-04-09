@@ -110,7 +110,9 @@ async def pack_path(response: Response, path: str):
             }
         else:
             return {
-                "path": output_file
+                "path": output_file,
+                "meta": meta,
+                "images": image_dict
             }
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
