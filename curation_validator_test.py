@@ -5,6 +5,7 @@ from repack import repack
 
 from curation_validator import validate_curation, CurationType
 
+os.environ["REPACK_DIR"] = "/home/colin/flashpoint-submission-system/files/temp"
 
 def mock_get_tag_list() -> list[str]:
     return ["A", "B", "E"]

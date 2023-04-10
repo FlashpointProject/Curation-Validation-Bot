@@ -2,6 +2,8 @@ import os.path
 import subprocess
 import tempfile
 import zipfile
+import random
+import string
 
 import py7zr
 from logger import getLogger
@@ -12,7 +14,11 @@ l = getLogger("repack")
 def repack(filename: str):
     filename = os.path.abspath(filename)
     errors: list = []
-    temp_folder = tempfile.mkdtemp()
+    repack_folder = os.environ["REPACK_DIR"]
+    temp_folder = os.path.join(repack_folder, ''.join(random.choices(string.ascii_letters + string.digits, k=10)))
+    if not os.path.exists(temp_folder):
+        # If not, create the directory and its parents recursively
+        os.makedirs(temp_folder, 0o777)
 
     # unpack file
 
@@ -34,7 +40,11 @@ def repack(filename: str):
         errors.append("Error during bluezip")
         return errors, ""
 
-    # Get the list of files inside the folder
+    for r, d, f in os.walk(temp_folder):
+        os.chmod(r, 0o777)
+    os.chmod(temp_folder, 0o777)
+
+# Get the list of files inside the folder
     files = os.listdir(temp_folder)
 
     # Filter out any subdirectories and get the first file
