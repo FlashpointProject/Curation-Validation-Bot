@@ -130,3 +130,6 @@ dmypy.json
 
 # Bluezip
 /bluezip/bluezip.db
+
+# Testing
+/repack

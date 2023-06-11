@@ -214,6 +214,10 @@ def validate_curation(filename: str) -> tuple[list,
         if props.get("Platform") is not None:
             props["Platforms"] = props["Platform"]
 
+        # add primary platform if missing
+        if "Platforms" in props and "Primary Platform" not in props:
+            props["Primary Platform"] = props["Platforms"].split(';')[0].strip()
+
         title: tuple[str, bool] = ("Title", bool(props.get("Title")))
         # developer: tuple[str, bool] = ("Developer", bool(props["Developer"]))
         release_date: tuple[str, bool] = ("Release Date", bool(props.get("Release Date")))

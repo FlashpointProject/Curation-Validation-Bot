@@ -5,7 +5,7 @@ from repack import repack
 
 from curation_validator import validate_curation, CurationType
 
-os.environ["REPACK_DIR"] = "/home/colin/flashpoint-submission-system/files/temp"
+os.environ["REPACK_DIR"] = os.path.dirname(os.path.realpath(__file__)) + '/repack/'
 
 def mock_get_tag_list() -> list[str]:
     return ["A", "B", "E"]
@@ -291,6 +291,17 @@ class TestCurationValidator(unittest.TestCase):
             self.assertEqual(meta["Additional Applications"][0]["Heading"], "Test")
             self.assertEqual(meta["Additional Applications"][0]["Application Path"], "test")
             self.assertEqual(meta["Additional Applications"][0]["Launch Command"], "test")
+
+    def test_primary_platform(self):
+        for extension in ["7z", "zip"]:
+            # From empty
+            errors, warnings, _, _, meta, _ = validate_curation(f"test_curations/test_curation_valid.{extension}")
+            self.assertCountEqual(errors, [])
+            self.assertEqual(meta["Primary Platform"], "Flash")
+            # From stated
+            errors, warnings, _, _, meta, _ = validate_curation(f"test_curations/test_curation_primary_platform.{extension}")
+            self.assertCountEqual(errors, [])
+            self.assertEqual(meta["Primary Platform"], "HTML5")
 
 if __name__ == '__main__':
     unittest.main()

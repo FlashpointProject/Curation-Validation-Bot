@@ -27,6 +27,7 @@ def repack(filename: str):
 
     # Spawn a process with arguments
     process_args = ["python", "./bluezip.py", os.path.abspath(filename), "-o", temp_folder]
+    print(process_args)
     process = subprocess.Popen(process_args, cwd='bluezip', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # Wait for the process to exit and get the output
