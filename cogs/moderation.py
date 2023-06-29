@@ -92,5 +92,5 @@ class Moderation(commands.Cog, description="Moderation tools."):
         await ctx.send("Done!")
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Moderation(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Moderation(bot))

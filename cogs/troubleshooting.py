@@ -75,5 +75,5 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
                                "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#250SearchResults>")
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Troubleshooting(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Troubleshooting(bot))

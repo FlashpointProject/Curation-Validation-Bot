@@ -1,6 +1,6 @@
 wheel
 py7zr
-discord
+discord>=2.3.1
 python-dotenv
 ruamel.yaml
 colorlog

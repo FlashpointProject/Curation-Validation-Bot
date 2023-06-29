@@ -269,5 +269,5 @@ class BadURLException(Exception):
     pass
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Utilities(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Utilities(bot))

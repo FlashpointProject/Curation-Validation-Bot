@@ -62,5 +62,5 @@ class ReactionRoles(commands.Cog, description="Reaction Roles"):
             await user.remove_roles(role)
         f.close()
 
-def setup(bot: commands.Bot):
-    bot.add_cog(ReactionRoles(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(ReactionRoles(bot))

@@ -124,5 +124,5 @@ class Info(commands.Cog, description="General information about Flashpoint."):
                                "<https://bluemaxima.org/flashpoint/datahub/Save_Data_Locations>")
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Info(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Info(bot))

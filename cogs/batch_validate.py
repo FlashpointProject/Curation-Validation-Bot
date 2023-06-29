@@ -6,7 +6,6 @@ from discord.ext import commands
 from bot import l, FLASH_GAMES_CHANNEL, OTHER_GAMES_CHANNEL, ANIMATIONS_CHANNEL, COOL_CRAB, \
     check_curation_in_message
 
-
 class BatchCheck(commands.Cog, description="Batch Checking"):
 
     def __init__(self, bot):
@@ -121,5 +120,5 @@ class BatchCheck(commands.Cog, description="Batch Checking"):
                             len(msg.attachments) == 1]  # TODO can we have more than one attachment?
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(BatchCheck(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(BatchCheck(bot))

@@ -1,3 +1,4 @@
+import asyncio
 import os
 import re
 import traceback
@@ -34,6 +35,8 @@ BOT_GUY = int(os.getenv('BOT_GUY'))
 
 intents = discord.Intents.default()
 intents.members = True
+intents.message_content = True
+intents.guild_messages = True
 
 bot = commands.Bot(command_prefix="-", help_command=PrettyHelp(color=discord.Color.red()), intents=intents)
 COOL_CRAB = "<:cool_crab:587188729362513930>"
@@ -240,9 +243,18 @@ def is_bot_guy():
     return commands.check(predicate)
 
 
-for filename in os.listdir("./cogs"):
-    if filename.endswith(".py"):
-        bot.load_extension(f"cogs.{filename[:-3]}")
-    print(f"Cog \"{filename[:-3]}\" has been loaded.")
-l.info(f"starting the bot...")
-bot.run(TOKEN)
+
+async def main():
+    # load cogs
+    for filename in os.listdir("./cogs"):
+        if filename.endswith(".py"):
+            await bot.load_extension(f"cogs.{filename[:-3]}")
+        print(f"Cog \"{filename[:-3]}\" has been loaded.")
+
+    # start the client
+    l.info(f"starting the bot...")
+    async with bot:
+        await bot.start(TOKEN)
+
+if __name__ == "__main__":
+    asyncio.run(main())
