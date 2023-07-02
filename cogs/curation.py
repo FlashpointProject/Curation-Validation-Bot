@@ -55,7 +55,7 @@ class Curation(commands.Cog, description="Information about curating games for F
 
      @commands.command(name="contentpatches", aliases=["contentchanges", "cp", "cc"], brief="Content changes.",
                       description="Information about making content patches.")
-    async def edits(self, ctx: discord.ext.commands.Context):
+    async def contentpatches(self, ctx: discord.ext.commands.Context):
         l.debug(f"contentpatches command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Making Content Patches:\n"
                                "🔗 <https://bluemaxima.org/flashpoint/datahub/Content_Patches>")
