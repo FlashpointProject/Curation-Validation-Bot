@@ -74,6 +74,14 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
         await ctx.channel.send("Currently, searches are limited to 250 results:\n"
                                "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#250SearchResults>")
 
+     @commands.command(name="amd", aliases=["gpu"], brief="AMD Graphics Card fix.",
+                      description="A fix for the issue regarding AMD GPUs and Flash Player.")
+    async def amd(self, ctx: discord.ext.commands.Context):
+        l.debug(
+            f"amd not opening command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
+        await ctx.send("An AMD Graphics Card can cause Flash to display a black/white screen with audio:\n"
+                                "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#AMD>")
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Troubleshooting(bot))
