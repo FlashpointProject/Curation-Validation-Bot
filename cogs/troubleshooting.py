@@ -74,7 +74,7 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
         await ctx.channel.send("Currently, searches are limited to 250 results:\n"
                                "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#250SearchResults>")
 
-     @commands.command(name="amd", aliases=["gpu"], brief="AMD Graphics Card fix.",
+    @commands.command(name="amd", aliases=["gpu"], brief="AMD Graphics Card fix.",
                       description="A fix for the issue regarding AMD GPUs and Flash Player.")
     async def amd(self, ctx: discord.ext.commands.Context):
         l.debug(
