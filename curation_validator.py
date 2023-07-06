@@ -444,8 +444,7 @@ def get_tag_list_wiki() -> list[dict[str, str]]:
 def get_tag_list() -> list[str]:
     bluebot_tags = get_tag_list_bluebot()
     file_tags = [tag["name"] for tag in get_tag_list_file()]
-    wiki_tags = [tag["name"] for tag in get_tag_list_wiki()]
-    return list(set(file_tags + wiki_tags + bluebot_tags))
+    return list(set(file_tags + bluebot_tags))
 
 
 def parse_lines_until_multiline(lines: list[str], d: dict, starting_number: int):
