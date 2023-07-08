@@ -4,6 +4,7 @@ import tempfile
 import zipfile
 import random
 import string
+import asyncio
 
 import py7zr
 from logger import getLogger
@@ -11,7 +12,7 @@ from logger import getLogger
 l = getLogger("repack")
 
 
-def repack(filename: str):
+async def repack(filename: str):
     filename = os.path.abspath(filename)
     errors: list = []
     repack_folder = os.environ["REPACK_DIR"]
@@ -26,12 +27,12 @@ def repack(filename: str):
     l.debug(f"bluezipping '{filename}'...")
 
     # Spawn a process with arguments
-    process_args = ["python", "./bluezip.py", os.path.abspath(filename), "-o", temp_folder]
+    process_args = ["./bluezip.py", os.path.abspath(filename), "-o", temp_folder]
     print(process_args)
-    process = subprocess.Popen(process_args, cwd='bluezip', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = await asyncio.subprocess.create_subprocess_exec("python", *process_args, cwd='bluezip', stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
 
     # Wait for the process to exit and get the output
-    stdout, stderr = process.communicate()
+    stdout, stderr = await process.communicate()
 
     # Get the exit code of the process
     exit_code = process.returncode

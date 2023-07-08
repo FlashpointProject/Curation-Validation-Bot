@@ -103,7 +103,7 @@ async def pack_path(response: Response, path: str):
 
     try:
         l.debug(f"packing '{path}'")
-        errors, output_file = repack(path)
+        errors, output_file = await repack(path)
         if len(errors) > 0:
             return {
                 "error": "error repacking curation"

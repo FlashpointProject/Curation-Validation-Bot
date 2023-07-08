@@ -5,6 +5,7 @@ python-dotenv
 ruamel.yaml
 colorlog
 pytest
+pytest-asyncio
 requests
 beautifulsoup4
 cachetools

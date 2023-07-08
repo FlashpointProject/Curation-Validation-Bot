@@ -1,11 +1,16 @@
 import os
+import asyncio
+import pytest
 import unittest
 from unittest.mock import patch
 from repack import repack
 
 from curation_validator import validate_curation, CurationType
 
+pytest_plugins = ('pytest_asyncio',)
+
 os.environ["REPACK_DIR"] = os.path.dirname(os.path.realpath(__file__)) + '/repack/'
+
 
 def mock_get_tag_list() -> list[str]:
     return ["A", "B", "E"]
@@ -38,21 +43,24 @@ class TestCurationValidator(unittest.TestCase):
 
     def test_invalid_yaml_meta_extreme(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, is_extreme, _, _, _ = validate_curation(f"test_curations/test_curation_invalid_extreme.{extension}")
+            errors, warnings, is_extreme, _, _, _ = validate_curation(
+                f"test_curations/test_curation_invalid_extreme.{extension}")
             self.assertCountEqual(errors, ["Curation is extreme but lacks extreme tags."])
             self.assertCountEqual(warnings, [])
             self.assertTrue(is_extreme)
 
     def test_valid_yaml_meta_extreme(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, is_extreme, _, _, _ = validate_curation(f"test_curations/test_curation_valid_extreme.{extension}")
+            errors, warnings, is_extreme, _, _, _ = validate_curation(
+                f"test_curations/test_curation_valid_extreme.{extension}")
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
             self.assertTrue(is_extreme)
 
     def test_valid_legacy(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, is_extreme, _, _, _ = validate_curation(f"test_curations/test_curation_valid_legacy.{extension}")
+            errors, warnings, is_extreme, _, _, _ = validate_curation(
+                f"test_curations/test_curation_valid_legacy.{extension}")
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
             self.assertFalse(is_extreme)
@@ -74,7 +82,8 @@ class TestCurationValidator(unittest.TestCase):
 
     def test_curation_empty_meta(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, is_extreme, _, _, _ = validate_curation(f"test_curations/test_curation_empty_meta.{extension}")
+            errors, warnings, is_extreme, _, _, _ = validate_curation(
+                f"test_curations/test_curation_empty_meta.{extension}")
             self.assertCountEqual(errors, ["The meta file seems to be empty."])
             self.assertCountEqual(warnings, [])
 
@@ -120,7 +129,8 @@ class TestCurationValidator(unittest.TestCase):
 
     def test_missing_content(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, _, _, _, _ = validate_curation(f"test_curations/test_curation_missing_content.{extension}")
+            errors, warnings, _, _, _, _ = validate_curation(
+                f"test_curations/test_curation_missing_content.{extension}")
             self.assertCountEqual(errors, ["Content folder not found."])
             self.assertCountEqual(warnings, [])
 
@@ -140,7 +150,8 @@ class TestCurationValidator(unittest.TestCase):
 
     def test_missing_root_folder(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, _, _, _, _ = validate_curation(f"test_curations/test_curation_missing_root_folder.{extension}")
+            errors, warnings, _, _, _, _ = validate_curation(
+                f"test_curations/test_curation_missing_root_folder.{extension}")
             self.assertCountEqual(errors, [
                 "Logo, screenshot, content folder and meta not found. Is your curation structured properly?"])
             self.assertCountEqual(warnings, [])
@@ -180,32 +191,37 @@ class TestCurationValidator(unittest.TestCase):
 
     def test_missing_launch_command(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, _, _, _, _ = validate_curation(f"test_curations/test_curation_missing_launch_command.{extension}")
+            errors, warnings, _, _, _, _ = validate_curation(
+                f"test_curations/test_curation_missing_launch_command.{extension}")
             self.assertCountEqual(errors, ["The `Launch Command` property in the meta file is mandatory."])
             self.assertCountEqual(warnings, [])
 
     def test_missing_languages(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, _, _, _, _ = validate_curation(f"test_curations/test_curation_missing_languages.{extension}")
+            errors, warnings, _, _, _, _ = validate_curation(
+                f"test_curations/test_curation_missing_languages.{extension}")
             self.assertCountEqual(errors, ["The `Languages` property in the meta file is mandatory."])
             self.assertCountEqual(warnings, [])
 
     def test_comma_in_languages(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, _, _, _, _ = validate_curation(f"test_curations/test_curation_comma_in_languages.{extension}")
+            errors, warnings, _, _, _, _ = validate_curation(
+                f"test_curations/test_curation_comma_in_languages.{extension}")
             self.assertCountEqual(errors, ["Languages should be separated with semicolons, not commas."])
             self.assertCountEqual(warnings, [])
 
     def test_common_bad_language(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, _, _, _, _ = validate_curation(f"test_curations/test_curation_common_bad_language.{extension}")
+            errors, warnings, _, _, _, _ = validate_curation(
+                f"test_curations/test_curation_common_bad_language.{extension}")
             self.assertCountEqual(errors, ["The correct ISO 639-1 language code for Japanese is `ja`, not `jp`."])
             self.assertCountEqual(warnings, [])
 
     def test_language_name(self):
         for extension in ["7z", "zip"]:
             errors, warnings, _, _, _, _ = validate_curation(f"test_curations/test_curation_language_name.{extension}")
-            self.assertCountEqual(errors, ["Languages must be in ISO 639-1 format, so please use `ja` instead of `Japanese`"])
+            self.assertCountEqual(errors,
+                                  ["Languages must be in ISO 639-1 format, so please use `ja` instead of `Japanese`"])
             self.assertCountEqual(warnings, [])
 
     def test_missing_source(self):
@@ -233,7 +249,8 @@ class TestCurationValidator(unittest.TestCase):
 
     def test_trailing_language_semicolon(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, _, _, _, _ = validate_curation(f"test_curations/test_curation_languages_semicolon.{extension}")
+            errors, warnings, _, _, _, _ = validate_curation(
+                f"test_curations/test_curation_languages_semicolon.{extension}")
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
 
@@ -245,25 +262,31 @@ class TestCurationValidator(unittest.TestCase):
 
     def test_localflash_too_many_files(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, _, _, _, _ = validate_curation(f"test_curations/test_curation_localflash_too_many_files.{extension}")
-            self.assertCountEqual(errors, ["Content must be in additional folder in localflash rather than in localflash directly."])
+            errors, warnings, _, _, _, _ = validate_curation(
+                f"test_curations/test_curation_localflash_too_many_files.{extension}")
+            self.assertCountEqual(errors, [
+                "Content must be in additional folder in localflash rather than in localflash directly."])
             self.assertCountEqual(warnings, [])
 
     def test_localflash_no_folder(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, _, _, _, _ = validate_curation(f"test_curations/test_curation_localflash_no_folder.{extension}")
-            self.assertCountEqual(errors, ["Content must be in additional folder in localflash rather than in localflash directly."])
+            errors, warnings, _, _, _, _ = validate_curation(
+                f"test_curations/test_curation_localflash_no_folder.{extension}")
+            self.assertCountEqual(errors, [
+                "Content must be in additional folder in localflash rather than in localflash directly."])
             self.assertCountEqual(warnings, [])
 
     def test_localflash_bad_name(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, _, _, _, _ = validate_curation(f"test_curations/test_curation_localflash_bad_name.{extension}")
+            errors, warnings, _, _, _, _ = validate_curation(
+                f"test_curations/test_curation_localflash_bad_name.{extension}")
             self.assertCountEqual(errors, ["Extremely common localflash containing folder name, please change."])
             self.assertCountEqual(warnings, [])
 
     def test_no_library(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, _, curation_type, _, _ = validate_curation(f"test_curations/test_curation_none_library.{extension}")
+            errors, warnings, _, curation_type, _, _ = validate_curation(
+                f"test_curations/test_curation_none_library.{extension}")
             self.assertCountEqual(errors, [])
             self.assertCountEqual(warnings, [])
             self.assertEqual(curation_type, CurationType.FLASH_GAME)
@@ -275,15 +298,10 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(warnings, [])
             self.assertEqual(meta["Platforms"], "Flash")
 
-    def test_bluezip(self):
-        for extension in ["7z", "zip"]:
-            errors, output = repack(f"test_curations/test_curation_valid.{extension}")
-            self.assertCountEqual(errors, [])
-            self.assertTrue(os.path.exists(output))
-
     def test_addapps(self):
         for extension in ["7z", "zip"]:
-            errors, warnings, _, _, meta, _ = validate_curation(f"test_curations/test_curation_valid_addapps.{extension}")
+            errors, warnings, _, _, meta, _ = validate_curation(
+                f"test_curations/test_curation_valid_addapps.{extension}")
             self.assertCountEqual(errors, [])
             self.assertEqual(meta["Extras"], "test")
             self.assertEqual(meta["Message"], "test")
@@ -299,9 +317,19 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, [])
             self.assertEqual(meta["Primary Platform"], "Flash")
             # From stated
-            errors, warnings, _, _, meta, _ = validate_curation(f"test_curations/test_curation_primary_platform.{extension}")
+            errors, warnings, _, _, meta, _ = validate_curation(
+                f"test_curations/test_curation_primary_platform.{extension}")
             self.assertCountEqual(errors, [])
             self.assertEqual(meta["Primary Platform"], "HTML5")
+
+
+@pytest.mark.asyncio
+async def test_bluezip():
+    for extension in ["7z", "zip"]:
+        errors, output = await repack(f"test_curations/test_curation_valid.{extension}")
+        assert len(errors) == 0
+        assert os.path.exists(output)
+
 
 if __name__ == '__main__':
     unittest.main()
