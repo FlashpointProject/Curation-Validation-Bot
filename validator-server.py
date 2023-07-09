@@ -83,7 +83,7 @@ async def provide_file(response: Response, path: str):
 # TODO this does not return all valid tags because the wiki page sucks
 @app.get("/tags")
 async def get_wiki_tags():
-    return {"tags": get_tag_list_file()}
+    return {"tags": get_tag_list_file() + get_tag_list_wiki()}
 
 @app.post("/pack-path")
 async def pack_path(response: Response, path: str):

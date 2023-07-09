@@ -419,14 +419,14 @@ def get_extreme_tag_list_file() -> list[str]:
 def get_tag_list_wiki() -> list[dict[str, str]]:
     l.debug(f"getting tags from wiki...")
     tags = []
-    resp = requests.get(url="https://bluemaxima.org/flashpoint/datahub/Tags")
+    resp = requests.get(url="https://flashpointarchive.org/datahub/Tags")
     soup = BeautifulSoup(resp.text, "html.parser")
     tables = soup.find_all("table")
     for table in tables:
         rows = table.find_all("tr")
         for row in rows:
             cols = row.find_all('td')
-            if len(cols) > 0:
+            if len(cols) >= 2:
                 tag = {}
                 col = cols[0]
                 links = row.find_all('a')
@@ -435,16 +435,20 @@ def get_tag_list_wiki() -> list[dict[str, str]]:
                 else:
                     tag["name"] = col.contents[0].strip()
 
-                desc = cols[1]
-                tag["description"] = desc.contents[0].strip()
-                tags.append(tag)
+                try:
+                    desc = cols[1]
+                    tag["description"] = desc.contents[0].strip()
+                    tags.append(tag)
+                except:
+                    pass
     return tags
 
 
 def get_tag_list() -> list[str]:
     bluebot_tags = get_tag_list_bluebot()
+    wiki_tags = [tag["name"] for tag in get_tag_list_wiki()]
     file_tags = [tag["name"] for tag in get_tag_list_file()]
-    return list(set(file_tags + bluebot_tags))
+    return list(set(file_tags + bluebot_tags + wiki_tags))
 
 
 def parse_lines_until_multiline(lines: list[str], d: dict, starting_number: int):
