@@ -66,7 +66,7 @@ class Moderation(commands.Cog, description="Moderation tools."):
     async def softban(self, ctx: discord.ext.commands.Context, *, user: discord.Member):
         l.debug(f"softban command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await user.send("Hello there, you might be unaware, but your account recently sent a message on the "
-                        "BlueMaxima's Flashpoint server soliciting free Nitro gifts. Our bot blocked the message, "
+                        "Flashpoint Archive server soliciting free Nitro gifts. Our bot blocked the message, "
                         "but your account may still be hacked. As a safety precaution, we have also kicked you from "
                         "the sever to prevent your account from being able to send messages to other people. Here's "
                         "what you can do to protect yourself:\n"
@@ -86,7 +86,7 @@ class Moderation(commands.Cog, description="Moderation tools."):
                         "under User Settings > My Account > Enable Two-Factor Auth.\n4) If you'd like to rejoin the "
                         "server, you're more than welcome to! Just be careful next time not to click any random links "
                         "promising free gifts. You can find the invite link on our website "
-                        "at:\n<https://bluemaxima.org/flashpoint/>")
+                        "at:\n<https://flashpointarchive.org/>")
         await user.ban(reason="Compromised account", delete_message_days=1)
         await user.unban()
         await ctx.send("Done!")
