@@ -23,28 +23,28 @@ class Info(commands.Cog, description="General information about Flashpoint."):
             l.debug(
                 f"masterlist command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
             await ctx.channel.send("Browse Flashpoint Catalog:\n"
-                                   "🔗 <https://unstable.life/flashpoint-database/search/>")
+                                   "🔗 <https://flashpointproject.github.io/flashpoint-database/>")
         else:
             l.debug(
                 f"masterlist with query command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
             await ctx.channel.send("Direct search from Discord not implemented yet. You can use the Flashpoint Database Search:\n"
-                                   "🔗 <https://unstable.life/flashpoint-database/search/>")
+                                   "🔗 <https://flashpointproject.github.io/flashpoint-database/>")
 
     @commands.command(name="downloads", aliases=["dl"], brief="Where to download Flashpoint.",
                       description="A link to the place to to download Flashpoint.")
     async def downloads(self, ctx: discord.ext.commands.Context):
         l.debug(f"downloads command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Download Flashpoint from here:\n"
-                               "🔗 <https://bluemaxima.org/flashpoint/downloads/>")
+                               "🔗 <https://flashpointarchive.org/downloads/>")
 
     @commands.command(name="platforms", aliases=["plugins"], brief="Supported platforms in Flashpoint.",
                       description="Supported platforms in Flashpoint.")
     async def platforms(self, ctx: discord.ext.commands.Context):
         l.debug(f"platforms command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Supported Platforms:\n"
-                               "🔗 <https://bluemaxima.org/flashpoint/platforms/>\n"
+                               "🔗 <https://flashpointarchive.org/platforms/>\n"
                                "Technical information:\n"
-                               "🔗 <https://bluemaxima.org/flashpoint/datahub/Platforms>")
+                               "🔗 <https://flashpointarchive.org/datahub/Platforms>")
 
     @commands.command(name="github", aliases=["gh"], brief="Flashpoint Project GitHub.",
                       description="A link to the Flashpoint Project GitHub.")
@@ -58,19 +58,19 @@ class Info(commands.Cog, description="General information about Flashpoint."):
     async def chromebook(self, ctx: discord.ext.commands.Context):
         l.debug(f"chromebook command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Flashpoint is compatible with Intel Chromebooks that support Linux:\n"
-                               "🔗 <https://bluemaxima.org/flashpoint/datahub/Linux_Support>")
+                               "🔗 <https://flashpointarchive.org/datahub/Linux_Support>")
 
     @commands.command(name="linux", brief="Linux compatibility.", description="Linux compatibility.")
     async def linux(self, ctx: discord.ext.commands.Context):
         l.debug(f"linux command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Flashpoint on Linux:\n"
-                               "🔗 <https://bluemaxima.org/flashpoint/datahub/Linux_Support>")
+                               "🔗 <https://flashpointarchive.org/datahub/Linux_Support>")
 
     @commands.command(name="mac", brief="Mac compatibility.", description="Mac compatibility.")
     async def mac(self, ctx: discord.ext.commands.Context):
         l.debug(f"mac command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Flashpoint on Mac:\n"
-                               "🔗 <https://bluemaxima.org/flashpoint/datahub/Mac_Support>")
+                               "🔗 <https://flashpointarchive.org/datahub/Mac_Support>")
 
     @commands.command(name="multiplayer", aliases=["fb", "mp", "facebook"], brief="Flashpoint multiplayer support.",
                       description="A description of Flashpoint's multiplayer support.")
@@ -92,14 +92,14 @@ class Info(commands.Cog, description="General information about Flashpoint."):
     @commands.command(name="faq", brief="FAQ.", description="A link to the FAQ page.")
     async def faq(self, ctx: discord.ext.commands.Context):
         l.debug(f"FAQ command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
-        await ctx.channel.send("FAQ:\n 🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ>")
+        await ctx.channel.send("FAQ:\n 🔗 <https://flashpointarchive.org/datahub/Extended_FAQ>")
 
     @commands.command(name="fullscreen", aliases=["fs", "full-screen"], brief="Fullscreening games.",
                       description="How to fullscreen games.")
     async def fullscreen(self, ctx: discord.ext.commands.Context):
         l.debug(f"fullscreen command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("There are multiple ways to fullscreen games:\n 🔗 "
-                               "<https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#Fullscreen>")
+                               "<https://flashpointarchive.org/datahub/Extended_FAQ#Fullscreen>")
 
     @commands.command(name="flashfreeze", aliases=["ff", "archived-websites"], brief="Flashfreeze info.",
                       description="How to find what flashpoint has archived.")
@@ -107,21 +107,21 @@ class Info(commands.Cog, description="General information about Flashpoint."):
         l.debug(
             f"flashfreeze command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("How to see what we've archived:\n 🔗 "
-                               "<https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#ArchivedWebsites>")
+                               "<https://flashpointarchive.org/datahub/Extended_FAQ#ArchivedWebsites>")
 
     @commands.command(name="update", aliases=["updates"], brief="Updating Flashpoint.",
                       description="Information about updating Flashpoint.")
     async def update(self, ctx: discord.ext.commands.Context):
         l.debug(f"update command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Updating Flashpoint:\n 🔗 "
-                               "<https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#UpdateFlashpoint>")
+                               "<https://flashpointarchive.org/datahub/Extended_FAQ#UpdateFlashpoint>")
 
     @commands.command(name="savedata", aliases=["saves", "savedatalocation", "sd"], brief="Flashpoint save data.",
                       description="Where to find Flashpoint save data.")
     async def savedata(self, ctx: discord.ext.commands.Context):
         l.debug(f"savedata command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Save data locations:\n 🔗 "
-                               "<https://bluemaxima.org/flashpoint/datahub/Save_Data_Locations>")
+                               "<https://flashpointarchive.org/datahub/Save_Data_Locations>")
 
 
 async def setup(bot: commands.Bot):
