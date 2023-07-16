@@ -4,6 +4,7 @@ import json
 import re
 from enum import Enum, auto
 from typing import Optional
+from datetime import datetime, timedelta
 
 import py7zr
 from cachetools import TTLCache, cached
@@ -228,6 +229,27 @@ def validate_curation(filename: str) -> tuple[list,
                 if not date_regex.match(date_string):
                     errors.append(
                         f"Release date {date_string} is incorrect. Release dates should always be in `YYYY-MM-DD` format.")
+
+                # check age of release
+                year = None
+                month = None
+                day = None
+
+                if date_string.count("-") == 0:
+                    year = int(date_string)
+                elif date_string.count("-") == 1:
+                    date_split = date_string.split("-")
+                    year = int(date_split[0])
+                    month = int(date_split[1])
+                elif date_string.count("-") == 2:
+                    date_split = date_string.split("-")
+                    year = int(date_split[0])
+                    month = int(date_split[1])
+                    day = int(date_split[2])
+
+                if not is_date_more_than_three_years_ago(datetime.now(), year, month, day):
+                    errors.append(
+                        f"Release date {date_string} is less than 3 years ago. Curation should be frozen.")
 
         language_properties: tuple[str, bool] = "Languages", bool(props.get("Languages"))
         if language_properties[1]:
@@ -482,3 +504,26 @@ def parse_multiline(lines: list[str], d: dict, starting_number: int):
                 break
     d.update({key: val})
     return d, break_number
+
+
+def is_date_more_than_three_years_ago(now, year, month=None, day=None):
+    if day is None:
+        if month is None:
+            # Only the year is known, assume it's the last day of the year
+            month = 12
+            day = 31
+        else:
+            # The year and month are known, assume it's the last day of the month
+            if month in {1, 3, 5, 7, 8, 10, 12}:
+                day = 31
+            elif month in {4, 6, 9, 11}:
+                day = 30
+            else:
+                if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
+                    day = 29
+                else:
+                    day = 28
+
+    date = datetime(year, month, day)
+    three_years_ago = now - timedelta(days=3*365)
+    return date < three_years_ago

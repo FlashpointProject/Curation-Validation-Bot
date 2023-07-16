@@ -4,8 +4,9 @@ import pytest
 import unittest
 from unittest.mock import patch
 from repack import repack
+from datetime import datetime
 
-from curation_validator import validate_curation, CurationType
+from curation_validator import validate_curation, CurationType, is_date_more_than_three_years_ago
 
 pytest_plugins = ('pytest_asyncio',)
 
@@ -329,6 +330,19 @@ async def test_bluezip():
         errors, output = await repack(f"test_curations/test_curation_valid.{extension}")
         assert len(errors) == 0
         assert os.path.exists(output)
+
+
+def test_is_date_more_than_three_years_ago():
+    cases = [
+        {"now": datetime(2003, 1, 1), "year": 2000, "month": 1, "day": 1, "return": True},
+        {"now": datetime(2003, 1, 1), "year": 2000, "month": 1, "day": 2, "return": False},
+        {"now": datetime(2003, 1, 1), "year": 2002, "month": 2, "day": 20, "return": False},
+        {"now": datetime(2003, 1, 1), "year": 2002, "month": None, "day": None, "return": False},
+        {"now": datetime(2003, 1, 1), "year": 2002, "month": 1, "day": None, "return": False},
+    ]
+
+    for case in cases:
+        assert case["return"] == is_date_more_than_three_years_ago(case["now"], case["year"], case["month"], case["day"]), case
 
 
 if __name__ == '__main__':
