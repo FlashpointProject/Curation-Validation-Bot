@@ -248,7 +248,7 @@ def validate_curation(filename: str) -> tuple[list,
                     day = int(date_split[2])
 
                 if not is_date_more_than_three_years_ago(datetime.now(), year, month, day):
-                    errors.append(f"Release date {date_string} is less than 3 years ago. Curation should be frozen.")
+                    warnings.append(f"Release date {date_string} is less than 3 years ago. Curation should be frozen.")
 
         language_properties: tuple[str, bool] = "Languages", bool(props.get("Languages"))
         if language_properties[1]:
