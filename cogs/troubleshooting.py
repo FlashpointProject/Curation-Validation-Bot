@@ -18,14 +18,14 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
             f"Launcher not opening command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.send(
             "When you start Flashpoint Launcher, a bug may occur that prevents it from showing the window:\n"
-            "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#LauncherNotOpening>")
+            "🔗 <https://flashpointarchive.org/datahub/Extended_FAQ#LauncherNotOpening>")
 
     @commands.command(name="antivirus", aliases=["av", "avg", "avast"], brief="Troubleshooting antivirus interference.",
                       description="Troubleshooting antivirus interference.")
     async def antivirus(self, ctx: discord.ext.commands.Context):
         l.debug(f"antivirus command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Important Flashpoint components may be detected as a virus; this is a false positive.\n"
-                               "🔗 <https://bluemaxima.org/flashpoint/datahub/Troubleshooting_Antivirus_Interference>")
+                               "🔗 <https://flashpointarchive.org/datahub/Troubleshooting_Antivirus_Interference>")
 
     @commands.command(name="whitescreen", aliases=["ws", "wsod"], brief="White screen troubleshooting.",
                       description="White screen troubleshooting.")
@@ -33,7 +33,7 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
         l.debug(
             f"whitescreen command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Launching games always shows a blank white screen:\n"
-                               "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#WhiteScreenAndNoImages>")
+                               "🔗 <https://flashpointarchive.org/datahub/Extended_FAQ#WhiteScreenAndNoImages>")
 
     @commands.command(name="win7", aliases=["windows7", "win7support"], brief="Troubleshooting Windows 7.",
                       description="Troubleshooting Windows 7.")
@@ -53,7 +53,7 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
         l.debug(f"extreme command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send(
             "Toggling extreme games:\n"
-            "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#ShowExtreme>", file=discord.File("data/Extreme.png"))
+            "🔗 <https://flashpointarchive.org/datahub/Extended_FAQ#ShowExtreme>", file=discord.File("data/Extreme.png"))
 
     @commands.command(name="partial-downloads",
                       aliases=["infinitypartialdownload", "ipd", "partial", "partialdownload",
@@ -63,7 +63,7 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
     async def partial_downloads(self, ctx: discord.ext.commands.Context):
         l.debug(f"partial_downloads command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Games in Flashpoint Infinity may fail to download properly:\n"
-                               "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#InfinityPartialDownloads>")
+                               "🔗 <https://flashpointarchive.org/datahub/Extended_FAQ#InfinityPartialDownloads>")
         
     @commands.command(name="250",
                       aliases=["limitedsearch", "250search", "250-search", "unlimitedsearch"],
@@ -72,7 +72,7 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
     async def limitedsearch(self, ctx: discord.ext.commands.Context):
         l.debug(f"250 command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.channel.send("Currently, searches are limited to 250 results:\n"
-                               "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#250SearchResults>")
+                               "🔗 <https://flashpointarchive.org/datahub/Extended_FAQ#250SearchResults>")
 
     @commands.command(name="amd", aliases=["gpu"], brief="AMD Graphics Card fix.",
                       description="A fix for the issue regarding AMD GPUs and Flash Player.")
@@ -80,7 +80,7 @@ class Troubleshooting(commands.Cog, description="Troubleshooting information."):
         l.debug(
             f"amd not opening command invoked from {ctx.author.id} in channel {ctx.channel.id} - {ctx.message.jump_url}")
         await ctx.send("An AMD Graphics Card can cause Flash to display a black/white screen with audio:\n"
-                                "🔗 <https://bluemaxima.org/flashpoint/datahub/Extended_FAQ#AMD>")
+                                "🔗 <https://flashpointarchive.org/datahub/Extended_FAQ#AMD>")
 
 
 async def setup(bot: commands.Bot):

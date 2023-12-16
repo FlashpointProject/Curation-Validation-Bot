@@ -1,5 +1,5 @@
 # Curation-Validation-Bot
-A Discord bot that validates curations for [BlueMaxima's Flashpoint](https://bluemaxima.org/flashpoint/). Also does other things.
+A Discord bot that validates curations for [Flashpoint Archive](https://flashpointarchive.org/). Also does other things.
 
 ## Setup and run
 - prepare your discord bot shenanigans, it requires the Server Members intent
