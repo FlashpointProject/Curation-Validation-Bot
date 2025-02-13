@@ -385,6 +385,12 @@ def validate_curation(filename: str) -> tuple[list,
     props["Additional Applications"] = addAppsArr
     print(props["Additional Applications"])
 
+    validRuffleValues = ["standalone"];
+    ruffleSupport = props.get("Ruffle Support")
+    if ruffleSupport is not None:
+        if ruffleSupport not in ["standalone"]:
+            errors.append(f"Ruffle Support must be '' or a value in '" + str(validRuffleValues) + "'")
+
     archive_cleanup(filename, base_path)
     return errors, warnings, is_extreme, curation_type, props, images
 

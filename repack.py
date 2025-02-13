@@ -39,6 +39,8 @@ async def repack(filename: str):
 
     if exit_code != 0:
         l.error(f"bluezip failed for '{filename}'")
+        l.error(stderr.decode("utf-8"))
+        l.error(stdout.decode("utf-8"))
         errors.append("Error during bluezip")
         return errors, ""
 

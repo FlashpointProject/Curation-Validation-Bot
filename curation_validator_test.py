@@ -323,6 +323,12 @@ class TestCurationValidator(unittest.TestCase):
             self.assertCountEqual(errors, [])
             self.assertEqual(meta["Primary Platform"], "HTML5")
 
+    def test_ruffle_support(self):
+        for extension in ["7z", "zip"]:
+            errors, warnings, _, _, meta, _ = validate_curation(
+                f"test_curations/test_curation_invalid_ruffle.{extension}")
+            self.assertNotEqual(len(errors), 0)
+
 
 @pytest.mark.asyncio
 async def test_bluezip():
