@@ -387,7 +387,7 @@ def validate_curation(filename: str) -> tuple[list,
 
     validRuffleValues = ["standalone"];
     ruffleSupport = props.get("Ruffle Support")
-    if ruffleSupport is not None:
+    if ruffleSupport is not None and ruffleSupport != "":
         if ruffleSupport not in ["standalone"]:
             errors.append(f"Ruffle Support must be '' or a value in '" + str(validRuffleValues) + "'")
 
