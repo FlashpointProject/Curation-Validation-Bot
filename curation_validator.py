@@ -180,6 +180,7 @@ def validate_curation(filename: str) -> tuple[list,
             "Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
     else:
         meta_filename = meta[0]
+        l.debug(f"Reading metadata file in: '{base_path + meta_filename}'")
         with open(base_path + meta_filename, mode='r', encoding='utf8') as meta_file:
             if meta_filename.endswith(".yml") or meta_filename.endswith(".yaml"):
                 try:
@@ -190,10 +191,11 @@ def validate_curation(filename: str) -> tuple[list,
                         archive_cleanup(filename, base_path)
                         return errors, warnings, None, None, None, None
                 except YAMLError:
-                    errors.append("Unable to load meta YAML file")
+                    errors.append(f"Unable to load meta YAML file")
                     archive_cleanup(filename, base_path)
                     return errors, warnings, None, None, None, None
-                except ValueError:
+                except ValueError as e:
+                    l.debug(f"ValueError reading meta file: {e}")
                     errors.append("Invalid release date. Ensure entered date is valid.")
                     archive_cleanup(filename, base_path)
                     return errors, warnings, None, None, None, None
