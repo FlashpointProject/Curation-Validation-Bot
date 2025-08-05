@@ -1,10 +1,13 @@
 import base64
+import random
 import shutil
 import json
 import re
 from enum import Enum, auto
-from typing import Optional
+import string
+from typing import Optional, TypedDict
 from datetime import datetime, timedelta
+from pydantic import BaseModel
 
 import py7zr
 from cachetools import TTLCache, cached
@@ -25,6 +28,222 @@ class CurationType(Enum):
     OTHER_GAME = auto()
     ANIMATION = auto()
 
+class EditCurationMeta(BaseModel):
+    Title: str | None = None
+    AlternateTitles: str | None = None
+    Version: str | None = None
+    Developer: str | None = None
+    Publisher: str | None = None
+    ReleaseDate: str | None = None
+    Series: str | None = None
+    Source: str | None = None
+    Status: str | None = None
+    Tags: str | None = None
+    Languages: str | None = None
+    OriginalDescription: str | None = None
+    GameNotes: str | None = None  
+
+max_uncompressed_size = 50 * 1000 * 1000 * 1000
+
+
+def update_meta(filename: str, new_meta: EditCurationMeta):
+    repack_folder = os.environ["REPACK_DIR"]
+    errors: list = []
+    warnings: list = []
+
+    meta_content = None
+    meta_filename = None
+
+    if filename.endswith(".7z"):
+        try:
+            l.debug(f"reading archive '{filename}'...")
+            archive = py7zr.SevenZipFile(filename, mode='r')
+
+            uncompressed_size = archive.archiveinfo().uncompressed
+            if uncompressed_size > max_uncompressed_size:
+                warnings.append(
+                    f"The archive is too large to be validated (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
+                archive.close()
+                return errors, warnings, filename
+
+            filenames = archive.getnames()
+            base_path = tempfile.mkdtemp(prefix="curation_validator_") + "/"
+            archive.extractall(path=base_path)
+            archive.close()
+        except Exception as e:
+            l.error(f"there was an error while reading file '{filename}': {e}")
+            errors.append("There seems to a problem with your 7z file.")
+            return errors, warnings, filename
+    elif filename.endswith(".zip"):
+        try:
+            l.debug(f"reading archive '{filename}'...")
+            archive = zipfile.ZipFile(filename, mode='r')
+
+            uncompressed_size = sum([zinfo.file_size for zinfo in archive.filelist])
+            if uncompressed_size > max_uncompressed_size:
+                warnings.append(
+                    f"The archive is too large to be validated (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
+                archive.close()
+                return errors, warnings, filename
+
+            filenames = archive.namelist()
+            base_path = tempfile.mkdtemp(prefix="curation_validator_") + "/"
+            archive.extractall(path=base_path)
+            archive.close()
+        except Exception as e:
+            l.error(f"there was an error while reading file '{filename}': {e}")
+            errors.append("There seems to a problem with your zip file.")
+            return errors, warnings, filename
+    elif filename.endswith(".rar"):
+        errors.append("Curations must be either .zip or .7z, not .rar.")
+        return errors, warnings, filename
+    else:
+        l.warn(f"file type of file '{filename}' not supported")
+        errors.append(f"file type of file '{filename}' not supported")
+        return errors, warnings, filename
+    
+    # check files
+    l.debug(f"validating archive data for '{filename}'...")
+    uuid_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/?$")
+    uuid_folder = [match for match in filenames if uuid_folder_regex.match(match) is not None]
+
+    meta = []
+
+    if len(uuid_folder) == 0:  # legacy or broken curation
+        meta_regex = re.compile(r"^[^/]+/meta\.(yaml|yml|txt)$")
+        meta = [match for match in filenames if meta_regex.match(match) is not None]
+    else:  # core curation
+        meta_regex = re.compile(
+            r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/meta\.(yaml|yml|txt)$")
+        meta = [match for match in filenames if meta_regex.match(match) is not None]
+
+    if len(meta) == 0:
+        errors.append("Did not find a meta file to edit")
+        archive_cleanup(filename, base_path)
+        return errors, warnings, filename
+
+    meta_filename = meta[0]
+    props = {}
+    l.debug(f"Reading metadata file in: '{base_path + meta_filename}'")
+    with open(base_path + meta_filename, mode='r', encoding='utf8') as meta_file:
+        if meta_filename.endswith(".yml") or meta_filename.endswith(".yaml"):
+            try:
+                yaml = YAML(typ="safe")
+                props: dict = yaml.load(meta_file)
+                if props is None:
+                    errors.append("The meta file seems to be empty.")
+                    archive_cleanup(filename, base_path)
+                    return errors, warnings, filename
+            except YAMLError:
+                errors.append(f"Unable to load meta YAML file")
+                archive_cleanup(filename, base_path)
+                return errors, warnings, filename
+            except ValueError as e:
+                l.debug(f"ValueError reading meta file: {e}")
+                errors.append("Invalid release date. Ensure entered date is valid.")
+                archive_cleanup(filename, base_path)
+                return errors, warnings, filename
+        elif meta_filename.endswith(".txt"):
+            break_index: int = 0
+            while break_index != -1:
+                props, break_index = parse_lines_until_multiline(meta_file.readlines(), props,
+                                                                    break_index)
+                props, break_index = parse_multiline(meta_file.readlines(), props, break_index)
+                if props.get("Genre") is not None:
+                    props["Tags"] = props["Genre"]
+        else:
+            errors.append(
+                "Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
+            archive_cleanup(filename, base_path)
+            return errors, warnings, filename
+
+    # translate legacy fields
+    if props.get("Platform") is not None:
+        props["Platforms"] = props["Platform"]
+
+    # add primary platform if missing
+    if "Platforms" in props and "Primary Platform" not in props:
+        props["Primary Platform"] = props["Platforms"].split(';')[0].strip()
+    
+    if new_meta.Title is not None:
+        props["Title"] = new_meta.Title
+
+    if new_meta.AlternateTitles is not None:
+        props["Alternate Titles"] = new_meta.AlternateTitles
+
+    if new_meta.Version is not None:
+        props["Version"] = new_meta.Version
+
+    if new_meta.Developer is not None:
+        props["Developer"] = new_meta.Developer
+
+    if new_meta.Publisher is not None:
+        props["Publisher"] = new_meta.Publisher
+
+    if new_meta.ReleaseDate is not None:
+        props["Release Date"] = new_meta.ReleaseDate
+
+    if new_meta.Series is not None:
+        props["Series"] = new_meta.Series
+
+    if new_meta.Source is not None:
+        props["Source"] = new_meta.Source
+
+    if new_meta.Status is not None:
+        props["Status"] = new_meta.Status
+
+    if new_meta.Tags is not None:
+        props["Tags"] = new_meta.Tags
+
+    if new_meta.Languages is not None:
+        props["Languages"] = new_meta.Languages
+
+    if new_meta.OriginalDescription is not None:
+        props["Original Description"] = new_meta.OriginalDescription
+
+    if new_meta.GameNotes is not None:
+        props["Game Notes"] = new_meta.GameNotes
+
+
+    if meta_filename.endswith('.txt'):
+        # Delete the original .txt file and save back as .yaml instead
+        os.remove(base_path + meta_filename)
+        meta_filename = meta_filename.replace('.txt', '.yaml')    
+
+    with open(base_path + meta_filename, mode='w', encoding='utf8') as meta_file:
+        yaml.dump(props, meta_file)
+        
+    try:
+        if filename.endswith(".zip"):
+            filename = filename.replace(".zip", ".7z")
+        
+        filename = os.path.basename(filename)
+        temp_folder = os.path.join(repack_folder, ''.join(random.choices(string.ascii_letters + string.digits, k=10)))
+        if not os.path.exists(temp_folder):
+            # If not, create the directory and its parents recursively
+            os.makedirs(temp_folder, 0o777)
+        
+        filename = os.path.join(temp_folder, filename)
+
+        # Create new 7z archive with all files including modified meta
+        with py7zr.SevenZipFile(filename, mode='w') as new_archive:
+            for root, dirs, files in os.walk(base_path):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    arcname = os.path.relpath(file_path, base_path)
+                    new_archive.write(file_path, arcname)
+                        
+        l.debug(f"Successfully rebuilt archive '{filename}' with updated metadata")
+        
+    except Exception as e:
+        l.error(f"Error rebuilding archive '{filename}': {e}")
+        errors.append(f"Failed to rebuild archive: {str(e)}")
+        archive_cleanup(filename, base_path)
+        return errors, warnings, filename
+    
+
+    # Return the meta content and filename for further processing
+    return errors, warnings, filename
 
 def validate_curation(filename: str) -> tuple[list,
                                               list,
@@ -38,7 +257,6 @@ def validate_curation(filename: str) -> tuple[list,
     # process archive
     filenames: list = []
 
-    max_uncompressed_size = 50 * 1000 * 1000 * 1000
 
     base_path = None
 
@@ -99,21 +317,29 @@ def validate_curation(filename: str) -> tuple[list,
     ss = []
 
     if len(uuid_folder) == 0:  # legacy or broken curation
-        content_folder_regex = re.compile(r"^[^/]+/content/?$")
         meta_regex = re.compile(r"^[^/]+/meta\.(yaml|yml|txt)$")
         logo_regex = re.compile(r"^[^/]+/logo\.(png)$")
         logo_regex_case = re.compile(r"(?i)^[^/]+/logo\.(png)$")
         ss_regex = re.compile(r"^[^/]+/ss\.(png)$")
         ss_regex_case = re.compile(r"(?i)^[^/]+/ss\.(png)$")
-        content_folder = [match for match in filenames if content_folder_regex.match(match) is not None]
+
+        content_folder = None
+        for f in filenames:
+            index = f.find("/content")
+            if index != -1:
+                # Always save the shortest content path to avoid content folders inside weirdly named folders first
+                new_path = f[:index + len("/content")]
+                if content_folder is not None and len(content_folder) > len(new_path):
+                    content_folder = new_path
+                elif content_folder is None:
+                    content_folder = new_path
+
         meta = [match for match in filenames if meta_regex.match(match) is not None]
         logo = [match for match in filenames if logo_regex.match(match) is not None]
         logo_case = [match for match in filenames if logo_regex_case.match(match) is not None]
         ss = [match for match in filenames if ss_regex.match(match) is not None]
         ss_case = [match for match in filenames if ss_regex_case.match(match) is not None]
     else:  # core curation
-        content_folder_regex = re.compile(
-            r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/content/?$")
         meta_regex = re.compile(
             r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/meta\.(yaml|yml|txt)$")
         logo_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.png$")
@@ -122,15 +348,25 @@ def validate_curation(filename: str) -> tuple[list,
         ss_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.png$")
         ss_regex_case = re.compile(
             r"(?i)^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(png)$")
+        
+        content_folder = None
+        for f in filenames:
+            index = f.find("/content")
+            if index != -1:
+                # Always save the shortest content path to avoid content folders inside weirdly named folders first
+                new_path = f[:index + len("/content")]
+                if content_folder is not None and len(content_folder) > len(new_path):
+                    content_folder = new_path
+                elif content_folder is None:
+                    content_folder = new_path
 
-        content_folder = [match for match in filenames if content_folder_regex.match(match) is not None]
         meta = [match for match in filenames if meta_regex.match(match) is not None]
         logo = [match for match in filenames if logo_regex.match(match) is not None]
         logo_case = [match for match in filenames if logo_regex_case.match(match) is not None]
         ss = [match for match in filenames if ss_regex.match(match) is not None]
         ss_case = [match for match in filenames if ss_regex_case.match(match) is not None]
 
-    if len(logo) == 0 and len(ss) == 0 and len(content_folder) == 0 and len(meta) == 0:
+    if len(logo) == 0 and len(ss) == 0 and content_folder is None and len(meta) == 0:
         errors.append("Logo, screenshot, content folder and meta not found. Is your curation structured properly?")
         archive_cleanup(filename, base_path)
         return errors, warnings, None, None, None, None
@@ -148,10 +384,10 @@ def validate_curation(filename: str) -> tuple[list,
             errors.append("Screenshot file is either missing or its filename is incorrect.")
 
     # check content
-    if len(content_folder) == 0:
+    if content_folder is None:
         errors.append("Content folder not found.")
     else:
-        content_folder_path = base_path + content_folder[0]
+        content_folder_path = base_path + content_folder
         filecount_in_content = sum([len(files) for r, d, files in os.walk(content_folder_path)])
         if filecount_in_content == 0:
             errors.append("No files found in content folder.")

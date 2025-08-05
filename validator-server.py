@@ -1,12 +1,13 @@
 import pathlib
 import tempfile
 import traceback
+import os
 from repack import repack
 
 from fastapi import FastAPI, File, UploadFile, Response, status
 import shutil
 
-from curation_validator import validate_curation, get_tag_list_wiki, get_tag_list_file
+from curation_validator import EditCurationMeta, update_meta, validate_curation, get_tag_list_wiki, get_tag_list_file
 from logger import getLogger
 
 l = getLogger("api")
@@ -78,6 +79,29 @@ async def provide_file(response: Response, path: str):
         "curation_type": curation_type,
         "meta": meta,
         "images": image_dict
+    }
+
+@app.post("/edit-meta")
+async def edit_meta(response: Response, path: str, new_meta: EditCurationMeta):
+    try:
+        l.debug(f"editing meta of provided file '{path}'")
+        curation_errors, curation_warnings, filename = update_meta(path, new_meta)
+    
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return {
+            "exception": "".join(
+                traceback.format_exception(
+                    etype=type(e), value=e, tb=e.__traceback__
+                )
+            )
+        }
+    
+    return {
+        "filename": os.path.basename(filename),
+        "path": filename,
+        "curation_errors": curation_errors,
+        "curation_warnings": curation_warnings,
     }
 
 # TODO this does not return all valid tags because the wiki page sucks

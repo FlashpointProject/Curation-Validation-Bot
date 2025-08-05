@@ -10,6 +10,7 @@ requests
 beautifulsoup4
 cachetools
 discord-pretty-help
+pydantic
 
 fastapi
 uvicorn
