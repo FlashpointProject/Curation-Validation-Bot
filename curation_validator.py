@@ -8,6 +8,7 @@ import string
 from typing import Optional, TypedDict
 from datetime import datetime, timedelta
 from pydantic import BaseModel
+from fastapi import UploadFile
 
 import py7zr
 from cachetools import TTLCache, cached
@@ -46,7 +47,7 @@ class EditCurationMeta(BaseModel):
 max_uncompressed_size = 50 * 1000 * 1000 * 1000
 
 
-def update_meta(filename: str, new_meta: EditCurationMeta):
+def update_meta(filename: str, new_meta: EditCurationMeta | None, new_logo: UploadFile | None, new_ss: UploadFile | None):
     repack_folder = os.environ["REPACK_DIR"]
     errors: list = []
     warnings: list = []
@@ -108,14 +109,38 @@ def update_meta(filename: str, new_meta: EditCurationMeta):
     uuid_folder = [match for match in filenames if uuid_folder_regex.match(match) is not None]
 
     meta = []
+    logo = []
+    logo_case = []
+    ss = []
+    ss_case = []
 
     if len(uuid_folder) == 0:  # legacy or broken curation
         meta_regex = re.compile(r"^[^/]+/meta\.(yaml|yml|txt)$")
+        logo_regex = re.compile(r"^[^/]+/logo\.(png)$")
+        logo_regex_case = re.compile(r"(?i)^[^/]+/logo\.(png)$")
+        ss_regex = re.compile(r"^[^/]+/ss\.(png)$")
+        ss_regex_case = re.compile(r"(?i)^[^/]+/ss\.(png)$")
+        
         meta = [match for match in filenames if meta_regex.match(match) is not None]
+        logo = [match for match in filenames if logo_regex.match(match) is not None]
+        logo_case = [match for match in filenames if logo_regex_case.match(match) is not None]
+        ss = [match for match in filenames if ss_regex.match(match) is not None]
+        ss_case = [match for match in filenames if ss_regex_case.match(match) is not None]
     else:  # core curation
         meta_regex = re.compile(
             r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/meta\.(yaml|yml|txt)$")
+        logo_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.png$")
+        logo_regex_case = re.compile(
+            r"(?i)^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo\.(png)$")
+        ss_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.png$")
+        ss_regex_case = re.compile(
+            r"(?i)^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(png)$")
+        
         meta = [match for match in filenames if meta_regex.match(match) is not None]
+        logo = [match for match in filenames if logo_regex.match(match) is not None]
+        logo_case = [match for match in filenames if logo_regex_case.match(match) is not None]
+        ss = [match for match in filenames if ss_regex.match(match) is not None]
+        ss_case = [match for match in filenames if ss_regex_case.match(match) is not None]
 
     if len(meta) == 0:
         errors.append("Did not find a meta file to edit")
@@ -164,46 +189,60 @@ def update_meta(filename: str, new_meta: EditCurationMeta):
     # add primary platform if missing
     if "Platforms" in props and "Primary Platform" not in props:
         props["Primary Platform"] = props["Platforms"].split(';')[0].strip()
-    
-    if new_meta.Title is not None:
-        props["Title"] = new_meta.Title
 
-    if new_meta.AlternateTitles is not None:
-        props["Alternate Titles"] = new_meta.AlternateTitles
+    if new_meta is not None:
+        if new_meta.Title is not None:
+            props["Title"] = new_meta.Title
 
-    if new_meta.Version is not None:
-        props["Version"] = new_meta.Version
+        if new_meta.AlternateTitles is not None:
+            props["Alternate Titles"] = new_meta.AlternateTitles
 
-    if new_meta.Developer is not None:
-        props["Developer"] = new_meta.Developer
+        if new_meta.Version is not None:
+            props["Version"] = new_meta.Version
 
-    if new_meta.Publisher is not None:
-        props["Publisher"] = new_meta.Publisher
+        if new_meta.Developer is not None:
+            props["Developer"] = new_meta.Developer
 
-    if new_meta.ReleaseDate is not None:
-        props["Release Date"] = new_meta.ReleaseDate
+        if new_meta.Publisher is not None:
+            props["Publisher"] = new_meta.Publisher
 
-    if new_meta.Series is not None:
-        props["Series"] = new_meta.Series
+        if new_meta.ReleaseDate is not None:
+            props["Release Date"] = new_meta.ReleaseDate
 
-    if new_meta.Source is not None:
-        props["Source"] = new_meta.Source
+        if new_meta.Series is not None:
+            props["Series"] = new_meta.Series
 
-    if new_meta.Status is not None:
-        props["Status"] = new_meta.Status
+        if new_meta.Source is not None:
+            props["Source"] = new_meta.Source
 
-    if new_meta.Tags is not None:
-        props["Tags"] = new_meta.Tags
+        if new_meta.Status is not None:
+            props["Status"] = new_meta.Status
 
-    if new_meta.Languages is not None:
-        props["Languages"] = new_meta.Languages
+        if new_meta.Tags is not None:
+            props["Tags"] = new_meta.Tags
 
-    if new_meta.OriginalDescription is not None:
-        props["Original Description"] = new_meta.OriginalDescription
+        if new_meta.Languages is not None:
+            props["Languages"] = new_meta.Languages
 
-    if new_meta.GameNotes is not None:
-        props["Game Notes"] = new_meta.GameNotes
+        if new_meta.OriginalDescription is not None:
+            props["Original Description"] = new_meta.OriginalDescription
 
+        if new_meta.GameNotes is not None:
+            props["Game Notes"] = new_meta.GameNotes
+
+    if len(logo) > 0 and new_logo is not None:
+        if new_logo.size > 26214400:
+            errors.append("New logo larger than 25mb, rejected")
+            return errors, warnings, filename
+        with open(base_path + logo[0], "wb") as logo_file:
+            logo_file.write(new_logo.file.read())
+
+    if len(ss) > 0 and new_ss is not None:
+        if new_ss.size > 26214400:
+            errors.append("New screenshot larger than 25mb, rejected")
+            return errors, warnings, filename
+        with open(base_path + ss[0], "wb") as ss_file:
+            ss_file.write(new_ss.file.read())
 
     if meta_filename.endswith('.txt'):
         # Delete the original .txt file and save back as .yaml instead

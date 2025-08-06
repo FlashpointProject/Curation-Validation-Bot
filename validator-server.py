@@ -1,10 +1,15 @@
+from http.client import HTTPException
+import json
 import pathlib
 import tempfile
 import traceback
 import os
+
+from pydantic import ValidationError
 from repack import repack
 
-from fastapi import FastAPI, File, UploadFile, Response, status
+from fastapi import FastAPI, File, UploadFile, Response, status, Form
+from typing import Annotated
 import shutil
 
 from curation_validator import EditCurationMeta, update_meta, validate_curation, get_tag_list_wiki, get_tag_list_file
@@ -82,10 +87,18 @@ async def provide_file(response: Response, path: str):
     }
 
 @app.post("/edit-meta")
-async def edit_meta(response: Response, path: str, new_meta: EditCurationMeta):
+async def edit_meta(response: Response, path: str, metadata: Annotated[str | None, Form()] = None, logo: Annotated[UploadFile | None, File()] = None, screenshot: Annotated[UploadFile | None, File()] = None):
     try:
         l.debug(f"editing meta of provided file '{path}'")
-        curation_errors, curation_warnings, filename = update_meta(path, new_meta)
+        if metadata:
+            try:
+                print(metadata)
+                # Parse the JSON string into the Pydantic model
+                metadata_dict = json.loads(metadata)
+                metadata = EditCurationMeta(**metadata_dict)
+            except (json.JSONDecodeError, ValidationError) as e:
+                raise HTTPException(status_code=400, detail=f"Invalid metadata JSON: {str(e)}")
+        curation_errors, curation_warnings, filename = update_meta(path, metadata, logo, screenshot)
     
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
