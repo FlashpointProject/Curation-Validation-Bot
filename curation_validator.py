@@ -1,4 +1,5 @@
 import base64
+import io
 import random
 import shutil
 import json
@@ -45,6 +46,105 @@ class EditCurationMeta(BaseModel):
     GameNotes: str | None = None  
 
 max_uncompressed_size = 50 * 1000 * 1000 * 1000
+max_archive_members = 10_000_000
+max_image_size = 16 * 1024 * 1024
+max_validation_images = 16
+max_metadata_size = 16 * 1024 * 1024
+
+
+class ValidationMemberTooLarge(Exception):
+    pass
+
+
+def _member_size(member) -> int:
+    if isinstance(member, zipfile.ZipInfo):
+        return member.file_size
+    return member.uncompressed
+
+
+def _member_is_directory(member) -> bool:
+    if isinstance(member, zipfile.ZipInfo):
+        return member.is_dir()
+    return member.is_directory
+
+
+def _zip_member_count(filename: str) -> int:
+    # ZipFile eagerly builds a ZipInfo for every member. Read just the EOCD
+    # first so an archive over the member cap is rejected before that allocation.
+    with open(filename, "rb") as archive_file:
+        end_record = zipfile._EndRecData(archive_file)
+    if end_record is None:
+        raise zipfile.BadZipFile("File is not a zip file")
+    return end_record[zipfile._ECD_ENTRIES_TOTAL]
+
+
+def _read_validation_members(archive, members: dict[str, tuple[object, int]]) -> dict[str, bytes]:
+    for member, size_limit in members.values():
+        if _member_size(member) > size_limit:
+            raise ValidationMemberTooLarge
+
+    if isinstance(archive, zipfile.ZipFile):
+        result = {}
+        for name, (member, size_limit) in members.items():
+            with archive.open(member, mode="r") as source:
+                result[name] = source.read(size_limit + 1)
+    else:
+        archive.reset()
+        largest_limit = max(size_limit for _, size_limit in members.values())
+        factory = py7zr.io.BytesIOFactory(largest_limit + 1)
+        archive.extract(targets=list(members), factory=factory)
+        result = {
+            name: factory.get(name).read(size_limit + 1)
+            for name, (_, size_limit) in members.items()
+        }
+
+    if any(len(result[name]) > size_limit for name, (_, size_limit) in members.items()):
+        raise ValidationMemberTooLarge
+    return result
+
+
+def _check_content_members(archive_members, content_folder: str, errors: list) -> None:
+    content_prefix = content_folder.rstrip("/") + "/"
+    localflash_path = content_prefix + "localflash"
+    localflash_prefix = localflash_path + "/"
+    found_content_file = False
+    found_localflash = False
+    children: dict[str, bool] = {}
+    for member in archive_members:
+        if not member.filename.startswith(content_prefix):
+            continue
+        if not _member_is_directory(member):
+            found_content_file = True
+        if member.filename != localflash_path and not member.filename.startswith(localflash_prefix):
+            continue
+
+        found_localflash = True
+        if member.filename == localflash_path:
+            if not _member_is_directory(member):
+                children["localflash"] = True
+            continue
+
+        relative_name = member.filename[len(localflash_prefix):].rstrip("/")
+        if not relative_name:
+            continue
+        child_name, separator, _ = relative_name.partition("/")
+        is_direct_file = not separator and not _member_is_directory(member)
+        children[child_name] = children.get(child_name, False) or is_direct_file
+
+    if not found_content_file:
+        errors.append("No files found in content folder.")
+    if not found_localflash:
+        return
+
+    if len(children) > 1 or any(children.values()):
+        errors.append("Content must be in additional folder in localflash rather than in localflash directly.")
+        return
+
+    if len(children) == 1:
+        with open("data/common_localflash_names.json") as f:
+            bad_localflash_names = json.load(f)["names"]
+        if next(iter(children)) in bad_localflash_names:
+            errors.append("Extremely common localflash containing folder name, please change.")
 
 
 def update_meta(filename: str, new_meta: EditCurationMeta | None, new_logo: UploadFile | None, new_ss: UploadFile | None):
@@ -293,49 +393,56 @@ def validate_curation(filename: str) -> tuple[list,
     errors: list = []
     warnings: list = []
 
-    # process archive
-    filenames: list = []
-
-
-    base_path = None
-
+    # Only inventory the archive here. Validation reads the small metadata and
+    # image members later; content is never extracted to the container rootfs.
+    archive = None
+    archive_members = []
     if filename.endswith(".7z"):
         try:
             l.debug(f"reading archive '{filename}'...")
             archive = py7zr.SevenZipFile(filename, mode='r')
-
-            uncompressed_size = archive.archiveinfo().uncompressed
+            archive_members = archive.list()
+            uncompressed_size = sum(_member_size(member) for member in archive_members)
+            if len(archive_members) > max_archive_members:
+                errors.append(
+                    f"The archive contains too many members (`{len(archive_members)}/{max_archive_members}`).")
+                archive.close()
+                return errors, warnings, None, None, None, None
             if uncompressed_size > max_uncompressed_size:
                 warnings.append(
                     f"The archive is too large to be validated (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
                 archive.close()
                 return errors, warnings, None, None, None, None
-
-            filenames = archive.getnames()
-            base_path = tempfile.mkdtemp(prefix="curation_validator_") + "/"
-            archive.extractall(path=base_path)
-            archive.close()
         except Exception as e:
+            if archive is not None:
+                archive.close()
             l.error(f"there was an error while reading file '{filename}': {e}")
             errors.append("There seems to a problem with your 7z file.")
             return errors, warnings, None, None, None, None
     elif filename.endswith(".zip"):
         try:
             l.debug(f"reading archive '{filename}'...")
+            member_count = _zip_member_count(filename)
+            if member_count > max_archive_members:
+                errors.append(
+                    f"The archive contains too many members (`{member_count}/{max_archive_members}`).")
+                return errors, warnings, None, None, None, None
             archive = zipfile.ZipFile(filename, mode='r')
-
-            uncompressed_size = sum([zinfo.file_size for zinfo in archive.filelist])
+            archive_members = archive.infolist()
+            uncompressed_size = sum(_member_size(member) for member in archive_members)
+            if len(archive_members) > max_archive_members:
+                errors.append(
+                    f"The archive contains too many members (`{len(archive_members)}/{max_archive_members}`).")
+                archive.close()
+                return errors, warnings, None, None, None, None
             if uncompressed_size > max_uncompressed_size:
                 warnings.append(
                     f"The archive is too large to be validated (`{uncompressed_size // 1000000}MB/{max_uncompressed_size // 1000000}MB`).")
                 archive.close()
                 return errors, warnings, None, None, None, None
-
-            filenames = archive.namelist()
-            base_path = tempfile.mkdtemp(prefix="curation_validator_") + "/"
-            archive.extractall(path=base_path)
-            archive.close()
         except Exception as e:
+            if archive is not None:
+                archive.close()
             l.error(f"there was an error while reading file '{filename}': {e}")
             errors.append("There seems to a problem with your zip file.")
             return errors, warnings, None, None, None, None
@@ -350,12 +457,15 @@ def validate_curation(filename: str) -> tuple[list,
     # check files
     l.debug(f"validating archive data for '{filename}'...")
     uuid_folder_regex = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/?$")
-    uuid_folder = [match for match in filenames if uuid_folder_regex.match(match) is not None]
+    has_uuid_folder = any(
+        uuid_folder_regex.match(member.filename) is not None
+        for member in archive_members
+    )
 
     logo = []
     ss = []
 
-    if len(uuid_folder) == 0:  # legacy or broken curation
+    if not has_uuid_folder:  # legacy or broken curation
         meta_regex = re.compile(r"^[^/]+/meta\.(yaml|yml|txt)$")
         logo_regex = re.compile(r"^[^/]+/logo\.(png)$")
         logo_regex_case = re.compile(r"(?i)^[^/]+/logo\.(png)$")
@@ -363,7 +473,8 @@ def validate_curation(filename: str) -> tuple[list,
         ss_regex_case = re.compile(r"(?i)^[^/]+/ss\.(png)$")
 
         content_folder = None
-        for f in filenames:
+        for member in archive_members:
+            f = member.filename
             index = f.find("/content")
             if index != -1:
                 # Always save the shortest content path to avoid content folders inside weirdly named folders first
@@ -373,11 +484,11 @@ def validate_curation(filename: str) -> tuple[list,
                 elif content_folder is None:
                     content_folder = new_path
 
-        meta = [match for match in filenames if meta_regex.match(match) is not None]
-        logo = [match for match in filenames if logo_regex.match(match) is not None]
-        logo_case = [match for match in filenames if logo_regex_case.match(match) is not None]
-        ss = [match for match in filenames if ss_regex.match(match) is not None]
-        ss_case = [match for match in filenames if ss_regex_case.match(match) is not None]
+        meta = [member.filename for member in archive_members if meta_regex.match(member.filename) is not None]
+        logo = [member.filename for member in archive_members if logo_regex.match(member.filename) is not None]
+        logo_case = [member.filename for member in archive_members if logo_regex_case.match(member.filename) is not None]
+        ss = [member.filename for member in archive_members if ss_regex.match(member.filename) is not None]
+        ss_case = [member.filename for member in archive_members if ss_regex_case.match(member.filename) is not None]
     else:  # core curation
         meta_regex = re.compile(
             r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/meta\.(yaml|yml|txt)$")
@@ -389,7 +500,8 @@ def validate_curation(filename: str) -> tuple[list,
             r"(?i)^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/ss\.(png)$")
         
         content_folder = None
-        for f in filenames:
+        for member in archive_members:
+            f = member.filename
             index = f.find("/content")
             if index != -1:
                 # Always save the shortest content path to avoid content folders inside weirdly named folders first
@@ -399,15 +511,15 @@ def validate_curation(filename: str) -> tuple[list,
                 elif content_folder is None:
                     content_folder = new_path
 
-        meta = [match for match in filenames if meta_regex.match(match) is not None]
-        logo = [match for match in filenames if logo_regex.match(match) is not None]
-        logo_case = [match for match in filenames if logo_regex_case.match(match) is not None]
-        ss = [match for match in filenames if ss_regex.match(match) is not None]
-        ss_case = [match for match in filenames if ss_regex_case.match(match) is not None]
+        meta = [member.filename for member in archive_members if meta_regex.match(member.filename) is not None]
+        logo = [member.filename for member in archive_members if logo_regex.match(member.filename) is not None]
+        logo_case = [member.filename for member in archive_members if logo_regex_case.match(member.filename) is not None]
+        ss = [member.filename for member in archive_members if ss_regex.match(member.filename) is not None]
+        ss_case = [member.filename for member in archive_members if ss_regex_case.match(member.filename) is not None]
 
     if len(logo) == 0 and len(ss) == 0 and content_folder is None and len(meta) == 0:
         errors.append("Logo, screenshot, content folder and meta not found. Is your curation structured properly?")
-        archive_cleanup(filename, base_path)
+        archive.close()
         return errors, warnings, None, None, None, None
 
     if set(logo) != set(logo_case):
@@ -422,30 +534,67 @@ def validate_curation(filename: str) -> tuple[list,
         if len(ss) == 0:
             errors.append("Screenshot file is either missing or its filename is incorrect.")
 
+    # Duplicate archive entries with the same screenshot path used to produce
+    # duplicate base64 payloads. Only the final archive entry for a path is read.
+    ss = list(dict.fromkeys(ss))
+    image_candidates = ([('logo', logo[0])] if len(logo) == 1 else []) + [
+        ('screenshot', screenshot) for screenshot in ss
+    ]
+    if len(image_candidates) > max_validation_images:
+        errors.append(
+            f"The archive contains too many validation images "
+            f"(`{len(image_candidates)}/{max_validation_images}`).")
+        image_candidates = image_candidates[:max_validation_images]
+
+    selected_names = set(meta[:1] + [name for _, name in image_candidates])
+    selected_members = {
+        member.filename: member
+        for member in archive_members
+        if member.filename in selected_names
+    }
+    meta_content = None
+    images = []
+    image_requests = []
+    for image_type, image_name in image_candidates:
+        image_size = _member_size(selected_members[image_name])
+        if image_size > max_image_size:
+            errors.append(
+                f"Image `{image_name}` exceeds the {max_image_size // (1024 * 1024)}MB validation limit.")
+        else:
+            image_requests.append((image_type, image_name))
+
+    try:
+        read_requests = {
+            image_name: (selected_members[image_name], max_image_size)
+            for _, image_name in image_requests
+        }
+        if meta:
+            if _member_size(selected_members[meta[0]]) > max_metadata_size:
+                errors.append(
+                    f"Metadata file `{meta[0]}` exceeds the {max_metadata_size // (1024 * 1024)}MB validation limit.")
+            else:
+                read_requests[meta[0]] = (selected_members[meta[0]], max_metadata_size)
+
+        member_data = _read_validation_members(archive, read_requests) if read_requests else {}
+        if meta and meta[0] in member_data:
+            meta_content = member_data[meta[0]]
+        for image_type, image_name in image_requests:
+            images.append({"type": image_type, "data": encode_image(member_data[image_name])})
+    except ValidationMemberTooLarge:
+        errors.append("An archive member exceeded its validation limit while being read.")
+    except Exception as e:
+        archive.close()
+        archive_type = "7z" if filename.endswith(".7z") else "zip"
+        l.error(f"there was an error while reading members from '{filename}': {e}")
+        errors.append(f"There seems to a problem with your {archive_type} file.")
+        return errors, warnings, None, None, None, None
+    archive.close()
+
     # check content
     if content_folder is None:
         errors.append("Content folder not found.")
     else:
-        content_folder_path = base_path + content_folder
-        filecount_in_content = sum([len(files) for r, d, files in os.walk(content_folder_path)])
-        if filecount_in_content == 0:
-            errors.append("No files found in content folder.")
-        # localflash checking
-        if 'localflash' in os.listdir(content_folder_path):
-            files_in_localflash = list(file for file in os.listdir(content_folder_path + '/localflash'))
-            if len(files_in_localflash) > 1:
-                errors.append("Content must be in additional folder in localflash rather than in localflash directly.")
-            else:
-                with open("data/common_localflash_names.json") as f:
-                    bad_localflash_names = json.load(f)["names"]
-                    for file in os.listdir(content_folder_path + '/localflash'):
-                        filepath = content_folder_path + '/localflash/' + file
-                        if os.path.isfile(filepath):
-                            errors.append(
-                                "Content must be in additional folder in localflash rather than in localflash directly.")
-                            break
-                        elif file in bad_localflash_names:
-                            errors.append("Extremely common localflash containing folder name, please change.")
+        _check_content_members(archive_members, content_folder, errors)
     # process meta
     is_extreme = False
     curation_type = None
@@ -453,26 +602,25 @@ def validate_curation(filename: str) -> tuple[list,
     if len(meta) == 0:
         errors.append(
             "Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
+    elif meta_content is None:
+        pass
     else:
         meta_filename = meta[0]
-        l.debug(f"Reading metadata file in: '{base_path + meta_filename}'")
-        with open(base_path + meta_filename, mode='r', encoding='utf8') as meta_file:
+        l.debug(f"Reading metadata file in archive: '{meta_filename}'")
+        with io.StringIO(meta_content.decode("utf8")) as meta_file:
             if meta_filename.endswith(".yml") or meta_filename.endswith(".yaml"):
                 try:
                     yaml = YAML(typ="safe")
                     props: dict = yaml.load(meta_file)
                     if props is None:
                         errors.append("The meta file seems to be empty.")
-                        archive_cleanup(filename, base_path)
                         return errors, warnings, None, None, None, None
                 except YAMLError:
                     errors.append(f"Unable to load meta YAML file")
-                    archive_cleanup(filename, base_path)
                     return errors, warnings, None, None, None, None
                 except ValueError as e:
                     l.debug(f"ValueError reading meta file: {e}")
                     errors.append("Invalid release date. Ensure entered date is valid.")
-                    archive_cleanup(filename, base_path)
                     return errors, warnings, None, None, None, None
             elif meta_filename.endswith(".txt"):
                 break_index: int = 0
@@ -485,7 +633,6 @@ def validate_curation(filename: str) -> tuple[list,
             else:
                 errors.append(
                     "Meta file is either missing or its filename is incorrect. Are you using Flashpoint Core for curating?")
-                archive_cleanup(filename, base_path)
                 return errors, warnings, None, None, None, None
 
         # translate legacy fields
@@ -632,17 +779,6 @@ def validate_curation(filename: str) -> tuple[list,
             else:
                 curation_type = CurationType.OTHER_GAME
 
-    images = []
-
-    if len(logo) == 1:
-        logo = logo[0]
-        image_path = f"{base_path}{logo}"
-        images.append({"type": "logo", "data": encode_image(image_path)})
-
-    for screenshot in ss:
-        image_path = f"{base_path}{screenshot}"
-        images.append({"type": f"screenshot", "data": encode_image(image_path)})
-
     # map add apps to more 'Extras', 'Message' props and an 'Add Apps' array
     addApps = props.get("Additional Applications")
     addAppsArr = []
@@ -668,14 +804,13 @@ def validate_curation(filename: str) -> tuple[list,
         if ruffleSupport not in ["standalone"] and ruffleSupport.strip() != "":
             errors.append(f"Ruffle Support must be '' or a value in '" + str(validRuffleValues) + "'")
 
-    archive_cleanup(filename, base_path)
     return errors, warnings, is_extreme, curation_type, props, images
 
 
-def encode_image(image_path):
-    l.debug(f"encoding file '{image_path}' into base64")
-    with open(image_path, "rb") as f:
-        return base64.b64encode(f.read())
+def encode_image(image_data: bytes):
+    if len(image_data) > max_image_size:
+        raise ValidationMemberTooLarge
+    return base64.b64encode(image_data)
 
 
 def archive_cleanup(filename, base_path):

@@ -1,12 +1,25 @@
 import os
 import asyncio
+import tempfile
+import warnings
+import zipfile
+import py7zr
 import pytest
 import unittest
 from unittest.mock import patch
 from repack import repack
 from datetime import datetime
 
-from curation_validator import validate_curation, CurationType, is_date_more_than_three_years_ago
+from curation_validator import (
+    CurationType,
+    ValidationMemberTooLarge,
+    encode_image,
+    is_date_more_than_three_years_ago,
+    max_archive_members,
+    max_image_size,
+    max_validation_images,
+    validate_curation,
+)
 
 pytest_plugins = ('pytest_asyncio',)
 
@@ -115,6 +128,109 @@ class TestCurationValidator(unittest.TestCase):
     #         errors, warnings, _, _, _, _ = validate_curation(f"test_curations/test_curation_2GB.{extension}")
     #         self.assertCountEqual(errors, [])
     #         self.assertCountEqual(warnings, ["The archive is too large to be validated (`2000MB/1000MB`)."])
+
+    def test_validation_does_not_extract_archive(self):
+        with patch.object(zipfile.ZipFile, "extractall", side_effect=AssertionError("unexpected extraction")), \
+                patch("py7zr.SevenZipFile.extractall", side_effect=AssertionError("unexpected extraction")), \
+                patch("curation_validator.tempfile.mkdtemp", side_effect=AssertionError("unexpected scratch tree")):
+            for extension in ["7z", "zip"]:
+                errors, warnings, _, _, _, _ = validate_curation(
+                    f"test_curations/test_curation_valid.{extension}")
+                self.assertCountEqual(errors, [])
+                self.assertCountEqual(warnings, [])
+
+    def test_archive_member_limit(self):
+        self.assertEqual(max_archive_members, 10_000_000)
+        with patch("curation_validator.max_archive_members", 1), \
+                patch("curation_validator.zipfile.ZipFile", side_effect=AssertionError("archive was indexed")):
+            errors, warnings, _, _, _, _ = validate_curation("test_curations/test_curation_valid.zip")
+        self.assertEqual(errors, ["The archive contains too many members (`14/1`)."])
+        self.assertEqual(warnings, [])
+
+        with patch("curation_validator.max_archive_members", 1):
+            errors, warnings, _, _, _, _ = validate_curation("test_curations/test_curation_valid.7z")
+        self.assertEqual(errors, ["The archive contains too many members (`14/1`)."])
+        self.assertEqual(warnings, [])
+
+    def test_large_zip_content_is_not_extracted(self):
+        with patch("curation_validator.tempfile.mkdtemp", side_effect=AssertionError("unexpected scratch tree")):
+            errors, warnings, _, _, _, images = validate_curation("test_curations/test_curation_2GB.zip")
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertEqual(len(images), 2)
+
+    def test_oversized_image_is_not_encoded(self):
+        self.assertEqual(max_image_size, 16 * 1024 * 1024)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            archive_path = os.path.join(temp_dir, "oversized-logo.zip")
+            with zipfile.ZipFile("test_curations/test_curation_valid.zip", "r") as source, \
+                    zipfile.ZipFile(archive_path, "w") as destination:
+                for member in source.infolist():
+                    data = source.read(member)
+                    if member.filename.endswith("/logo.png"):
+                        data = b"\0" * (max_image_size + 1)
+                    destination.writestr(member, data)
+
+            errors, warnings, _, _, _, images = validate_curation(archive_path)
+
+        self.assertEqual(errors, [
+            "Image `e647a839-c4d8-4c51-8f04-4cf142f1718c/logo.png` exceeds the 16MB validation limit."
+        ])
+        self.assertEqual(warnings, [])
+        self.assertEqual([image["type"] for image in images], ["screenshot"])
+
+    def test_encode_image_enforces_limit(self):
+        with self.assertRaises(ValidationMemberTooLarge):
+            encode_image(b"\0" * (max_image_size + 1))
+
+    def test_validation_image_count_is_bounded(self):
+        self.assertEqual(max_validation_images, 16)
+        with patch("curation_validator.max_validation_images", 1):
+            errors, warnings, _, _, _, images = validate_curation(
+                "test_curations/test_curation_valid.zip")
+        self.assertEqual(errors, ["The archive contains too many validation images (`2/1`)."])
+        self.assertEqual(warnings, [])
+        self.assertEqual([image["type"] for image in images], ["logo"])
+
+    def test_duplicate_screenshot_paths_are_encoded_once(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            archive_path = os.path.join(temp_dir, "duplicate-screenshot.zip")
+            with zipfile.ZipFile("test_curations/test_curation_valid.zip", "r") as source, \
+                    zipfile.ZipFile(archive_path, "w") as destination:
+                screenshot = next(
+                    member for member in source.infolist()
+                    if member.filename.endswith("/ss.png")
+                )
+                screenshot_data = source.read(screenshot)
+                for member in source.infolist():
+                    destination.writestr(member, source.read(member))
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", UserWarning)
+                    for _ in range(3):
+                        destination.writestr(screenshot.filename, screenshot_data)
+
+            errors, validation_warnings, _, _, _, images = validate_curation(archive_path)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(validation_warnings, [])
+        self.assertEqual([image["type"] for image in images], ["logo", "screenshot"])
+
+    def test_7z_reads_selected_members_in_one_pass(self):
+        extract_calls = []
+        original_extract = py7zr.SevenZipFile.extract
+
+        def tracking_extract(archive, *args, **kwargs):
+            extract_calls.append(kwargs.get("targets"))
+            return original_extract(archive, *args, **kwargs)
+
+        with patch.object(py7zr.SevenZipFile, "extract", new=tracking_extract):
+            errors, validation_warnings, _, _, _, _ = validate_curation(
+                "test_curations/test_curation_valid.7z")
+
+        self.assertEqual(errors, [])
+        self.assertEqual(validation_warnings, [])
+        self.assertEqual(len(extract_calls), 1)
+        self.assertEqual(len(extract_calls[0]), 3)
 
     def test_curation_null_languages(self):
         for extension in ["7z", "zip"]:
