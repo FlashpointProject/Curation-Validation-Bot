@@ -24,6 +24,8 @@ from bs4 import BeautifulSoup
 
 l = getLogger("main")
 
+REQUEST_TIMEOUT_SECONDS = 10
+
 
 class CurationType(Enum):
     FLASH_GAME = auto()
@@ -821,14 +823,16 @@ def archive_cleanup(filename, base_path):
 @cached(cache=TTLCache(maxsize=1, ttl=600))
 def get_launch_commands_bluebot() -> list[str]:
     l.debug(f"getting launch commands from bluebot...")
-    resp = requests.get(url="https://bluebot.unstable.life/launch-commands")
+    resp = requests.get(url="https://bluebot.unstable.life/launch-commands", timeout=REQUEST_TIMEOUT_SECONDS)
+    resp.raise_for_status()
     return resp.json()["launch_commands"]
 
 
 @cached(cache=TTLCache(maxsize=1, ttl=600))
 def get_tag_list_bluebot() -> list[str]:
     l.debug(f"getting tags from bluebot...")
-    resp = requests.get(url="https://bluebot.unstable.life/tags")
+    resp = requests.get(url="https://bluebot.unstable.life/tags", timeout=REQUEST_TIMEOUT_SECONDS)
+    resp.raise_for_status()
     return resp.json()["tags"]
 
 
@@ -858,7 +862,8 @@ def get_extreme_tag_list_file() -> list[str]:
 def get_tag_list_wiki() -> list[dict[str, str]]:
     l.debug(f"getting tags from wiki...")
     tags = []
-    resp = requests.get(url="https://flashpointarchive.org/datahub/Tags")
+    resp = requests.get(url="https://flashpointarchive.org/datahub/Tags", timeout=REQUEST_TIMEOUT_SECONDS)
+    resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
     tables = soup.find_all("table")
     for table in tables:

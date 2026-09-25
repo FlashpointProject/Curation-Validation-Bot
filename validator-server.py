@@ -9,6 +9,7 @@ from pydantic import ValidationError
 from repack import repack
 
 from fastapi import FastAPI, File, UploadFile, Response, status, Form
+from fastapi.concurrency import run_in_threadpool
 from typing import Annotated
 import shutil
 
@@ -21,7 +22,7 @@ app = FastAPI()
 
 
 @app.post("/upload")
-async def create_upload_file(response: Response, file: UploadFile = File(...)):
+def create_upload_file(response: Response, file: UploadFile = File(...)):
     l.debug(f"received file '{file.filename}'")
 
     base_path = tempfile.mkdtemp(prefix="curation_validator_")
@@ -60,7 +61,7 @@ async def create_upload_file(response: Response, file: UploadFile = File(...)):
 
 # just hand over absolute path to the file instead of uploading it, saves some unnecessary copying ay?
 @app.post("/provide-path")
-async def provide_file(response: Response, path: str):
+def provide_file(response: Response, path: str):
     try:
         l.debug(f"validating provided file '{path}'")
         curation_errors, curation_warnings, is_extreme, curation_type, meta, image_dict = validate_curation(path)
@@ -87,7 +88,7 @@ async def provide_file(response: Response, path: str):
     }
 
 @app.post("/edit-meta")
-async def edit_meta(response: Response, path: str, metadata: Annotated[str | None, Form()] = None, logo: Annotated[UploadFile | None, File()] = None, screenshot: Annotated[UploadFile | None, File()] = None):
+def edit_meta(response: Response, path: str, metadata: Annotated[str | None, Form()] = None, logo: Annotated[UploadFile | None, File()] = None, screenshot: Annotated[UploadFile | None, File()] = None):
     try:
         l.debug(f"editing meta of provided file '{path}'")
         if metadata:
@@ -119,14 +120,14 @@ async def edit_meta(response: Response, path: str, metadata: Annotated[str | Non
 
 # TODO this does not return all valid tags because the wiki page sucks
 @app.get("/tags")
-async def get_wiki_tags():
+def get_wiki_tags():
     return {"tags": get_tag_list_file() + get_tag_list_wiki()}
 
 @app.post("/pack-path")
 async def pack_path(response: Response, path: str):
     try:
         l.debug(f"validating provided file before import '{path}'")
-        curation_errors, curation_warnings, is_extreme, curation_type, meta, image_dict = validate_curation(path)
+        curation_errors, curation_warnings, is_extreme, curation_type, meta, image_dict = await run_in_threadpool(validate_curation, path)
 
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
